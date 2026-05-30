@@ -433,7 +433,8 @@
   height: min(480px, 58vh);
   min-height: 380px;
   border-radius: var(--cb-admin-radius);
-  background: linear-gradient(180deg, #e2e8f0 0%, #f8fafc 40%, #ffffff 100%);
+  /* Fondo neutro claro: evita que el panel semi-transparente + backdrop-filter se vea gris sucio */
+  background: linear-gradient(180deg, #f8fafc 0%, #ffffff 55%, #ffffff 100%);
   border: 1px solid var(--cb-admin-border);
   overflow: hidden;
   --maicb-offset: 0.65rem;
@@ -544,6 +545,9 @@
   background: var(--maicb-card) !important;
   color: var(--maicb-fg);
   border-color: var(--maicb-border);
+  /* El blur mezcla el simulador gris detrás y apaga todos los temas en la vista previa */
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
 #chatbot-preview-viewport #chatbot-style-preview .maicb-messages {
