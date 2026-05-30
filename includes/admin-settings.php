@@ -426,7 +426,7 @@ class Chatbot_Admin_Settings {
 						class="chatbot-admin-form-divider"
 						role="presentation"
 						aria-hidden="true"
-						style="display:block;height:2.5rem;min-height:2.5rem;margin-top:1.5rem;border-top:2px solid #e2e8f0;box-sizing:border-box;"
+						style="display:block;height:1.25rem;min-height:1.25rem;margin-top:1rem;border-top:1px solid #e2e8f0;box-sizing:border-box;"
 					></div>
 
 					<div class="chatbot-admin-footer">

@@ -269,12 +269,12 @@
 .chatbot-admin-wrap form.chatbot-admin-form > .chatbot-admin-form-divider {
   display: block;
   flex-shrink: 0;
-  height: 2.5rem;
-  min-height: 2.5rem;
-  margin: 1.5rem 0 0;
+  height: 1.25rem;
+  min-height: 1.25rem;
+  margin: 1rem 0 0;
   padding: 0;
   border: 0;
-  border-top: 2px solid var(--cb-admin-border);
+  border-top: 1px solid var(--cb-admin-border);
   box-sizing: border-box;
   background: transparent;
   pointer-events: none;
