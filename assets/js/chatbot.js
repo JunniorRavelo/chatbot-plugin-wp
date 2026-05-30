@@ -282,10 +282,7 @@
       '">' +
       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
       '<path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/>' +
-      "</svg></button></div>" +
-      '<p class="cb-composer-hint">' +
-      (i18n.composerHint || "Enter para enviar") +
-      "</p>";
+      "</svg></button></div>";
 
     const input = composer.querySelector(".cb-input");
     const sendBtn = composer.querySelector(".cb-send");
