@@ -9,7 +9,11 @@
  * Author: J. Santiago Ravelo Velasco
  * Author URI: https://www.linkedin.com/in/jsravelo/
  * Text Domain: chatbot-plugin-wp
- * License: GPL v2 or later
+ * License: GPL-2.0-or-later
+ * License URI: https://www.gnu.org/licenses/gpl-2.0.html
+ *
+ * @package Chatbot_Plugin_WP
+ * @license GPL-2.0-or-later
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
