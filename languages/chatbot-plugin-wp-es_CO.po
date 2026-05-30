@@ -297,6 +297,148 @@ msgstr "Información"
 msgid "Dismiss notice"
 msgstr "Descartar aviso"
 
+#: includes/admin-settings.php
+msgid "Configure visibility, visitor-facing text, and how the assistant behaves."
+msgstr "Configure la visibilidad, los textos para visitantes y el comportamiento del asistente."
+
+#: includes/admin-settings.php
+msgid "Customize appearance"
+msgstr "Personalizar apariencia"
+
+#: includes/admin-settings.php
+msgid "Configure AI model"
+msgstr "Configurar modelo de IA"
+
+#: includes/admin-settings.php
+msgid "Widget"
+msgstr "Widget"
+
+#: includes/admin-settings.php
+msgid "Streaming"
+msgstr "Streaming"
+
+#: includes/admin-settings.php
+msgid "On"
+msgstr "Activado"
+
+#: includes/admin-settings.php
+msgid "Off"
+msgstr "Desactivado"
+
+#: includes/admin-settings.php
+msgid "Widget availability"
+msgstr "Disponibilidad del widget"
+
+#: includes/admin-settings.php
+msgid "Choose whether the chat appears automatically on every page."
+msgstr "Elija si el chat aparece automáticamente en todas las páginas."
+
+#: includes/admin-settings.php
+msgid "While disabled, use the shortcode below to embed the chat on specific pages."
+msgstr "Con el widget desactivado, use el shortcode siguiente para insertar el chat en páginas concretas."
+
+#: includes/admin-settings.php
+msgid "Embed shortcode"
+msgstr "Shortcode de inserción"
+
+#: includes/admin-settings.php
+msgid "Copy shortcode"
+msgstr "Copiar shortcode"
+
+#: includes/admin-settings.php
+msgid "Place this shortcode in a page, post, or block where you want the chat to appear."
+msgstr "Coloque este shortcode en la página, entrada o bloque donde quiera mostrar el chat."
+
+#: includes/admin-settings.php
+msgid "Visitor-facing copy"
+msgstr "Textos para visitantes"
+
+#: includes/admin-settings.php
+msgid "Text shown in the widget header and as the first assistant message."
+msgstr "Texto mostrado en la cabecera del widget y como primer mensaje del asistente."
+
+#: includes/admin-settings.php
+msgid "Shown under the title in the chat header (e.g. status line)."
+msgstr "Se muestra bajo el título en la cabecera del chat (p. ej. línea de estado)."
+
+#: includes/admin-settings.php
+msgid "First message visitors see when they open the chat. Visible to everyone."
+msgstr "Primer mensaje que ven los visitantes al abrir el chat. Visible para todos."
+
+#: includes/admin-settings.php
+msgid "Restore default welcome"
+msgstr "Restaurar bienvenida predeterminada"
+
+#: includes/admin-settings.php
+msgid "AI behavior"
+msgstr "Comportamiento de la IA"
+
+#: includes/admin-settings.php
+msgid "Instructions sent to the model with every request. Visitors do not see this text."
+msgstr "Instrucciones enviadas al modelo en cada solicitud. Los visitantes no ven este texto."
+
+#: includes/admin-settings.php
+msgid "Defines tone, scope, and safety. Not shown in the chat UI."
+msgstr "Define el tono, el alcance y la seguridad. No se muestra en la interfaz del chat."
+
+#: includes/admin-settings.php
+msgid "Model and timeout settings"
+msgstr "Ajustes de modelo y tiempo de espera"
+
+#: includes/admin-settings.php
+msgid "Restore default system prompt"
+msgstr "Restaurar instrucciones del sistema predeterminadas"
+
+#: includes/admin-settings.php
+msgid "Response delivery"
+msgstr "Entrega de respuestas"
+
+#: includes/admin-settings.php
+msgid "How assistant replies appear while the model is generating."
+msgstr "Cómo se muestran las respuestas del asistente mientras el modelo genera."
+
+#: includes/admin-settings.php
+msgid "When enabled, the reply is revealed in small chunks for a typing effect. When disabled, the full message appears at once."
+msgstr "Si está activado, la respuesta se revela en fragmentos para simular escritura. Si está desactivado, el mensaje completo aparece de una vez."
+
+#: includes/admin-settings.php
+msgid "Request timeout"
+msgstr "Tiempo de espera de la solicitud"
+
+#: includes/admin-settings.php
+msgid "Content preview"
+msgstr "Vista previa del contenido"
+
+#: includes/admin-settings.php
+msgid "Interactive: try open/close and see visitor-facing text update instantly."
+msgstr "Interactiva: abra/cierre el panel y vea cómo se actualizan los textos al instante."
+
+#: includes/admin-settings.php
+msgid "Preview uses your saved chat style. Edit appearance under Chat style."
+msgstr "La vista previa usa el estilo guardado del chat. Edite la apariencia en Estilo del chat."
+
+#: includes/admin-settings.php
+msgid "Global widget is disabled. The preview shows how copy would look if enabled."
+msgstr "El widget global está desactivado. La vista previa muestra cómo se verían los textos si estuviera activo."
+
+#: includes/admin-settings.php
+msgid "Restore default welcome message?"
+msgstr "¿Restaurar el mensaje de bienvenida predeterminado?"
+
+#: includes/admin-settings.php
+msgid "Restore default system instructions?"
+msgstr "¿Restaurar las instrucciones del sistema predeterminadas?"
+
+#. translators: 1: current length, 2: max length
+#: includes/admin-settings.php
+#, php-format
+msgid "%1$d / %2$d characters"
+msgstr "%1$d / %2$d caracteres"
+
+#: includes/admin-settings.php
+msgid "The widget is enabled but the title is empty. Visitors may see a blank header until you set a title."
+msgstr "El widget está activado pero el título está vacío. Los visitantes pueden ver una cabecera en blanco hasta que indique un título."
+
 #: includes/admin-settings.php:943
 msgid "Visibility and text"
 msgstr "Visibilidad y texto"

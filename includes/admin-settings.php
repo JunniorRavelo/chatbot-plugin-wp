@@ -188,13 +188,117 @@ class Chatbot_Admin_Settings {
 	 * @param array<string, mixed> $defaults
 	 * @param array<string, mixed> $out
 	 */
+	/**
+	 * @return array<string, int>
+	 */
+	public static function general_field_limits(): array {
+		return array(
+			'widget_title'    => 80,
+			'widget_subtitle' => 120,
+			'welcome_message' => 2000,
+			'system_prompt'   => 8000,
+		);
+	}
+
+	/**
+	 * @param string $value
+	 * @param int    $max
+	 */
+	private static function truncate_setting_string( string $value, int $max ): string {
+		if ( $max < 1 ) {
+			return '';
+		}
+		if ( function_exists( 'mb_substr' ) ) {
+			return mb_substr( $value, 0, $max );
+		}
+
+		return substr( $value, 0, $max );
+	}
+
+	/**
+	 * @param array<string, mixed> $settings
+	 * @return array<string, mixed>
+	 */
+	public static function preview_style_settings_for_js( array $settings ): array {
+		$vars = array();
+		foreach ( array( 'primary' => 'style_primary', 'accent' => 'style_accent', 'radius' => 'style_radius', 'bg' => 'style_bg', 'fg' => 'style_fg' ) as $key => $setting_key ) {
+			$val = trim( (string) ( $settings[ $setting_key ] ?? '' ) );
+			if ( $val !== '' ) {
+				$vars[ $key ] = $val;
+			}
+		}
+
+		$preset = sanitize_key( (string) ( $settings['style_preset'] ?? 'default' ) );
+		if ( ! in_array( $preset, self::style_presets(), true ) ) {
+			$preset = 'default';
+		}
+
+		$position = sanitize_key( (string) ( $settings['style_position'] ?? 'bottom-right' ) );
+		if ( ! in_array( $position, self::style_positions(), true ) ) {
+			$position = 'bottom-right';
+		}
+
+		$preset_auto_dark = sanitize_key( (string) ( $settings['style_preset_auto_dark'] ?? 'dark-glass' ) );
+		if ( ! in_array( $preset_auto_dark, self::style_presets(), true ) ) {
+			$preset_auto_dark = 'dark-glass';
+		}
+
+		return array(
+			'preset'         => $preset,
+			'position'       => $position,
+			'primary'        => (string) ( $vars['primary'] ?? '' ),
+			'accent'         => (string) ( $vars['accent'] ?? '' ),
+			'bg'             => (string) ( $vars['bg'] ?? '' ),
+			'fg'             => (string) ( $vars['fg'] ?? '' ),
+			'radius'         => (string) ( $vars['radius'] ?? '' ),
+			'offset'         => trim( (string) ( $settings['style_offset'] ?? '1rem' ) ) ?: '1rem',
+			'panelWidth'     => trim( (string) ( $settings['style_panel_width'] ?? '' ) ),
+			'panelMaxHeight' => trim( (string) ( $settings['style_panel_max_height'] ?? '' ) ),
+			'fontFamily'     => sanitize_key( (string) ( $settings['style_font_family'] ?? 'system' ) ) ?: 'system',
+			'launcherLabel'  => ! empty( $settings['style_launcher_label'] ),
+			'reduceMotion'   => ! empty( $settings['style_reduce_motion'] ),
+			'presetAuto'     => ! empty( $settings['style_preset_auto'] ),
+			'presetAutoDark' => $preset_auto_dark,
+		);
+	}
+
+	/**
+	 * @param array<string, mixed> $input
+	 * @param array<string, mixed> $current
+	 * @param array<string, mixed> $defaults
+	 * @param array<string, mixed> $out
+	 */
 	private static function sanitize_general_settings( array $input, array $current, array $defaults, array &$out ): void {
-		$out['widget_enabled']  = self::sanitize_checkbox( $input, $current, 'widget_enabled', (bool) $defaults['widget_enabled'] );
-		$out['welcome_message'] = sanitize_textarea_field( $input['welcome_message'] ?? $current['welcome_message'] ?? $defaults['welcome_message'] );
-		$out['system_prompt']   = sanitize_textarea_field( $input['system_prompt'] ?? $current['system_prompt'] ?? $defaults['system_prompt'] );
+		$limits = self::general_field_limits();
+
+		$out['widget_enabled'] = self::sanitize_checkbox( $input, $current, 'widget_enabled', (bool) $defaults['widget_enabled'] );
 		$out['streaming_enabled'] = self::sanitize_checkbox( $input, $current, 'streaming_enabled', (bool) $defaults['streaming_enabled'] );
-		$out['widget_title']    = sanitize_text_field( $input['widget_title'] ?? $current['widget_title'] ?? $defaults['widget_title'] );
-		$out['widget_subtitle'] = sanitize_text_field( $input['widget_subtitle'] ?? $current['widget_subtitle'] ?? $defaults['widget_subtitle'] );
+
+		$out['welcome_message'] = self::truncate_setting_string(
+			sanitize_textarea_field( $input['welcome_message'] ?? $current['welcome_message'] ?? $defaults['welcome_message'] ),
+			$limits['welcome_message']
+		);
+		$out['system_prompt'] = self::truncate_setting_string(
+			sanitize_textarea_field( $input['system_prompt'] ?? $current['system_prompt'] ?? $defaults['system_prompt'] ),
+			$limits['system_prompt']
+		);
+		$out['widget_title'] = self::truncate_setting_string(
+			sanitize_text_field( $input['widget_title'] ?? $current['widget_title'] ?? $defaults['widget_title'] ),
+			$limits['widget_title']
+		);
+		$out['widget_subtitle'] = self::truncate_setting_string(
+			sanitize_text_field( $input['widget_subtitle'] ?? $current['widget_subtitle'] ?? $defaults['widget_subtitle'] ),
+			$limits['widget_subtitle']
+		);
+
+		if ( ! empty( $out['widget_enabled'] ) && '' === trim( (string) $out['widget_title'] ) ) {
+			add_settings_error(
+				'chatbot_plugin_group',
+				'chatbot_empty_widget_title',
+				__( 'The widget is enabled but the title is empty. Visitors may see a blank header until you set a title.', 'chatbot-plugin-wp' ),
+				'warning'
+			);
+		}
 	}
 
 	/**
@@ -572,10 +676,23 @@ class Chatbot_Admin_Settings {
 				$chatbot_css_ver
 			);
 
+			$admin_preview_shared_path = CHATBOT_PLUGIN_PATH . 'assets/js/admin-preview-shared.js';
+			$admin_preview_shared_ver  = file_exists( $admin_preview_shared_path )
+				? (string) filemtime( $admin_preview_shared_path )
+				: CHATBOT_PLUGIN_VERSION;
+
+			wp_enqueue_script(
+				'chatbot-plugin-admin-preview-shared',
+				CHATBOT_PLUGIN_URL . 'assets/js/admin-preview-shared.js',
+				array(),
+				$admin_preview_shared_ver,
+				true
+			);
+
 			wp_enqueue_script(
 				'chatbot-plugin-admin-style',
 				CHATBOT_PLUGIN_URL . 'assets/js/admin-style.js',
-				array( 'wp-color-picker' ),
+				array( 'wp-color-picker', 'chatbot-plugin-admin-preview-shared' ),
 				$admin_style_js_ver,
 				true
 			);
@@ -624,6 +741,93 @@ class Chatbot_Admin_Settings {
 						'contrastWarning'  => __( 'Low contrast between primary color and background; check accessibility.', 'chatbot-plugin-wp' ),
 					),
 					'positionLabels'  => self::style_position_labels(),
+				)
+			);
+		}
+
+		if ( 'general' === $tab ) {
+			$chatbot_css_path = CHATBOT_PLUGIN_PATH . 'assets/css/chatbot.css';
+			$chatbot_css_ver  = file_exists( $chatbot_css_path )
+				? (string) filemtime( $chatbot_css_path )
+				: CHATBOT_PLUGIN_VERSION;
+
+			$admin_preview_shared_path = CHATBOT_PLUGIN_PATH . 'assets/js/admin-preview-shared.js';
+			$admin_preview_shared_ver  = file_exists( $admin_preview_shared_path )
+				? (string) filemtime( $admin_preview_shared_path )
+				: CHATBOT_PLUGIN_VERSION;
+
+			$admin_general_js_path = CHATBOT_PLUGIN_PATH . 'assets/js/admin-general.js';
+			$admin_general_js_ver  = file_exists( $admin_general_js_path )
+				? (string) filemtime( $admin_general_js_path )
+				: CHATBOT_PLUGIN_VERSION;
+
+			wp_enqueue_style(
+				'chatbot-plugin-admin-preview',
+				CHATBOT_PLUGIN_URL . 'assets/css/chatbot.css',
+				array( 'chatbot-plugin-admin' ),
+				$chatbot_css_ver
+			);
+
+			wp_enqueue_script(
+				'chatbot-plugin-admin-preview-shared',
+				CHATBOT_PLUGIN_URL . 'assets/js/admin-preview-shared.js',
+				array(),
+				$admin_preview_shared_ver,
+				true
+			);
+
+			wp_enqueue_script(
+				'chatbot-plugin-admin-general',
+				CHATBOT_PLUGIN_URL . 'assets/js/admin-general.js',
+				array( 'chatbot-plugin-admin-preview-shared' ),
+				$admin_general_js_ver,
+				true
+			);
+
+			$settings  = Chatbot_Plugin::get_settings();
+			$defaults  = self::default_settings();
+
+			wp_localize_script(
+				'chatbot-plugin-admin-general',
+				'chatbotGeneralPreview',
+				array(
+					'optionKey'         => self::OPTION_KEY,
+					'savedStyle'        => self::preview_style_settings_for_js( $settings ),
+					'presets'           => self::style_presets(),
+					'limits'            => self::general_field_limits(),
+					'defaults'          => array(
+						'widget_title'    => (string) $defaults['widget_title'],
+						'widget_subtitle' => (string) $defaults['widget_subtitle'],
+						'welcome_message' => (string) $defaults['welcome_message'],
+						'system_prompt'   => (string) $defaults['system_prompt'],
+					),
+					'shortcode'         => '[chatbot_widget]',
+					'generalFieldNames' => array(
+						'widget_title',
+						'widget_subtitle',
+						'welcome_message',
+					),
+					'i18n'              => array(
+						'openPanel'             => __( 'Open panel', 'chatbot-plugin-wp' ),
+						'closePanel'            => __( 'Close panel', 'chatbot-plugin-wp' ),
+						'openChat'              => __( 'Open chat', 'chatbot-plugin-wp' ),
+						'minimize'              => __( 'Minimize', 'chatbot-plugin-wp' ),
+						'reset'                 => __( 'Reset', 'chatbot-plugin-wp' ),
+						'close'                 => __( 'Close', 'chatbot-plugin-wp' ),
+						'placeholder'           => __( 'Type your message…', 'chatbot-plugin-wp' ),
+						'send'                  => __( 'Send', 'chatbot-plugin-wp' ),
+						'widgetDisabled'        => __( 'Global widget is disabled. The preview shows how copy would look if enabled.', 'chatbot-plugin-wp' ),
+						'widgetEnabled'         => __( 'Enabled', 'chatbot-plugin-wp' ),
+						'widgetDisabledLabel'   => __( 'Disabled', 'chatbot-plugin-wp' ),
+						'streamingOn'           => __( 'On', 'chatbot-plugin-wp' ),
+						'streamingOff'          => __( 'Off', 'chatbot-plugin-wp' ),
+						'copyShortcode'         => __( 'Copy shortcode', 'chatbot-plugin-wp' ),
+						'copied'                => __( 'Copied', 'chatbot-plugin-wp' ),
+						'copyFailed'            => __( 'Could not copy.', 'chatbot-plugin-wp' ),
+						'restoreWelcome'        => __( 'Restore default welcome message?', 'chatbot-plugin-wp' ),
+						'restoreSystemPrompt'   => __( 'Restore default system instructions?', 'chatbot-plugin-wp' ),
+						'charCount'             => __( '%1$d / %2$d characters', 'chatbot-plugin-wp' ),
+					),
 				)
 			);
 		}
@@ -1159,12 +1363,106 @@ class Chatbot_Admin_Settings {
 	}
 
 	/**
+	 * @param string $hint_text
+	 * @param string $position
+	 * @param bool   $show_contrast
+	 */
+	private static function render_content_preview_panel( string $hint_text, string $position, bool $show_contrast = false ): void {
+		?>
+		<div class="chatbot-admin-preview-card">
+			<div class="chatbot-admin-card">
+				<div class="chatbot-admin-card__head chatbot-admin-preview__head">
+					<div>
+						<h2><?php esc_html_e( 'Content preview', 'chatbot-plugin-wp' ); ?></h2>
+						<p><?php esc_html_e( 'Interactive: try open/close and see visitor-facing text update instantly.', 'chatbot-plugin-wp' ); ?></p>
+					</div>
+					<button type="button" class="button button-secondary" id="chatbot-preview-toggle" aria-pressed="false">
+						<?php esc_html_e( 'Open panel', 'chatbot-plugin-wp' ); ?>
+					</button>
+				</div>
+				<div class="chatbot-admin-card__body">
+					<div class="chatbot-admin-preview">
+						<div
+							class="chatbot-admin-preview__viewport"
+							id="chatbot-preview-viewport"
+							data-preview-position="<?php echo esc_attr( $position ); ?>"
+							data-preview-panel-open="false"
+							aria-label="<?php esc_attr_e( 'Web page simulation', 'chatbot-plugin-wp' ); ?>"
+						>
+							<div class="chatbot-admin-preview__page-mock">
+								<span></span><span></span><span></span>
+							</div>
+							<div class="maicb-preview-widget-host" aria-hidden="false"></div>
+							<div class="chatbot-admin-preview__disabled-overlay" id="chatbot-preview-disabled-overlay" hidden>
+								<p id="chatbot-preview-disabled-text"></p>
+							</div>
+						</div>
+						<p class="chatbot-admin-preview__hint" id="chatbot-preview-hint"><?php echo esc_html( $hint_text ); ?></p>
+						<?php if ( $show_contrast ) : ?>
+							<p class="chatbot-admin-preview__contrast" id="chatbot-preview-contrast" hidden role="status"></p>
+						<?php endif; ?>
+					</div>
+				</div>
+			</div>
+		</div>
+		<?php
+	}
+
+	/**
 	 * @param array<string, mixed> $settings
 	 */
 	private static function render_general_fields( array $settings ): void {
+		$defaults     = self::default_settings();
+		$limits       = self::general_field_limits();
+		$widget_on    = ! empty( $settings['widget_enabled'] );
+		$streaming_on = ! empty( $settings['streaming_enabled'] );
+		$position     = sanitize_key( (string) ( $settings['style_position'] ?? 'bottom-right' ) );
+		if ( ! in_array( $position, self::style_positions(), true ) ) {
+			$position = 'bottom-right';
+		}
+
+		$style_url = admin_url( 'admin.php?page=chatbot-plugin&tab=style' );
+		$model_url = admin_url( 'admin.php?page=chatbot-plugin&tab=model' );
+		?>
+		<div class="chatbot-admin-general-toolbar">
+			<div class="chatbot-admin-general-toolbar__intro">
+				<p><?php esc_html_e( 'Configure visibility, visitor-facing text, and how the assistant behaves.', 'chatbot-plugin-wp' ); ?></p>
+				<p class="chatbot-admin-general-toolbar__links">
+					<a href="<?php echo esc_url( $style_url ); ?>"><?php esc_html_e( 'Customize appearance', 'chatbot-plugin-wp' ); ?></a>
+					<span aria-hidden="true">·</span>
+					<a href="<?php echo esc_url( $model_url ); ?>"><?php esc_html_e( 'Configure AI model', 'chatbot-plugin-wp' ); ?></a>
+				</p>
+			</div>
+			<div class="chatbot-admin-kpi-grid chatbot-admin-kpi-grid--general">
+				<div class="chatbot-admin-kpi <?php echo $widget_on ? 'chatbot-admin-kpi--success' : ''; ?>">
+					<span class="chatbot-admin-kpi__label"><?php esc_html_e( 'Widget', 'chatbot-plugin-wp' ); ?></span>
+					<span class="chatbot-admin-kpi__value" id="chatbot-general-kpi-widget">
+						<?php
+						echo $widget_on
+							? esc_html__( 'Enabled', 'chatbot-plugin-wp' )
+							: esc_html__( 'Disabled', 'chatbot-plugin-wp' );
+						?>
+					</span>
+				</div>
+				<div class="chatbot-admin-kpi">
+					<span class="chatbot-admin-kpi__label"><?php esc_html_e( 'Streaming', 'chatbot-plugin-wp' ); ?></span>
+					<span class="chatbot-admin-kpi__value" id="chatbot-general-kpi-streaming">
+						<?php
+						echo $streaming_on
+							? esc_html__( 'On', 'chatbot-plugin-wp' )
+							: esc_html__( 'Off', 'chatbot-plugin-wp' );
+						?>
+					</span>
+				</div>
+			</div>
+		</div>
+
+		<div class="chatbot-admin-layout chatbot-admin-layout--split">
+			<div class="chatbot-admin-general-fields">
+		<?php
 		self::card_open(
-			__( 'Visibility and text', 'chatbot-plugin-wp' ),
-			__( 'Control where the chat appears and the messages visitors see.', 'chatbot-plugin-wp' )
+			__( 'Widget availability', 'chatbot-plugin-wp' ),
+			__( 'Choose whether the chat appears automatically on every page.', 'chatbot-plugin-wp' )
 		);
 		?>
 		<table class="form-table" role="presentation">
@@ -1173,32 +1471,84 @@ class Chatbot_Admin_Settings {
 				<td>
 					<label class="chatbot-admin-toggle">
 						<input type="hidden" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[widget_enabled]" value="0" />
-						<input type="checkbox" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[widget_enabled]" value="1" <?php checked( ! empty( $settings['widget_enabled'] ) ); ?> />
+						<input type="checkbox" id="chatbot-widget-enabled" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[widget_enabled]" value="1" <?php checked( $widget_on ); ?> />
 						<span><?php esc_html_e( 'Show site-wide (wp_footer)', 'chatbot-plugin-wp' ); ?></span>
 					</label>
-					<p class="description"><?php esc_html_e( 'You can also use the shortcode [chatbot_widget].', 'chatbot-plugin-wp' ); ?></p>
+					<?php if ( ! $widget_on ) : ?>
+						<p class="description chatbot-admin-general-notice"><?php esc_html_e( 'While disabled, use the shortcode below to embed the chat on specific pages.', 'chatbot-plugin-wp' ); ?></p>
+					<?php endif; ?>
+				</td>
+			</tr>
+		</table>
+		<div class="chatbot-admin-embed-box">
+			<label for="chatbot-shortcode-display" class="chatbot-admin-embed-box__label"><?php esc_html_e( 'Embed shortcode', 'chatbot-plugin-wp' ); ?></label>
+			<div class="chatbot-admin-embed-box__row">
+				<input type="text" id="chatbot-shortcode-display" class="large-text code" readonly value="[chatbot_widget]" />
+				<button type="button" class="button button-secondary" id="chatbot-copy-shortcode"><?php esc_html_e( 'Copy shortcode', 'chatbot-plugin-wp' ); ?></button>
+			</div>
+			<p class="description"><?php esc_html_e( 'Place this shortcode in a page, post, or block where you want the chat to appear.', 'chatbot-plugin-wp' ); ?></p>
+		</div>
+		<?php
+		self::card_close();
+
+		self::card_open(
+			__( 'Visitor-facing copy', 'chatbot-plugin-wp' ),
+			__( 'Text shown in the widget header and as the first assistant message.', 'chatbot-plugin-wp' )
+		);
+		?>
+		<table class="form-table" role="presentation">
+			<tr>
+				<th scope="row"><?php esc_html_e( 'Widget title', 'chatbot-plugin-wp' ); ?></th>
+				<td>
+					<input
+						type="text"
+						class="regular-text chatbot-admin-char-field"
+						name="<?php echo esc_attr( self::OPTION_KEY ); ?>[widget_title]"
+						id="chatbot-widget-title"
+						value="<?php echo esc_attr( (string) $settings['widget_title'] ); ?>"
+						maxlength="<?php echo esc_attr( (string) $limits['widget_title'] ); ?>"
+						placeholder="<?php echo esc_attr( (string) $defaults['widget_title'] ); ?>"
+						data-char-max="<?php echo esc_attr( (string) $limits['widget_title'] ); ?>"
+					/>
+					<p class="chatbot-admin-char-count" data-char-for="chatbot-widget-title" aria-live="polite"></p>
+				</td>
+			</tr>
+			<tr>
+				<th scope="row"><?php esc_html_e( 'Subtitle', 'chatbot-plugin-wp' ); ?></th>
+				<td>
+					<input
+						type="text"
+						class="regular-text chatbot-admin-char-field"
+						name="<?php echo esc_attr( self::OPTION_KEY ); ?>[widget_subtitle]"
+						id="chatbot-widget-subtitle"
+						value="<?php echo esc_attr( (string) $settings['widget_subtitle'] ); ?>"
+						maxlength="<?php echo esc_attr( (string) $limits['widget_subtitle'] ); ?>"
+						placeholder="<?php echo esc_attr( (string) $defaults['widget_subtitle'] ); ?>"
+						data-char-max="<?php echo esc_attr( (string) $limits['widget_subtitle'] ); ?>"
+					/>
+					<p class="chatbot-admin-char-count" data-char-for="chatbot-widget-subtitle" aria-live="polite"></p>
+					<p class="description"><?php esc_html_e( 'Shown under the title in the chat header (e.g. status line).', 'chatbot-plugin-wp' ); ?></p>
 				</td>
 			</tr>
 			<tr>
 				<th scope="row"><?php esc_html_e( 'Welcome message', 'chatbot-plugin-wp' ); ?></th>
 				<td>
-					<textarea name="<?php echo esc_attr( self::OPTION_KEY ); ?>[welcome_message]" rows="4" class="large-text"><?php echo esc_textarea( (string) $settings['welcome_message'] ); ?></textarea>
-				</td>
-			</tr>
-			<tr>
-				<th scope="row"><?php esc_html_e( 'System instructions', 'chatbot-plugin-wp' ); ?></th>
-				<td>
-					<textarea name="<?php echo esc_attr( self::OPTION_KEY ); ?>[system_prompt]" rows="5" class="large-text"><?php echo esc_textarea( (string) $settings['system_prompt'] ); ?></textarea>
-				</td>
-			</tr>
-			<tr>
-				<th scope="row"><?php esc_html_e( 'Simulated streaming', 'chatbot-plugin-wp' ); ?></th>
-				<td>
-					<label class="chatbot-admin-toggle">
-						<input type="hidden" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[streaming_enabled]" value="0" />
-						<input type="checkbox" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[streaming_enabled]" value="1" <?php checked( ! empty( $settings['streaming_enabled'] ) ); ?> />
-						<span><?php esc_html_e( 'Enable chunked response', 'chatbot-plugin-wp' ); ?></span>
-					</label>
+					<textarea
+						name="<?php echo esc_attr( self::OPTION_KEY ); ?>[welcome_message]"
+						id="chatbot-welcome-message"
+						rows="4"
+						class="large-text chatbot-admin-char-field"
+						maxlength="<?php echo esc_attr( (string) $limits['welcome_message'] ); ?>"
+						placeholder="<?php echo esc_attr( (string) $defaults['welcome_message'] ); ?>"
+						data-char-max="<?php echo esc_attr( (string) $limits['welcome_message'] ); ?>"
+					><?php echo esc_textarea( (string) $settings['welcome_message'] ); ?></textarea>
+					<p class="chatbot-admin-char-count" data-char-for="chatbot-welcome-message" aria-live="polite"></p>
+					<p class="description"><?php esc_html_e( 'First message visitors see when they open the chat. Visible to everyone.', 'chatbot-plugin-wp' ); ?></p>
+					<p class="chatbot-admin-field-actions">
+						<button type="button" class="button button-secondary" id="chatbot-restore-welcome" data-default="<?php echo esc_attr( (string) $defaults['welcome_message'] ); ?>">
+							<?php esc_html_e( 'Restore default welcome', 'chatbot-plugin-wp' ); ?>
+						</button>
+					</p>
 				</td>
 			</tr>
 		</table>
@@ -1206,26 +1556,73 @@ class Chatbot_Admin_Settings {
 		self::card_close();
 
 		self::card_open(
-			__( 'Widget header', 'chatbot-plugin-wp' ),
-			__( 'Title and subtitle shown in the chat top bar.', 'chatbot-plugin-wp' )
+			__( 'AI behavior', 'chatbot-plugin-wp' ),
+			__( 'Instructions sent to the model with every request. Visitors do not see this text.', 'chatbot-plugin-wp' )
 		);
 		?>
 		<table class="form-table" role="presentation">
 			<tr>
-				<th scope="row"><?php esc_html_e( 'Widget title', 'chatbot-plugin-wp' ); ?></th>
+				<th scope="row"><?php esc_html_e( 'System instructions', 'chatbot-plugin-wp' ); ?></th>
 				<td>
-					<input type="text" class="regular-text" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[widget_title]" value="<?php echo esc_attr( (string) $settings['widget_title'] ); ?>" />
-				</td>
-			</tr>
-			<tr>
-				<th scope="row"><?php esc_html_e( 'Subtitle', 'chatbot-plugin-wp' ); ?></th>
-				<td>
-					<input type="text" class="regular-text" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[widget_subtitle]" value="<?php echo esc_attr( (string) $settings['widget_subtitle'] ); ?>" />
+					<textarea
+						name="<?php echo esc_attr( self::OPTION_KEY ); ?>[system_prompt]"
+						id="chatbot-system-prompt"
+						rows="6"
+						class="large-text chatbot-admin-char-field"
+						maxlength="<?php echo esc_attr( (string) $limits['system_prompt'] ); ?>"
+						placeholder="<?php echo esc_attr( (string) $defaults['system_prompt'] ); ?>"
+						data-char-max="<?php echo esc_attr( (string) $limits['system_prompt'] ); ?>"
+					><?php echo esc_textarea( (string) $settings['system_prompt'] ); ?></textarea>
+					<p class="chatbot-admin-char-count" data-char-for="chatbot-system-prompt" aria-live="polite"></p>
+					<p class="description">
+						<?php esc_html_e( 'Defines tone, scope, and safety. Not shown in the chat UI.', 'chatbot-plugin-wp' ); ?>
+						<a href="<?php echo esc_url( $model_url ); ?>"><?php esc_html_e( 'Model and timeout settings', 'chatbot-plugin-wp' ); ?></a>
+					</p>
+					<p class="chatbot-admin-field-actions">
+						<button type="button" class="button button-secondary" id="chatbot-restore-system-prompt" data-default="<?php echo esc_attr( (string) $defaults['system_prompt'] ); ?>">
+							<?php esc_html_e( 'Restore default system prompt', 'chatbot-plugin-wp' ); ?>
+						</button>
+					</p>
 				</td>
 			</tr>
 		</table>
 		<?php
 		self::card_close();
+
+		self::card_open(
+			__( 'Response delivery', 'chatbot-plugin-wp' ),
+			__( 'How assistant replies appear while the model is generating.', 'chatbot-plugin-wp' )
+		);
+		?>
+		<table class="form-table" role="presentation">
+			<tr>
+				<th scope="row"><?php esc_html_e( 'Simulated streaming', 'chatbot-plugin-wp' ); ?></th>
+				<td>
+					<label class="chatbot-admin-toggle">
+						<input type="hidden" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[streaming_enabled]" value="0" />
+						<input type="checkbox" id="chatbot-streaming-enabled" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[streaming_enabled]" value="1" <?php checked( $streaming_on ); ?> />
+						<span><?php esc_html_e( 'Enable chunked response', 'chatbot-plugin-wp' ); ?></span>
+					</label>
+					<p class="description">
+						<?php esc_html_e( 'When enabled, the reply is revealed in small chunks for a typing effect. When disabled, the full message appears at once.', 'chatbot-plugin-wp' ); ?>
+						<a href="<?php echo esc_url( $model_url ); ?>"><?php esc_html_e( 'Request timeout', 'chatbot-plugin-wp' ); ?></a>
+					</p>
+				</td>
+			</tr>
+		</table>
+		<?php
+		self::card_close();
+		?>
+			</div>
+		<?php
+		self::render_content_preview_panel(
+			__( 'Preview uses your saved chat style. Edit appearance under Chat style.', 'chatbot-plugin-wp' ),
+			$position,
+			false
+		);
+		?>
+		</div>
+		<?php
 	}
 
 	/**
@@ -1727,28 +2124,13 @@ class Chatbot_Admin_Settings {
 		self::card_close();
 		?>
 			</div>
-			<div class="chatbot-admin-preview-card">
-				<div class="chatbot-admin-card">
-					<div class="chatbot-admin-card__head chatbot-admin-preview__head">
-						<h2><?php esc_html_e( 'Preview', 'chatbot-plugin-wp' ); ?></h2>
-						<button type="button" class="button button-secondary" id="chatbot-preview-toggle" aria-pressed="false">
-							<?php esc_html_e( 'Open panel', 'chatbot-plugin-wp' ); ?>
-						</button>
-					</div>
-					<div class="chatbot-admin-card__body">
-						<div class="chatbot-admin-preview">
-							<div class="chatbot-admin-preview__viewport" id="chatbot-preview-viewport" data-preview-position="<?php echo esc_attr( $position ); ?>" data-preview-panel-open="false" aria-label="<?php esc_attr_e( 'Web page simulation', 'chatbot-plugin-wp' ); ?>">
-								<div class="chatbot-admin-preview__page-mock">
-									<span></span><span></span><span></span>
-								</div>
-								<div class="maicb-preview-widget-host" aria-hidden="false"></div>
-							</div>
-							<p class="chatbot-admin-preview__hint" id="chatbot-preview-hint"><?php esc_html_e( 'The preview reflects theme, position, and styles instantly. Save to apply them on the public site.', 'chatbot-plugin-wp' ); ?></p>
-							<p class="chatbot-admin-preview__contrast" id="chatbot-preview-contrast" hidden role="status"></p>
-						</div>
-					</div>
-				</div>
-			</div>
+		<?php
+		self::render_content_preview_panel(
+			__( 'The preview reflects theme, position, and styles instantly. Save to apply them on the public site.', 'chatbot-plugin-wp' ),
+			$position,
+			true
+		);
+		?>
 		</div>
 		<?php
 	}

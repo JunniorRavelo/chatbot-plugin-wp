@@ -293,6 +293,148 @@ msgstr ""
 msgid "Dismiss notice"
 msgstr ""
 
+#: includes/admin-settings.php
+msgid "Configure visibility, visitor-facing text, and how the assistant behaves."
+msgstr ""
+
+#: includes/admin-settings.php
+msgid "Customize appearance"
+msgstr ""
+
+#: includes/admin-settings.php
+msgid "Configure AI model"
+msgstr ""
+
+#: includes/admin-settings.php
+msgid "Widget"
+msgstr ""
+
+#: includes/admin-settings.php
+msgid "Streaming"
+msgstr ""
+
+#: includes/admin-settings.php
+msgid "On"
+msgstr ""
+
+#: includes/admin-settings.php
+msgid "Off"
+msgstr ""
+
+#: includes/admin-settings.php
+msgid "Widget availability"
+msgstr ""
+
+#: includes/admin-settings.php
+msgid "Choose whether the chat appears automatically on every page."
+msgstr ""
+
+#: includes/admin-settings.php
+msgid "While disabled, use the shortcode below to embed the chat on specific pages."
+msgstr ""
+
+#: includes/admin-settings.php
+msgid "Embed shortcode"
+msgstr ""
+
+#: includes/admin-settings.php
+msgid "Copy shortcode"
+msgstr ""
+
+#: includes/admin-settings.php
+msgid "Place this shortcode in a page, post, or block where you want the chat to appear."
+msgstr ""
+
+#: includes/admin-settings.php
+msgid "Visitor-facing copy"
+msgstr ""
+
+#: includes/admin-settings.php
+msgid "Text shown in the widget header and as the first assistant message."
+msgstr ""
+
+#: includes/admin-settings.php
+msgid "Shown under the title in the chat header (e.g. status line)."
+msgstr ""
+
+#: includes/admin-settings.php
+msgid "First message visitors see when they open the chat. Visible to everyone."
+msgstr ""
+
+#: includes/admin-settings.php
+msgid "Restore default welcome"
+msgstr ""
+
+#: includes/admin-settings.php
+msgid "AI behavior"
+msgstr ""
+
+#: includes/admin-settings.php
+msgid "Instructions sent to the model with every request. Visitors do not see this text."
+msgstr ""
+
+#: includes/admin-settings.php
+msgid "Defines tone, scope, and safety. Not shown in the chat UI."
+msgstr ""
+
+#: includes/admin-settings.php
+msgid "Model and timeout settings"
+msgstr ""
+
+#: includes/admin-settings.php
+msgid "Restore default system prompt"
+msgstr ""
+
+#: includes/admin-settings.php
+msgid "Response delivery"
+msgstr ""
+
+#: includes/admin-settings.php
+msgid "How assistant replies appear while the model is generating."
+msgstr ""
+
+#: includes/admin-settings.php
+msgid "When enabled, the reply is revealed in small chunks for a typing effect. When disabled, the full message appears at once."
+msgstr ""
+
+#: includes/admin-settings.php
+msgid "Request timeout"
+msgstr ""
+
+#: includes/admin-settings.php
+msgid "Content preview"
+msgstr ""
+
+#: includes/admin-settings.php
+msgid "Interactive: try open/close and see visitor-facing text update instantly."
+msgstr ""
+
+#: includes/admin-settings.php
+msgid "Preview uses your saved chat style. Edit appearance under Chat style."
+msgstr ""
+
+#: includes/admin-settings.php
+msgid "Global widget is disabled. The preview shows how copy would look if enabled."
+msgstr ""
+
+#: includes/admin-settings.php
+msgid "Restore default welcome message?"
+msgstr ""
+
+#: includes/admin-settings.php
+msgid "Restore default system instructions?"
+msgstr ""
+
+#. translators: 1: current length, 2: max length
+#: includes/admin-settings.php
+#, php-format
+msgid "%1$d / %2$d characters"
+msgstr ""
+
+#: includes/admin-settings.php
+msgid "The widget is enabled but the title is empty. Visitors may see a blank header until you set a title."
+msgstr ""
+
 #: includes/admin-settings.php:943
 msgid "Visibility and text"
 msgstr ""
