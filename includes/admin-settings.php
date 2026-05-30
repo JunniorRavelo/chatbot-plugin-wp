@@ -227,7 +227,7 @@ class Chatbot_Admin_Settings {
 	 * @return list<string>
 	 */
 	public static function style_presets(): array {
-		return array( 'default', 'dark-glass', 'minimal', 'ocean' );
+		return array( 'default', 'dark-glass', 'minimal', 'ocean', 'sunset', 'forest' );
 	}
 
 	/**
@@ -275,6 +275,20 @@ class Chatbot_Admin_Settings {
 				'badge'      => __( 'Claro', 'chatbot-plugin-wp' ),
 				'badge_type' => 'light',
 				'colors'     => array( '#0e7490', '#22d3ee', '#f0fdff' ),
+			),
+			'sunset'     => array(
+				'label'      => __( 'Ember', 'chatbot-plugin-wp' ),
+				'desc'       => __( 'Naranja cálido con acentos rosa. Acogedor y enérgico.', 'chatbot-plugin-wp' ),
+				'badge'      => __( 'Claro', 'chatbot-plugin-wp' ),
+				'badge_type' => 'light',
+				'colors'     => array( '#ea580c', '#f43f5e', '#fff7ed' ),
+			),
+			'forest'     => array(
+				'label'      => __( 'Emerald', 'chatbot-plugin-wp' ),
+				'desc'       => __( 'Verde esmeralda con fondos naturales. Calmo y confiable.', 'chatbot-plugin-wp' ),
+				'badge'      => __( 'Claro', 'chatbot-plugin-wp' ),
+				'badge_type' => 'light',
+				'colors'     => array( '#059669', '#34d399', '#ecfdf5' ),
 			),
 		);
 	}

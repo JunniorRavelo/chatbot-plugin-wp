@@ -1,7 +1,7 @@
 (function () {
   "use strict";
 
-  const PRESETS = ["default", "dark-glass", "minimal", "ocean"];
+  const PRESETS = ["default", "dark-glass", "minimal", "ocean", "sunset", "forest"];
   const POSITIONS = [
     "bottom-right",
     "center-right",
