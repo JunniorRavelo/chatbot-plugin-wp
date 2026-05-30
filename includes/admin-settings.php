@@ -150,11 +150,16 @@ class Chatbot_Admin_Settings {
 			return;
 		}
 
+		$admin_css_path = CHATBOT_PLUGIN_PATH . 'assets/css/admin.css';
+		$admin_css_ver  = file_exists( $admin_css_path )
+			? (string) filemtime( $admin_css_path )
+			: CHATBOT_PLUGIN_VERSION;
+
 		wp_enqueue_style(
 			'chatbot-plugin-admin',
 			CHATBOT_PLUGIN_URL . 'assets/css/admin.css',
 			array(),
-			CHATBOT_PLUGIN_VERSION
+			$admin_css_ver
 		);
 
 		$tab = isset( $_GET['tab'] ) ? sanitize_key( wp_unslash( (string) $_GET['tab'] ) ) : 'general';
@@ -416,6 +421,13 @@ class Chatbot_Admin_Settings {
 							<?php self::render_style_fields( $settings ); ?>
 						<?php endif; ?>
 					</div>
+
+					<div
+						class="chatbot-admin-form-divider"
+						role="presentation"
+						aria-hidden="true"
+						style="display:block;height:2.5rem;min-height:2.5rem;margin-top:1.5rem;border-top:2px solid #e2e8f0;box-sizing:border-box;"
+					></div>
 
 					<div class="chatbot-admin-footer">
 						<?php submit_button( __( 'Guardar cambios', 'chatbot-plugin-wp' ), 'primary', 'submit', false ); ?>
