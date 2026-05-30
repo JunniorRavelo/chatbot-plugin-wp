@@ -1516,8 +1516,7 @@ class Chatbot_Admin_Settings {
 		for ( $i = $start; $i <= $end; $i++ ) {
 			$page_args          = $base_args;
 			$page_args['paged'] = $i;
-			$class              = $page === $i ? ' class="is-active"' : '';
-			echo '<a href="' . esc_url( self::build_stats_url( $page_args ) ) . '"' . $class . '>' . esc_html( (string) $i ) . '</a>';
+			echo '<a href="' . esc_url( self::build_stats_url( $page_args ) ) . '" class="' . esc_attr( $page === $i ? 'is-active' : '' ) . '">' . esc_html( (string) $i ) . '</a>';
 		}
 		echo '</span>';
 
@@ -2074,8 +2073,7 @@ class Chatbot_Admin_Settings {
 		for ( $i = $start; $i <= $end; $i++ ) {
 			$page_args          = $base_args;
 			$page_args['paged'] = $i;
-			$class              = $page === $i ? ' class="is-active"' : '';
-			echo '<a href="' . esc_url( self::build_history_url( $page_args ) ) . '"' . $class . '>' . esc_html( (string) $i ) . '</a>';
+			echo '<a href="' . esc_url( self::build_history_url( $page_args ) ) . '" class="' . esc_attr( $page === $i ? 'is-active' : '' ) . '">' . esc_html( (string) $i ) . '</a>';
 		}
 		echo '</span>';
 
