@@ -19,7 +19,7 @@ class Chatbot_Provider_DeepSeek implements Chatbot_AI_Provider {
 		if ( '' === $api_key ) {
 			return new WP_Error(
 				'configuration_error',
-				__( 'La API key de DeepSeek no está configurada.', 'chatbot-plugin-wp' ),
+				__( 'DeepSeek API key is not configured.', 'chatbot-plugin-wp' ),
 				array( 'status' => 503, 'error_code' => 'CONFIGURATION_ERROR' )
 			);
 		}
@@ -53,7 +53,7 @@ class Chatbot_Provider_DeepSeek implements Chatbot_AI_Provider {
 			if ( is_wp_error( $response ) ) {
 				$last_error = new WP_Error(
 					'provider_timeout',
-					__( 'No se pudo conectar con DeepSeek. Verifica que el servidor pueda acceder a api.deepseek.com.', 'chatbot-plugin-wp' ),
+					__( 'Could not connect to DeepSeek. Verify that the server can reach api.deepseek.com.', 'chatbot-plugin-wp' ),
 					array( 'status' => 504, 'error_code' => 'PROVIDER_TIMEOUT' )
 				);
 				continue;
@@ -69,7 +69,7 @@ class Chatbot_Provider_DeepSeek implements Chatbot_AI_Provider {
 			if ( 429 === $code ) {
 				$last_error = new WP_Error(
 					'rate_limit_model',
-					__( 'Se alcanzó el límite de DeepSeek. Intenta nuevamente en breve.', 'chatbot-plugin-wp' ),
+					__( 'DeepSeek rate limit reached. Please try again shortly.', 'chatbot-plugin-wp' ),
 					array( 'status' => 429, 'error_code' => 'RATE_LIMIT_MODEL_MINUTE', 'retry_after' => 60 )
 				);
 				continue;
@@ -100,7 +100,7 @@ class Chatbot_Provider_DeepSeek implements Chatbot_AI_Provider {
 
 		return new WP_Error(
 			'model_temp_unavailable',
-			__( 'Los modelos de DeepSeek no están disponibles. Usa deepseek-chat o deepseek-v4-flash en Modelo IA.', 'chatbot-plugin-wp' ),
+			__( 'DeepSeek models are not available. Use deepseek-chat or deepseek-v4-flash in AI Model.', 'chatbot-plugin-wp' ),
 			array( 'status' => 503, 'error_code' => 'MODEL_TEMP_UNAVAILABLE' )
 		);
 	}
@@ -179,7 +179,7 @@ class Chatbot_Provider_DeepSeek implements Chatbot_AI_Provider {
 		if ( 401 === $code || 403 === $code ) {
 			return new WP_Error(
 				'configuration_error',
-				'' !== $message ? $message : __( 'La API key de DeepSeek no es válida.', 'chatbot-plugin-wp' ),
+				'' !== $message ? $message : __( 'DeepSeek API key is invalid.', 'chatbot-plugin-wp' ),
 				array( 'status' => 503, 'error_code' => 'CONFIGURATION_ERROR' )
 			);
 		}
@@ -187,7 +187,7 @@ class Chatbot_Provider_DeepSeek implements Chatbot_AI_Provider {
 		if ( 402 === $code ) {
 			return new WP_Error(
 				'configuration_error',
-				'' !== $message ? $message : __( 'La cuenta de DeepSeek no tiene saldo disponible.', 'chatbot-plugin-wp' ),
+				'' !== $message ? $message : __( 'DeepSeek account has no available balance.', 'chatbot-plugin-wp' ),
 				array( 'status' => 503, 'error_code' => 'CONFIGURATION_ERROR' )
 			);
 		}
@@ -195,14 +195,14 @@ class Chatbot_Provider_DeepSeek implements Chatbot_AI_Provider {
 		if ( 400 === $code || 404 === $code ) {
 			return new WP_Error(
 				'model_temp_unavailable',
-				'' !== $message ? $message : __( 'El modelo de DeepSeek no es válido o no está disponible.', 'chatbot-plugin-wp' ),
+				'' !== $message ? $message : __( 'DeepSeek model is invalid or unavailable.', 'chatbot-plugin-wp' ),
 				array( 'status' => 503, 'error_code' => 'MODEL_TEMP_UNAVAILABLE' )
 			);
 		}
 
 		return new WP_Error(
 			'provider_upstream',
-			'' !== $message ? $message : __( 'DeepSeek devolvió un error.', 'chatbot-plugin-wp' ),
+			'' !== $message ? $message : __( 'DeepSeek returned an error.', 'chatbot-plugin-wp' ),
 			array( 'status' => 502, 'error_code' => 'PROVIDER_UPSTREAM' )
 		);
 	}

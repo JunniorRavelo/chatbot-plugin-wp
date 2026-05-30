@@ -108,7 +108,7 @@ class Chatbot_Enqueue {
 				'nonce'          => wp_create_nonce( 'wp_rest' ),
 				'streaming'      => ! empty( $settings['streaming_enabled'] ),
 				'welcomeMessage' => (string) ( $settings['welcome_message'] ?? '' ),
-				'widgetTitle'    => (string) ( $settings['widget_title'] ?? 'Agente IA' ),
+				'widgetTitle'    => (string) ( $settings['widget_title'] ?? 'AI Agent' ),
 				'widgetSubtitle' => (string) ( $settings['widget_subtitle'] ?? '' ),
 				'style'          => array(
 					'preset'        => (string) ( $settings['style_preset'] ?? 'default' ),
@@ -120,15 +120,15 @@ class Chatbot_Enqueue {
 				),
 				'mode'           => $mode,
 				'i18n'           => array(
-					'placeholder'   => __( 'Escribe tu mensaje…', 'chatbot-plugin-wp' ),
-					'send'          => __( 'Enviar', 'chatbot-plugin-wp' ),
-					'openLabel'     => __( 'Abrir chat', 'chatbot-plugin-wp' ),
-					'closeLabel'    => __( 'Cerrar chat', 'chatbot-plugin-wp' ),
-					'resetLabel'    => __( 'Reiniciar chat', 'chatbot-plugin-wp' ),
-					'minimizeLabel' => __( 'Minimizar chat', 'chatbot-plugin-wp' ),
-					'onlineLabel'   => __( 'Sistema en línea', 'chatbot-plugin-wp' ),
-					'thinking'      => __( 'Pensando…', 'chatbot-plugin-wp' ),
-					'errorGeneric'  => __( 'No se pudo enviar el mensaje. Intenta de nuevo.', 'chatbot-plugin-wp' ),
+					'placeholder'   => __( 'Type your message…', 'chatbot-plugin-wp' ),
+					'send'          => __( 'Send', 'chatbot-plugin-wp' ),
+					'openLabel'     => __( 'Open chat', 'chatbot-plugin-wp' ),
+					'closeLabel'    => __( 'Close chat', 'chatbot-plugin-wp' ),
+					'resetLabel'    => __( 'Reset chat', 'chatbot-plugin-wp' ),
+					'minimizeLabel' => __( 'Minimize chat', 'chatbot-plugin-wp' ),
+					'onlineLabel'   => __( 'System online', 'chatbot-plugin-wp' ),
+					'thinking'      => __( 'Thinking…', 'chatbot-plugin-wp' ),
+					'errorGeneric'  => __( 'Could not send the message. Please try again.', 'chatbot-plugin-wp' ),
 				),
 			)
 		);

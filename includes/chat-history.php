@@ -649,15 +649,15 @@ class Chatbot_Chat_History {
 		fputcsv(
 			$out,
 			array(
-				__( 'ID público', 'chatbot-plugin-wp' ),
-				__( 'Título', 'chatbot-plugin-wp' ),
-				__( 'Proveedor', 'chatbot-plugin-wp' ),
-				__( 'Modelo', 'chatbot-plugin-wp' ),
-				__( 'Estado', 'chatbot-plugin-wp' ),
-				__( 'Mensajes', 'chatbot-plugin-wp' ),
-				__( 'Ruta', 'chatbot-plugin-wp' ),
-				__( 'Inicio', 'chatbot-plugin-wp' ),
-				__( 'Última actividad', 'chatbot-plugin-wp' ),
+				__( 'Public ID', 'chatbot-plugin-wp' ),
+				__( 'Title', 'chatbot-plugin-wp' ),
+				__( 'Provider', 'chatbot-plugin-wp' ),
+				__( 'Model', 'chatbot-plugin-wp' ),
+				__( 'Status', 'chatbot-plugin-wp' ),
+				__( 'Messages', 'chatbot-plugin-wp' ),
+				__( 'Path', 'chatbot-plugin-wp' ),
+				__( 'Start', 'chatbot-plugin-wp' ),
+				__( 'Last activity', 'chatbot-plugin-wp' ),
 			)
 		);
 

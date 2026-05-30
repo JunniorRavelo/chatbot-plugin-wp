@@ -95,7 +95,7 @@ class Chatbot_Rest_Api {
 		if ( ! Chatbot_Api_Handler::verify_nonce( $nonce ) ) {
 			return new WP_Error(
 				'forbidden',
-				__( 'Nonce inválido.', 'chatbot-plugin-wp' ),
+				__( 'Invalid nonce.', 'chatbot-plugin-wp' ),
 				array( 'status' => 403, 'errorCode' => 'ORIGIN_FORBIDDEN' )
 			);
 		}
@@ -104,7 +104,7 @@ class Chatbot_Rest_Api {
 		if ( ! Chatbot_Api_Handler::verify_origin( $settings ) ) {
 			return new WP_Error(
 				'forbidden',
-				__( 'Origen no permitido.', 'chatbot-plugin-wp' ),
+				__( 'Origin not allowed.', 'chatbot-plugin-wp' ),
 				array( 'status' => 403, 'errorCode' => 'ORIGIN_FORBIDDEN' )
 			);
 		}
@@ -118,13 +118,13 @@ class Chatbot_Rest_Api {
 	public static function stream_info( WP_REST_Request $request ): WP_REST_Response {
 		$settings = Chatbot_Plugin::get_settings();
 		if ( empty( $settings['streaming_enabled'] ) ) {
-			return new WP_REST_Response( array( 'error' => __( 'Streaming deshabilitado.', 'chatbot-plugin-wp' ) ), 404 );
+			return new WP_REST_Response( array( 'error' => __( 'Streaming disabled.', 'chatbot-plugin-wp' ) ), 404 );
 		}
 
 		return new WP_REST_Response(
 			array(
 				'streamUrl' => home_url( '/chatbot-plugin/v1/chat/stream' ),
-				'hint'      => __( 'Usa POST con el mismo body y headers que /chat.', 'chatbot-plugin-wp' ),
+				'hint'      => __( 'Use POST with the same body and headers as /chat.', 'chatbot-plugin-wp' ),
 			),
 			200
 		);

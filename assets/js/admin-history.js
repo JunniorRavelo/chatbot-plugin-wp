@@ -44,11 +44,11 @@
   function renderError(panel, conversationId, onRetry) {
     panel.innerHTML =
       '<div class="chatbot-admin-history-card__error">' +
-      t("error", "No se pudo cargar la conversación.") +
+      t("error", "Could not load the conversation.") +
       ' <button type="button" class="button button-small chatbot-admin-history-retry" data-id="' +
       String(conversationId) +
       '">' +
-      t("retry", "Reintentar") +
+      t("retry", "Retry") +
       "</button></div>";
 
     const retryBtn = panel.querySelector(".chatbot-admin-history-retry");
@@ -68,7 +68,7 @@
 
     panel.innerHTML =
       '<div class="chatbot-admin-history-card__loading">' +
-      t("loading", "Cargando mensajes…") +
+      t("loading", "Loading messages…") +
       "</div>";
 
     const requestUrl = new URL(cfg.ajaxUrl || "/wp-admin/admin-ajax.php", window.location.origin);
@@ -153,7 +153,7 @@
         return;
       }
       const original = button.textContent;
-      button.textContent = t("copied", "Copiado");
+      button.textContent = t("copied", "Copied");
       window.setTimeout(function () {
         button.textContent = original;
       }, 1500);
@@ -161,7 +161,7 @@
 
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(text).then(flashSuccess).catch(function () {
-        window.prompt(t("copyFailed", "No se pudo copiar."), text);
+        window.prompt(t("copyFailed", "Could not copy."), text);
       });
       return;
     }
@@ -183,7 +183,7 @@
   }
 
   function deleteConversation(card, conversationId) {
-    if (!window.confirm(t("deleteConfirm", "¿Eliminar esta conversación y todos sus mensajes?"))) {
+    if (!window.confirm(t("deleteConfirm", "Delete this conversation and all its messages?"))) {
       return;
     }
 
@@ -211,7 +211,7 @@
         updateUrl(null);
       })
       .catch(function () {
-        window.alert(t("deleteFailed", "No se pudo eliminar la conversación."));
+        window.alert(t("deleteFailed", "Could not delete the conversation."));
       });
   }
 

@@ -32,8 +32,8 @@
   }
 
   function buildComposerHtml() {
-    const placeholder = previewI18n("placeholder", "Escribe tu mensaje…");
-    const sendLabel = previewI18n("send", "Enviar");
+    const placeholder = previewI18n("placeholder", "Type your message…");
+    const sendLabel = previewI18n("send", "Send");
     return (
       '<div class="cb-composer-inner">' +
       '<textarea class="cb-input" rows="1" placeholder="' +
@@ -64,15 +64,15 @@
       '<span class="cb-header-sub-text"></span></p>' +
       "</div></div>" +
       '<div class="cb-header-actions">' +
-      '<button type="button" class="cb-icon-btn cb-minimize" title="Minimizar" aria-label="Minimizar">' +
+      '<button type="button" class="cb-icon-btn cb-minimize" title="Minimize" aria-label="Minimize">' +
       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">' +
       '<path d="M5 12h14"/>' +
       "</svg></button>" +
-      '<button type="button" class="cb-icon-btn cb-reset" title="Reiniciar" aria-label="Reiniciar">' +
+      '<button type="button" class="cb-icon-btn cb-reset" title="Reset" aria-label="Reset">' +
       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
       '<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/>' +
       "</svg></button>" +
-      '<button type="button" class="cb-icon-btn cb-close" title="Cerrar" aria-label="Cerrar">' +
+      '<button type="button" class="cb-icon-btn cb-close" title="Close" aria-label="Close">' +
       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">' +
       '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>' +
       "</svg></button></div>"
@@ -108,9 +108,9 @@
       offset: offsetEl ? offsetEl.value.trim() : "1rem",
       panelWidth: widthEl ? widthEl.value.trim() : "",
       launcherLabel: launcherLabelEl ? launcherLabelEl.checked : true,
-      title: cfg.widgetTitle || "Agente IA",
-      subtitle: cfg.widgetSubtitle || "Sistema en línea",
-      welcome: cfg.welcomeMessage || "¡Hola! ¿En qué puedo ayudarte?",
+      title: cfg.widgetTitle || "AI Agent",
+      subtitle: cfg.widgetSubtitle || "System online",
+      welcome: cfg.welcomeMessage || "Hello! How can I help you?",
     };
   }
 
@@ -166,7 +166,7 @@
       "cb-launcher cb-launcher-" +
       launcherSide(settings.position) +
       (settings.launcherLabel ? "" : " cb-launcher--icon-only");
-    launcher.setAttribute("aria-label", "Abrir chat");
+    launcher.setAttribute("aria-label", "Open chat");
     launcher.innerHTML = launcherMarkup(settings.launcherLabel, settings.title);
 
     const panel = document.createElement("section");
@@ -213,7 +213,7 @@
       toggleBtn.addEventListener("click", function () {
         setOpen(!isOpen);
         toggleBtn.setAttribute("aria-pressed", isOpen ? "true" : "false");
-        toggleBtn.textContent = isOpen ? previewI18n("closePanel", "Cerrar panel") : previewI18n("openPanel", "Abrir panel");
+        toggleBtn.textContent = isOpen ? previewI18n("closePanel", "Close panel") : previewI18n("openPanel", "Open panel");
       });
     }
 
@@ -225,7 +225,7 @@
     setOpen(true);
     if (toggleBtn) {
       toggleBtn.setAttribute("aria-pressed", "true");
-      toggleBtn.textContent = previewI18n("closePanel", "Cerrar panel");
+      toggleBtn.textContent = previewI18n("closePanel", "Close panel");
     }
 
     return { wrap: wrap, launcher: launcher, panel: panel, setOpen: setOpen };
@@ -257,9 +257,9 @@
   function renderMessages(messagesEl, settings) {
     messagesEl.innerHTML = "";
     messagesEl.appendChild(createPreviewMessage("assistant", settings.welcome));
-    messagesEl.appendChild(createPreviewMessage("user", "¿Cuáles son vuestros horarios?"));
+    messagesEl.appendChild(createPreviewMessage("user", "What are your opening hours?"));
     messagesEl.appendChild(
-      createPreviewMessage("assistant", "Atendemos de lunes a viernes, de 9:00 a 18:00.")
+      createPreviewMessage("assistant", "We are open Monday through Friday, 9:00 AM to 6:00 PM.")
     );
   }
 

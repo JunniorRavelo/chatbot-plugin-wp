@@ -25,9 +25,9 @@
   }
 
   function buildHeaderHtml(labels) {
-    const resetLabel = labels.resetLabel || "Reiniciar chat";
-    const minimizeLabel = labels.minimizeLabel || "Minimizar chat";
-    const closeLabel = labels.closeLabel || "Cerrar chat";
+    const resetLabel = labels.resetLabel || "Reset chat";
+    const minimizeLabel = labels.minimizeLabel || "Minimize chat";
+    const closeLabel = labels.closeLabel || "Close chat";
     return (
       '<div class="cb-header-brand">' +
       '<span class="cb-header-avatar" aria-hidden="true">' +
@@ -163,30 +163,30 @@
 
   function mapErrorMessage(code) {
     const map = {
-      RATE_LIMIT_GENERAL: "Demasiadas solicitudes. Espera un momento.",
-      RATE_LIMIT_MODEL_MINUTE: "Se alcanzó el límite por minuto del modelo. Intenta en breve.",
-      RATE_LIMIT_MODEL_DAILY: "Se alcanzó el límite diario del modelo. Intenta más tarde.",
-      MODEL_ALL_EXHAUSTED: "Todos los modelos están temporalmente saturados.",
-      MODEL_TEMP_UNAVAILABLE: "Los modelos no están disponibles en este momento.",
-      PROVIDER_TIMEOUT: "El proveedor tardó demasiado en responder.",
-      PROVIDER_UPSTREAM: "Error del proveedor de IA.",
-      ORIGIN_FORBIDDEN: "Solicitud no autorizada.",
-      INVALID_REQUEST: "Mensaje inválido.",
-      CONFIGURATION_ERROR: "El servicio de IA no está configurado.",
-      SERVER_ERROR: "Error interno del servidor.",
+      RATE_LIMIT_GENERAL: "Too many requests. Please wait a moment.",
+      RATE_LIMIT_MODEL_MINUTE: "The model per-minute limit was reached. Try again shortly.",
+      RATE_LIMIT_MODEL_DAILY: "The model daily limit was reached. Try again later.",
+      MODEL_ALL_EXHAUSTED: "All models are temporarily saturated.",
+      MODEL_TEMP_UNAVAILABLE: "Models are not available at this time.",
+      PROVIDER_TIMEOUT: "The provider took too long to respond.",
+      PROVIDER_UPSTREAM: "AI provider error.",
+      ORIGIN_FORBIDDEN: "Unauthorized request.",
+      INVALID_REQUEST: "Invalid message.",
+      CONFIGURATION_ERROR: "The AI service is not configured.",
+      SERVER_ERROR: "Internal server error.",
     };
-    return map[code] || i18n.errorGeneric || "No se pudo enviar el mensaje.";
+    return map[code] || i18n.errorGeneric || "Could not send the message.";
   }
 
   function sanitizeErrorMessage(message, status) {
     if (!message || typeof message !== "string") {
       if (status === 502 || status === 504) {
-        return "El servidor no pudo completar la solicitud. Revisa la configuración del chatbot o intenta más tarde.";
+        return "The server could not complete the request. Check the chatbot configuration or try again later.";
       }
       return message;
     }
     if (/<!doctype html/i.test(message) || /<html/i.test(message)) {
-      return "El servidor respondió con un error (502). Deja vacía la URL interna del chat y verifica la API key de DeepSeek.";
+      return "The server returned an error (502). Leave the internal chat URL empty and verify the DeepSeek API key.";
     }
     if (message.length > 280) {
       return message.slice(0, 280) + "…";
@@ -252,8 +252,8 @@
     launcher.type = "button";
     launcher.className =
       "cb-launcher cb-launcher-" + launcherSide(position) + (launcherLabel ? "" : " cb-launcher--icon-only");
-    launcher.setAttribute("aria-label", i18n.openLabel || "Abrir chat");
-    launcher.innerHTML = launcherMarkup(launcherLabel, config.widgetTitle || "Agente IA");
+    launcher.setAttribute("aria-label", i18n.openLabel || "Open chat");
+    launcher.innerHTML = launcherMarkup(launcherLabel, config.widgetTitle || "AI Agent");
     if (mode === "inline" || isOpen) launcher.hidden = true;
 
     const panel = document.createElement("section");
@@ -265,9 +265,9 @@
     header.className = "cb-header";
     header.innerHTML = buildHeaderHtml(i18n);
 
-    header.querySelector(".cb-header-title").textContent = config.widgetTitle || "Agente IA";
+    header.querySelector(".cb-header-title").textContent = config.widgetTitle || "AI Agent";
     header.querySelector(".cb-header-sub-text").textContent =
-      config.widgetSubtitle || i18n.onlineLabel || "Sistema en línea";
+      config.widgetSubtitle || i18n.onlineLabel || "System online";
 
     const messagesEl = document.createElement("div");
     messagesEl.className = "cb-messages";
@@ -283,12 +283,12 @@
     composer.innerHTML =
       '<div class="cb-composer-inner">' +
       '<textarea class="cb-input" rows="1" placeholder="' +
-      (i18n.placeholder || "Escribe tu mensaje…") +
+      (i18n.placeholder || "Type your message…") +
       '" maxlength="700" aria-label="' +
-      (i18n.placeholder || "Escribe tu mensaje…") +
+      (i18n.placeholder || "Type your message…") +
       '"></textarea>' +
       '<button type="submit" class="cb-send" aria-label="' +
-      (i18n.send || "Enviar") +
+      (i18n.send || "Send") +
       '">' +
       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
       '<path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/>' +
@@ -345,7 +345,7 @@
 
       if (showThinking) {
         bubble.classList.add("cb-msg-pending");
-        bubble.setAttribute("aria-label", i18n.thinking || "Pensando…");
+        bubble.setAttribute("aria-label", i18n.thinking || "Thinking…");
         bubble.innerHTML =
           '<div class="cb-thinking" aria-hidden="true">' +
           '<span class="cb-thinking-dot"></span>' +

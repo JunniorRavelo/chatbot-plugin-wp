@@ -80,7 +80,7 @@ class Chatbot_Donation_Footer {
             ? $label
             : sprintf(
                 /* translators: %s: platform name */
-                __( '%s — añade la URL en donation-footer.php', 'chatbot-plugin-wp' ),
+                __( '%s — add the URL in donation-footer.php', 'chatbot-plugin-wp' ),
                 $label
             );
 
@@ -112,14 +112,26 @@ class Chatbot_Donation_Footer {
 
         $urls  = self::donation_urls();
         $icons = self::donation_icons();
+
+        $has_active_url = false;
+        foreach ( $urls as $url ) {
+            if ( '' !== trim( (string) $url ) ) {
+                $has_active_url = true;
+                break;
+            }
+        }
+
+        if ( ! $has_active_url ) {
+            return;
+        }
         ?>
-        <footer class="chatbot-donation-footer" aria-label="<?php esc_attr_e( 'Apoyar el plugin', 'chatbot-plugin-wp' ); ?>">
+        <footer class="chatbot-donation-footer" aria-label="<?php esc_attr_e( 'Support the plugin', 'chatbot-plugin-wp' ); ?>">
             <div class="chatbot-donation-footer__inner">
                 <p class="chatbot-donation-footer__text">
                     <span class="chatbot-donation-footer__heart" aria-hidden="true">♥</span>
-                    <?php esc_html_e( '¿Te gusta el plugin? Puedes apoyar el desarrollo donando en:', 'chatbot-plugin-wp' ); ?>
+                    <?php esc_html_e( 'Like this plugin? You can support development by donating on:', 'chatbot-plugin-wp' ); ?>
                 </p>
-                <div class="chatbot-donation-footer__chips" role="list" aria-label="<?php esc_attr_e( 'Plataformas de donación', 'chatbot-plugin-wp' ); ?>">
+                <div class="chatbot-donation-footer__chips" role="list" aria-label="<?php esc_attr_e( 'Donation platforms', 'chatbot-plugin-wp' ); ?>">
                     <?php foreach ( $icons as $slug => $icon ) : ?>
                         <?php self::render_chip( $slug, $icon, trim( (string) ( $urls[ $slug ] ?? '' ) ) ); ?>
                     <?php endforeach; ?>

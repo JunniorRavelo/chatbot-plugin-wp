@@ -19,7 +19,7 @@ class Chatbot_Provider_Gemini implements Chatbot_AI_Provider {
 		if ( '' === $api_key ) {
 			return new WP_Error(
 				'configuration_error',
-				__( 'La API key de Gemini no está configurada.', 'chatbot-plugin-wp' ),
+				__( 'Gemini API key is not configured.', 'chatbot-plugin-wp' ),
 				array( 'status' => 503, 'error_code' => 'CONFIGURATION_ERROR' )
 			);
 		}
@@ -96,7 +96,7 @@ class Chatbot_Provider_Gemini implements Chatbot_AI_Provider {
 
 		return new WP_Error(
 			'model_temp_unavailable',
-			__( 'Los modelos no están disponibles en este momento. Intenta nuevamente más tarde.', 'chatbot-plugin-wp' ),
+			__( 'Models are not available at this time. Please try again later.', 'chatbot-plugin-wp' ),
 			array( 'status' => 503, 'error_code' => 'MODEL_TEMP_UNAVAILABLE' )
 		);
 	}
@@ -117,7 +117,7 @@ class Chatbot_Provider_Gemini implements Chatbot_AI_Provider {
 	private static function build_user_prompt( array $messages ): string {
 		$lines = array();
 		foreach ( $messages as $message ) {
-			$role    = 'assistant' === ( $message['role'] ?? '' ) ? 'Asistente' : 'Usuario';
+			$role    = 'assistant' === ( $message['role'] ?? '' ) ? 'Assistant' : 'User';
 			$content = trim( (string) ( $message['content'] ?? '' ) );
 			if ( '' !== $content ) {
 				$lines[] = "{$role}: {$content}";
