@@ -103,14 +103,31 @@ Activa **Mostrar en todo el sitio** en la pestaña General. El widget se carga e
 
 ## Estilos
 
-Presets disponibles en la pestaña **Estilo del chat**:
+Presets disponibles en la pestaña **Estilo del chat** (selector visual con vista previa):
 
-- `default`
-- `dark-glass`
-- `minimal`
-- `ocean`
+| ID | Nombre |
+|----|--------|
+| `default` | Sapphire |
+| `dark-glass` | Midnight |
+| `minimal` | Monochrome |
+| `ocean` | Aqua |
+| `sunset` | Ember |
+| `forest` | Emerald |
+| `lavender` | Amethyst |
+| `plum` | Plum |
 
-Puedes personalizar colores primario y de acento, radio de bordes y posición (`center-right` o `bottom-right`).
+**Posiciones:** `bottom-right`, `center-right`, `bottom-left`, `center-left`, `bottom-center`.
+
+**Overrides opcionales:** colores primario, acento, fondo, texto, radio, ancho y altura máxima del panel, fuente, z-index, animaciones y tema automático según `prefers-color-scheme`.
+
+**Shortcode con estilo por página:**
+
+```
+[chatbot_widget preset="ocean" position="bottom-left"]
+[chatbot_widget mode="inline" primary="#059669"]
+```
+
+Exportar/importar tema JSON desde el admin (pestaña Estilo del chat).
 
 ## API REST
 

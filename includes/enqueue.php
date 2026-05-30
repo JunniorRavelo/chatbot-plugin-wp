@@ -45,7 +45,16 @@ class Chatbot_Enqueue {
 	public static function shortcode( $atts ): string {
 		$atts = shortcode_atts(
 			array(
-				'mode' => 'floating',
+				'mode'        => 'floating',
+				'preset'      => '',
+				'position'    => '',
+				'primary'     => '',
+				'accent'      => '',
+				'radius'      => '',
+				'offset'      => '',
+				'panel_width' => '',
+				'bg'          => '',
+				'fg'          => '',
 			),
 			$atts,
 			'chatbot_widget'
@@ -54,8 +63,10 @@ class Chatbot_Enqueue {
 		$mode = in_array( $atts['mode'], array( 'floating', 'inline' ), true ) ? $atts['mode'] : 'floating';
 		self::enqueue_assets( $mode );
 
+		$overrides = Chatbot_Admin_Settings::shortcode_style_overrides( $atts );
+
 		ob_start();
-		self::render_root( $mode );
+		self::render_root( $mode, $overrides );
 		return (string) ob_get_clean();
 	}
 
@@ -75,6 +86,11 @@ class Chatbot_Enqueue {
 				: CHATBOT_PLUGIN_VERSION
 		);
 
+		$custom_css = trim( (string) ( $settings['style_custom_css'] ?? '' ) );
+		if ( $custom_css !== '' ) {
+			wp_add_inline_style( 'chatbot-plugin', $custom_css );
+		}
+
 		wp_enqueue_script(
 			'chatbot-plugin',
 			CHATBOT_PLUGIN_URL . 'assets/js/chatbot.js',
@@ -85,19 +101,7 @@ class Chatbot_Enqueue {
 			true
 		);
 
-		$style_vars = array();
-		if ( ! empty( $settings['style_primary'] ) ) {
-			$style_vars['primary'] = (string) $settings['style_primary'];
-		}
-		if ( ! empty( $settings['style_accent'] ) ) {
-			$style_vars['accent'] = (string) $settings['style_accent'];
-		}
-		if ( ! empty( $settings['style_radius'] ) ) {
-			$style_vars['radius'] = (string) $settings['style_radius'];
-		}
-
-		$style_offset = trim( (string) ( $settings['style_offset'] ?? '1rem' ) );
-		$style_width  = trim( (string) ( $settings['style_panel_width'] ?? '' ) );
+		$style = Chatbot_Admin_Settings::build_style_config( $settings );
 
 		wp_localize_script(
 			'chatbot-plugin',
@@ -110,14 +114,7 @@ class Chatbot_Enqueue {
 				'welcomeMessage' => (string) ( $settings['welcome_message'] ?? '' ),
 				'widgetTitle'    => (string) ( $settings['widget_title'] ?? 'AI Agent' ),
 				'widgetSubtitle' => (string) ( $settings['widget_subtitle'] ?? '' ),
-				'style'          => array(
-					'preset'        => (string) ( $settings['style_preset'] ?? 'default' ),
-					'position'      => (string) ( $settings['style_position'] ?? 'bottom-right' ),
-					'offset'        => $style_offset ?: '1rem',
-					'panelWidth'    => $style_width,
-					'launcherLabel' => ! empty( $settings['style_launcher_label'] ),
-					'vars'          => $style_vars,
-				),
+				'style'          => $style,
 				'mode'           => $mode,
 				'i18n'           => array(
 					'placeholder'   => __( 'Type your message…', 'chatbot-plugin-wp' ),
@@ -136,7 +133,10 @@ class Chatbot_Enqueue {
 		self::$assets_enqueued = true;
 	}
 
-	private static function render_root( string $mode ): void {
+	/**
+	 * @param array<string, mixed> $style_overrides
+	 */
+	private static function render_root( string $mode, array $style_overrides = array() ): void {
 		static $rendered_floating = false;
 
 		if ( 'floating' === $mode && $rendered_floating ) {
@@ -148,10 +148,21 @@ class Chatbot_Enqueue {
 
 		$root_id = chatbot_plugin_allocate_root_id( $mode );
 
+		$override_attr = '';
+		if ( $style_overrides !== array() ) {
+			$settings      = Chatbot_Plugin::get_settings();
+			$style_payload = Chatbot_Admin_Settings::build_style_config( $settings, $style_overrides );
+			$override_attr = sprintf(
+				' data-style-override="%s"',
+				esc_attr( wp_json_encode( $style_payload ) )
+			);
+		}
+
 		printf(
-			'<div id="%1$s" class="maicb-root" data-maicb-root data-mode="%2$s"></div>',
+			'<div id="%1$s" class="maicb-root" data-maicb-root data-mode="%2$s"%3$s></div>',
 			esc_attr( $root_id ),
-			esc_attr( $mode )
+			esc_attr( $mode ),
+			$override_attr // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- esc_attr on JSON
 		);
 	}
 }

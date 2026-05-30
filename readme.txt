@@ -52,6 +52,8 @@ Connect the chat to your preferred AI provider, customize appearance without cod
 
 `[chatbot_widget mode="inline"]` — Embedded panel in content.
 
+Optional style attributes (override global settings): `preset`, `position`, `primary`, `accent`, `radius`, `offset`, `panel_width`, `bg`, `fg`. Example: `[chatbot_widget preset="ocean" position="bottom-left"]`.
+
 = REST API =
 
 * `POST /wp-json/chatbot-plugin/v1/chat` — JSON response.

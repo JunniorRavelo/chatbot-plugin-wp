@@ -1442,3 +1442,107 @@ msgstr ""
 #: includes/rest-api.php:127
 msgid "Use POST with the same body and headers as /chat."
 msgstr ""
+
+#: includes/admin-settings.php
+msgid "Color palette and shapes. Typography is configured under Colors and shape."
+msgstr ""
+
+#: includes/admin-settings.php
+msgid "Optional: override the selected preset."
+msgstr ""
+
+#: includes/admin-settings.php
+msgid "Reset color overrides"
+msgstr ""
+
+#: includes/admin-settings.php
+msgid "Export theme"
+msgstr ""
+
+#: includes/admin-settings.php
+msgid "Import theme"
+msgstr ""
+
+#: includes/admin-settings.php
+msgid "Background color"
+msgstr ""
+
+#: includes/admin-settings.php
+msgid "Text color"
+msgstr ""
+
+#: includes/admin-settings.php
+msgid "Font"
+msgstr ""
+
+#: includes/admin-settings.php
+msgid "Panel max height"
+msgstr ""
+
+#: includes/admin-settings.php
+msgid "Limits the message area height. E.g.: 60vh, 480px"
+msgstr ""
+
+#: includes/admin-settings.php
+msgid "Stack order (z-index)"
+msgstr ""
+
+#: includes/admin-settings.php
+msgid "0 = default. Raise if another plugin covers the chat."
+msgstr ""
+
+#: includes/admin-settings.php
+msgid "Motion and automatic theme"
+msgstr ""
+
+#: includes/admin-settings.php
+msgid "Accessibility and system appearance."
+msgstr ""
+
+#: includes/admin-settings.php
+msgid "Reduce motion"
+msgstr ""
+
+#: includes/admin-settings.php
+msgid "Disable launcher pulse animation"
+msgstr ""
+
+#: includes/admin-settings.php
+msgid "Match system theme"
+msgstr ""
+
+#: includes/admin-settings.php
+msgid "Use dark preset when the visitor prefers dark mode"
+msgstr ""
+
+#: includes/admin-settings.php
+msgid "Light mode uses the theme selected above."
+msgstr ""
+
+#: includes/admin-settings.php
+msgid "Dark mode preset"
+msgstr ""
+
+#: includes/admin-settings.php
+msgid "Custom CSS"
+msgstr ""
+
+#: includes/admin-settings.php
+msgid "Scoped to the widget root. No @import. Max 8000 characters."
+msgstr ""
+
+#: includes/admin-settings.php
+msgid "Panel max height is invalid; that value was ignored."
+msgstr ""
+
+#: includes/admin-settings.php
+msgid "Theme imported into the form. Save to apply on the site."
+msgstr ""
+
+#: includes/admin-settings.php
+msgid "Invalid theme JSON."
+msgstr ""
+
+#: includes/admin-settings.php
+msgid "Low contrast between primary color and background; check accessibility."
+msgstr ""

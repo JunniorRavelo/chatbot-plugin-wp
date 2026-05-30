@@ -592,6 +592,9 @@ msgstr "Tema visual"
 msgid "Chat color palette, typography, and shapes."
 msgstr "Paleta de colores del chat, tipografía y formas."
 
+msgid "Color palette and shapes. Typography is configured under Colors and shape."
+msgstr "Paleta de colores y formas. La tipografía se configura en Colores y forma."
+
 #: includes/admin-settings.php:1290
 msgid "Theme"
 msgstr "Tema"
@@ -1490,3 +1493,78 @@ msgstr "El modelo no devolvió una respuesta válida."
 #: includes/rest-api.php:127
 msgid "Use POST with the same body and headers as /chat."
 msgstr "Use POST con el mismo cuerpo y cabeceras que /chat."
+
+msgid "Optional: override the selected preset."
+msgstr "Opcional: anular el preset seleccionado."
+
+msgid "Reset color overrides"
+msgstr "Restaurar colores personalizados"
+
+msgid "Export theme"
+msgstr "Exportar tema"
+
+msgid "Import theme"
+msgstr "Importar tema"
+
+msgid "Background color"
+msgstr "Color de fondo"
+
+msgid "Text color"
+msgstr "Color de texto"
+
+msgid "Font"
+msgstr "Fuente"
+
+msgid "Panel max height"
+msgstr "Altura máxima del panel"
+
+msgid "Limits the message area height. E.g.: 60vh, 480px"
+msgstr "Limita la altura del área de mensajes. Ej.: 60vh, 480px"
+
+msgid "Stack order (z-index)"
+msgstr "Orden de capas (z-index)"
+
+msgid "0 = default. Raise if another plugin covers the chat."
+msgstr "0 = predeterminado. Súbelo si otro plugin tapa el chat."
+
+msgid "Motion and automatic theme"
+msgstr "Animación y tema automático"
+
+msgid "Accessibility and system appearance."
+msgstr "Accesibilidad y apariencia del sistema."
+
+msgid "Reduce motion"
+msgstr "Reducir movimiento"
+
+msgid "Disable launcher pulse animation"
+msgstr "Desactivar animación de pulso del botón"
+
+msgid "Match system theme"
+msgstr "Coincidir con el tema del sistema"
+
+msgid "Use dark preset when the visitor prefers dark mode"
+msgstr "Usar preset oscuro cuando el visitante prefiere modo oscuro"
+
+msgid "Light mode uses the theme selected above."
+msgstr "El modo claro usa el tema seleccionado arriba."
+
+msgid "Dark mode preset"
+msgstr "Preset en modo oscuro"
+
+msgid "Custom CSS"
+msgstr "CSS personalizado"
+
+msgid "Scoped to the widget root. No @import. Max 8000 characters."
+msgstr "Ámbito del widget. Sin @import. Máximo 8000 caracteres."
+
+msgid "Panel max height is invalid; that value was ignored."
+msgstr "La altura máxima del panel no es válida; se ignoró ese valor."
+
+msgid "Theme imported into the form. Save to apply on the site."
+msgstr "Tema importado en el formulario. Guarde para aplicarlo en el sitio."
+
+msgid "Invalid theme JSON."
+msgstr "JSON de tema no válido."
+
+msgid "Low contrast between primary color and background; check accessibility."
+msgstr "Bajo contraste entre el color primario y el fondo; revise la accesibilidad."

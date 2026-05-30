@@ -51,6 +51,8 @@ La vista previa del admin usa `#chatbot-style-preview` dentro de `#chatbot-previ
 ```php
 apply_filters( 'chatbot_plugin_root_id', 'chatbot-plugin-root' );
 apply_filters( 'chatbot_widget_class_prefix', 'maicb' );
+apply_filters( 'chatbot_style_presets', $preset_ids );
+apply_filters( 'chatbot_style_config', $style_config, $settings );
 ```
 
 ## Auditoría

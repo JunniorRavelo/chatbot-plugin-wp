@@ -211,16 +211,114 @@
     return message;
   }
 
-  function applyStyleVars(el, style) {
+  const PRESET_IDS = [
+    "default",
+    "dark-glass",
+    "minimal",
+    "ocean",
+    "sunset",
+    "forest",
+    "lavender",
+    "plum",
+  ];
+
+  function getStyleForRoot(root) {
+    const base = config.style || {};
+    const style = {
+      preset: base.preset,
+      position: base.position,
+      offset: base.offset,
+      panelWidth: base.panelWidth,
+      panelMaxHeight: base.panelMaxHeight,
+      launcherLabel: base.launcherLabel,
+      fontFamily: base.fontFamily,
+      zIndex: base.zIndex,
+      reduceMotion: base.reduceMotion,
+      presetAuto: base.presetAuto,
+      presetAutoDark: base.presetAutoDark,
+      vars: base.vars ? Object.assign({}, base.vars) : {},
+    };
+    const raw = root.getAttribute("data-style-override");
+    if (raw) {
+      try {
+        const override = JSON.parse(raw);
+        Object.keys(override).forEach(function (key) {
+          if (key === "vars" && override.vars) {
+            style.vars = Object.assign({}, style.vars, override.vars);
+          } else if (key !== "vars") {
+            style[key] = override[key];
+          }
+        });
+      } catch (e) {
+        /* ignore invalid JSON */
+      }
+    }
+    return style;
+  }
+
+  function applyPresetClasses(wrap, style) {
+    PRESET_IDS.forEach(function (p) {
+      wrap.classList.remove("maicb-preset-" + p);
+    });
+    const light = style.preset || "default";
+    const dark = style.presetAutoDark || "dark-glass";
+    if (!style.presetAuto) {
+      wrap.classList.add("maicb-preset-" + light);
+      wrap.dataset.preset = light;
+      return;
+    }
+    const mq = window.matchMedia("(prefers-color-scheme: dark)");
+    const apply = function () {
+      PRESET_IDS.forEach(function (p) {
+        wrap.classList.remove("maicb-preset-" + p);
+      });
+      const active = mq.matches ? dark : light;
+      wrap.classList.add("maicb-preset-" + active);
+      wrap.dataset.preset = active;
+    };
+    apply();
+    if (typeof mq.addEventListener === "function") {
+      mq.addEventListener("change", apply);
+    } else if (typeof mq.addListener === "function") {
+      mq.addListener(apply);
+    }
+  }
+
+  function applyStyleVars(el, style, rootEl) {
     if (!style) return;
+    const varKeys = ["primary", "accent", "radius", "bg", "fg"];
+    const cssMap = {
+      primary: "--maicb-primary",
+      accent: "--maicb-accent",
+      radius: "--maicb-radius",
+      bg: "--maicb-bg",
+      fg: "--maicb-fg",
+    };
+    varKeys.forEach(function (key) {
+      el.style.removeProperty(cssMap[key]);
+    });
+    el.style.removeProperty("--maicb-offset");
+    el.style.removeProperty("--maicb-panel-width");
+    el.style.removeProperty("--maicb-panel-max-height");
+
     if (style.vars) {
-      const vars = style.vars;
-      if (vars.primary) el.style.setProperty("--maicb-primary", vars.primary);
-      if (vars.accent) el.style.setProperty("--maicb-accent", vars.accent);
-      if (vars.radius) el.style.setProperty("--maicb-radius", vars.radius);
+      varKeys.forEach(function (key) {
+        if (style.vars[key]) {
+          el.style.setProperty(cssMap[key], style.vars[key]);
+        }
+      });
     }
     if (style.offset) el.style.setProperty("--maicb-offset", style.offset);
     if (style.panelWidth) el.style.setProperty("--maicb-panel-width", style.panelWidth);
+    if (style.panelMaxHeight) {
+      el.style.setProperty("--maicb-panel-max-height", style.panelMaxHeight);
+    }
+    if (style.fontFamily) {
+      el.style.fontFamily = style.fontFamily;
+    }
+    if (rootEl && style.zIndex) {
+      rootEl.style.zIndex = String(style.zIndex);
+    }
   }
 
   function launcherSide(position) {
@@ -261,10 +359,13 @@
     if (mode === "floating") {
       mountFloatingRoot(root);
     }
-    const style = config.style || {};
-    const preset = style.preset || "default";
+    const style = getStyleForRoot(root);
     const position = style.position || "bottom-right";
     const launcherLabel = style.launcherLabel !== false;
+
+    if (mode === "floating" && style.zIndex) {
+      root.style.zIndex = String(style.zIndex);
+    }
 
     const state = loadState();
     let messages = state.messages.length ? state.messages : [];
@@ -279,9 +380,11 @@
 
     const wrap = document.createElement("div");
     wrap.className = "maicb-widget maicb-wrap" + (mode === "inline" ? " maicb-inline-wrap" : "");
-    wrap.classList.add("maicb-preset-" + preset);
-    wrap.dataset.preset = preset;
-    applyStyleVars(wrap, style);
+    if (style.reduceMotion) {
+      wrap.classList.add("maicb-reduce-motion");
+    }
+    applyPresetClasses(wrap, style);
+    applyStyleVars(wrap, style, root);
 
     const launcher = document.createElement("button");
     launcher.type = "button";
