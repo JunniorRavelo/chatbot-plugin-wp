@@ -849,8 +849,8 @@ class Chatbot_Admin_Settings {
 							<h2><?php esc_html_e( 'Vista previa', 'chatbot-plugin-wp' ); ?></h2>
 							<p><?php esc_html_e( 'Interactiva: prueba abrir/cerrar y cambia opciones al instante.', 'chatbot-plugin-wp' ); ?></p>
 						</div>
-						<button type="button" class="button button-secondary" id="chatbot-preview-toggle" aria-pressed="true">
-							<?php esc_html_e( 'Cerrar panel', 'chatbot-plugin-wp' ); ?>
+						<button type="button" class="button button-secondary" id="chatbot-preview-toggle" aria-pressed="false">
+							<?php esc_html_e( 'Abrir panel', 'chatbot-plugin-wp' ); ?>
 						</button>
 					</div>
 					<div class="chatbot-admin-card__body">

@@ -17,6 +17,12 @@
     return document.querySelector('[name="' + optionKey + "[" + name + ']"]');
   }
 
+  function checkboxField(name) {
+    return document.querySelector(
+      '[name="' + optionKey + "[" + name + ']"][type="checkbox"]'
+    );
+  }
+
   function readSettings() {
     const presetEl = field("style_preset");
     const positionEl = field("style_position");
@@ -25,7 +31,7 @@
     const radiusEl = field("style_radius");
     const offsetEl = field("style_offset");
     const widthEl = field("style_panel_width");
-    const launcherLabelEl = field("style_launcher_label");
+    const launcherLabelEl = checkboxField("style_launcher_label");
 
     return {
       preset: presetEl ? presetEl.value : "default",
@@ -108,7 +114,7 @@
     wrap.appendChild(panel);
     viewport.appendChild(wrap);
 
-    let isOpen = true;
+    let isOpen = false;
 
     function setOpen(open) {
       isOpen = open;
@@ -133,6 +139,12 @@
         toggleBtn.setAttribute("aria-pressed", isOpen ? "true" : "false");
         toggleBtn.textContent = isOpen ? cfg.i18n.closePanel : cfg.i18n.openPanel;
       });
+    }
+
+    setOpen(false);
+    if (toggleBtn) {
+      toggleBtn.setAttribute("aria-pressed", "false");
+      toggleBtn.textContent = cfg.i18n.openPanel;
     }
 
     return { wrap: wrap, launcher: launcher, panel: panel, setOpen: setOpen };
@@ -202,6 +214,12 @@
     );
 
     inputs.forEach(function (input) {
+      if (
+        input.type === "hidden" &&
+        document.querySelector('[name="' + input.name + '"][type="checkbox"]')
+      ) {
+        return;
+      }
       const evt = input.type === "checkbox" || input.tagName === "SELECT" ? "change" : "input";
       input.addEventListener(evt, function () {
         applyPreview(readSettings(), refs);
