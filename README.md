@@ -1,4 +1,4 @@
-# Chatbot Plugin WP
+# MultiAI Chatbot for WordPress
 
 Plugin de WordPress que añade un widget de chat con IA (Gemini, DeepSeek, Ollama u OpenAI-compatible), panel de administración y telemetría de uso.
 

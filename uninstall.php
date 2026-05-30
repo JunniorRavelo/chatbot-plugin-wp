@@ -1,6 +1,6 @@
 <?php
 /**
- * Uninstall Chatbot Plugin WP.
+ * Uninstall MultiAI Chatbot for WordPress.
  */
 
 if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {

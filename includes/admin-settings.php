@@ -759,7 +759,7 @@ class Chatbot_Admin_Settings {
 			<header class="chatbot-admin-header">
 				<div class="chatbot-admin-header__brand">
 					<span class="chatbot-admin-header__icon dashicons dashicons-format-chat" aria-hidden="true"></span>
-					<h1><?php esc_html_e( 'Chatbot Plugin', 'chatbot-plugin-wp' ); ?></h1>
+					<h1><?php esc_html_e( 'MultiAI Chatbot for WordPress', 'chatbot-plugin-wp' ); ?></h1>
 				</div>
 				<span class="chatbot-admin-badge <?php echo $widget_on ? 'chatbot-admin-badge--on' : 'chatbot-admin-badge--off'; ?>">
 					<?php

@@ -2,7 +2,7 @@
 # This file is distributed under the GPL-2.0-or-later.
 msgid ""
 msgstr ""
-"Project-Id-Version: Chatbot Plugin WP 1.0.0\n"
+"Project-Id-Version: MultiAI Chatbot for WordPress 1.0.0\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/chatbot-plugin-wp\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -16,7 +16,7 @@ msgstr ""
 
 #. Plugin Name of the plugin
 #: chatbot-plugin-wp.php
-msgid "Chatbot Plugin WP"
+msgid "MultiAI Chatbot for WordPress"
 msgstr ""
 
 #. Plugin URI of the plugin
@@ -245,7 +245,7 @@ msgid "History"
 msgstr ""
 
 #: includes/admin-settings.php:762
-msgid "Chatbot Plugin"
+msgid "MultiAI Chatbot for WordPress"
 msgstr ""
 
 #: includes/admin-settings.php:767

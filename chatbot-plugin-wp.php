@@ -1,6 +1,6 @@
 <?php
 /**
- * Plugin Name: Chatbot Plugin WP
+ * Plugin Name: MultiAI Chatbot for WordPress
  * Plugin URI: https://github.com/JunniorRavelo/chatbot-plugin-wp
  * Description: AI chat widget (Gemini, DeepSeek, Ollama, OpenAI-compatible), configurable styles, and telemetry.
  * Version: 1.0.0

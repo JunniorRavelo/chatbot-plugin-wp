@@ -1,4 +1,4 @@
-=== Chatbot Plugin WP ===
+=== MultiAI Chatbot for WordPress ===
 Contributors: jsravelo
 Donate link: https://github.com/JunniorRavelo/chatbot-plugin-wp
 Tags: chatbot, ai, gemini, live chat, customer support
@@ -13,7 +13,7 @@ AI chat widget for WordPress. Supports Gemini, DeepSeek, Ollama, and OpenAI-comp
 
 == Description ==
 
-**Chatbot Plugin WP** adds an AI assistant to your WordPress site with a floating or embedded widget, a full admin panel, and usage analytics.
+**MultiAI Chatbot for WordPress** adds an AI assistant to your WordPress site with a floating or embedded widget, a full admin panel, and usage analytics.
 
 Connect the chat to your preferred AI provider, customize appearance without code, and review conversations and statistics from the WordPress dashboard.
 
