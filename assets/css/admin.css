@@ -546,8 +546,8 @@
   color: var(--maicb-fg);
   border-color: var(--maicb-border);
   /* El blur mezcla el simulador gris detrás y apaga todos los temas en la vista previa */
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
 }
 
 #chatbot-preview-viewport #chatbot-style-preview .maicb-messages {
@@ -1246,13 +1246,20 @@
   position: absolute;
   inset: 0;
   z-index: 5;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   padding: 1rem;
   background: rgba(15, 23, 42, 0.55);
   border-radius: inherit;
   pointer-events: none;
+}
+
+.chatbot-admin-preview__disabled-overlay:not([hidden]) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chatbot-admin-preview__disabled-overlay[hidden] {
+  display: none !important;
 }
 
 .chatbot-admin-preview__disabled-overlay p {
