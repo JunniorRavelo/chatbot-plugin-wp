@@ -166,18 +166,28 @@ class Chatbot_Admin_Settings {
 		if ( 'style' === $tab ) {
 			wp_enqueue_style( 'wp-color-picker' );
 
+			$chatbot_css_path = CHATBOT_PLUGIN_PATH . 'assets/css/chatbot.css';
+			$chatbot_css_ver  = file_exists( $chatbot_css_path )
+				? (string) filemtime( $chatbot_css_path )
+				: CHATBOT_PLUGIN_VERSION;
+
+			$admin_style_js_path = CHATBOT_PLUGIN_PATH . 'assets/js/admin-style.js';
+			$admin_style_js_ver  = file_exists( $admin_style_js_path )
+				? (string) filemtime( $admin_style_js_path )
+				: CHATBOT_PLUGIN_VERSION;
+
 			wp_enqueue_style(
 				'chatbot-plugin-admin-preview',
 				CHATBOT_PLUGIN_URL . 'assets/css/chatbot.css',
 				array( 'chatbot-plugin-admin' ),
-				CHATBOT_PLUGIN_VERSION
+				$chatbot_css_ver
 			);
 
 			wp_enqueue_script(
 				'chatbot-plugin-admin-style',
 				CHATBOT_PLUGIN_URL . 'assets/js/admin-style.js',
 				array( 'wp-color-picker' ),
-				CHATBOT_PLUGIN_VERSION,
+				$admin_style_js_ver,
 				true
 			);
 
@@ -187,6 +197,7 @@ class Chatbot_Admin_Settings {
 				'chatbotStylePreview',
 				array(
 					'optionKey'       => self::OPTION_KEY,
+					'presets'         => self::style_presets(),
 					'widgetTitle'     => (string) ( $settings['widget_title'] ?? '' ),
 					'widgetSubtitle'  => (string) ( $settings['widget_subtitle'] ?? '' ),
 					'welcomeMessage'  => (string) ( $settings['welcome_message'] ?? '' ),
@@ -975,7 +986,7 @@ class Chatbot_Admin_Settings {
 									<span></span><span></span><span></span>
 								</div>
 							</div>
-							<p class="chatbot-admin-preview__hint"><?php esc_html_e( 'Los cambios se aplican al guardar en el sitio público.', 'chatbot-plugin-wp' ); ?></p>
+							<p class="chatbot-admin-preview__hint"><?php esc_html_e( 'La vista previa refleja tema, posición y estilos al instante. Guarda para aplicarlos en el sitio público.', 'chatbot-plugin-wp' ); ?></p>
 						</div>
 					</div>
 				</div>

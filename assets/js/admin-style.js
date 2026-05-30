@@ -1,7 +1,9 @@
 (function () {
   "use strict";
 
-  const PRESETS = ["default", "dark-glass", "minimal", "ocean", "sunset", "forest", "lavender", "plum"];
+  const PRESETS = Array.isArray(cfg.presets) && cfg.presets.length
+    ? cfg.presets
+    : ["default", "dark-glass", "minimal", "ocean", "sunset", "forest", "lavender", "plum"];
   const POSITIONS = [
     "bottom-right",
     "center-right",
@@ -127,14 +129,20 @@
     wrap.className = "cb-widget cb-wrap cb-preview-widget";
     wrap.id = "chatbot-style-preview";
 
+    const settings = readSettings();
+    wrap.classList.add("cb-preset-" + settings.preset);
+
     const launcher = document.createElement("button");
     launcher.type = "button";
-    launcher.className = "cb-launcher cb-launcher-right";
+    launcher.className =
+      "cb-launcher cb-launcher-" +
+      launcherSide(settings.position) +
+      (settings.launcherLabel ? "" : " cb-launcher--icon-only");
     launcher.setAttribute("aria-label", "Abrir chat");
-    launcher.innerHTML = launcherMarkup(true, cfg.widgetTitle || "Agente IA");
+    launcher.innerHTML = launcherMarkup(settings.launcherLabel, settings.title);
 
     const panel = document.createElement("section");
-    panel.className = "cb-panel cb-position-bottom-right";
+    panel.className = "cb-panel cb-position-" + settings.position;
     panel.setAttribute("aria-label", "Chatbot");
 
     panel.innerHTML =
@@ -185,10 +193,15 @@
       });
     }
 
-    setOpen(false);
+    panel.querySelector(".cb-header-title").textContent = settings.title;
+    panel.querySelector(".cb-header-sub-text").textContent = settings.subtitle;
+    applyStyleVars(wrap, settings);
+    renderMessages(panel.querySelector(".cb-messages"), settings);
+
+    setOpen(true);
     if (toggleBtn) {
-      toggleBtn.setAttribute("aria-pressed", "false");
-      toggleBtn.textContent = cfg.i18n.openPanel;
+      toggleBtn.setAttribute("aria-pressed", "true");
+      toggleBtn.textContent = cfg.i18n.closePanel;
     }
 
     return { wrap: wrap, launcher: launcher, panel: panel, setOpen: setOpen };
@@ -234,6 +247,7 @@
       wrap.classList.remove("cb-preset-" + p);
     });
     wrap.classList.add("cb-preset-" + settings.preset);
+    wrap.dataset.preset = settings.preset;
 
     POSITIONS.forEach(function (p) {
       panel.classList.remove("cb-position-" + p);
