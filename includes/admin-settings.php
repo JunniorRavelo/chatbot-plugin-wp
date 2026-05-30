@@ -92,67 +92,27 @@ class Chatbot_Admin_Settings {
 	public static function sanitize_settings( $input ): array {
 		$defaults = self::default_settings();
 		$input    = is_array( $input ) ? $input : array();
-		$current  = Chatbot_Plugin::get_settings();
+		$current  = self::get_stored_settings();
+		$out      = $current;
+		$tab      = isset( $_POST['chatbot_admin_tab'] ) ? sanitize_key( wp_unslash( (string) $_POST['chatbot_admin_tab'] ) ) : '';
 
-		$out = array();
-
-		$out['widget_enabled']        = self::sanitize_checkbox( $input, $current, 'widget_enabled', (bool) $defaults['widget_enabled'] );
-		$out['welcome_message']       = sanitize_textarea_field( $input['welcome_message'] ?? $defaults['welcome_message'] );
-		$out['system_prompt']         = sanitize_textarea_field( $input['system_prompt'] ?? $defaults['system_prompt'] );
-		$out['streaming_enabled']              = self::sanitize_checkbox( $input, $current, 'streaming_enabled', (bool) $defaults['streaming_enabled'] );
-		$out['allowed_origins']                = self::sanitize_origins_list( (string) ( $input['allowed_origins'] ?? $current['allowed_origins'] ?? $defaults['allowed_origins'] ) );
-		$out['cache_ttl_seconds']              = max( 0, min( 86400, (int) ( $input['cache_ttl_seconds'] ?? $current['cache_ttl_seconds'] ?? $defaults['cache_ttl_seconds'] ) ) );
-		$out['telemetry_log_path']             = sanitize_text_field( (string) ( $input['telemetry_log_path'] ?? $current['telemetry_log_path'] ?? $defaults['telemetry_log_path'] ) );
-		$out['rate_limit_per_minute']          = max( 1, min( 120, (int) ( $input['rate_limit_per_minute'] ?? $current['rate_limit_per_minute'] ?? $defaults['rate_limit_per_minute'] ) ) );
-		$out['rate_limit_per_day']             = max( 1, min( 1000, (int) ( $input['rate_limit_per_day'] ?? $current['rate_limit_per_day'] ?? $defaults['rate_limit_per_day'] ) ) );
-		$out['rate_limit_model_per_minute']    = max( 1, min( 120, (int) ( $input['rate_limit_model_per_minute'] ?? $current['rate_limit_model_per_minute'] ?? $defaults['rate_limit_model_per_minute'] ) ) );
-		$out['rate_limit_model_per_day']       = max( 1, min( 5000, (int) ( $input['rate_limit_model_per_day'] ?? $current['rate_limit_model_per_day'] ?? $defaults['rate_limit_model_per_day'] ) ) );
-		$out['rate_limit_soft_threshold']      = max( 0.1, min( 1.0, (float) ( $input['rate_limit_soft_threshold'] ?? $current['rate_limit_soft_threshold'] ?? $defaults['rate_limit_soft_threshold'] ) ) );
-		$out['ip_suspend_after_violations']    = max( 1, min( 20, (int) ( $input['ip_suspend_after_violations'] ?? $current['ip_suspend_after_violations'] ?? $defaults['ip_suspend_after_violations'] ) ) );
-		$out['ip_suspend_seconds']             = max( 60, min( 86400, (int) ( $input['ip_suspend_seconds'] ?? $current['ip_suspend_seconds'] ?? $defaults['ip_suspend_seconds'] ) ) );
-		$out['internal_chat_base_url']         = esc_url_raw( (string) ( $input['internal_chat_base_url'] ?? $current['internal_chat_base_url'] ?? $defaults['internal_chat_base_url'] ) );
-
-		$provider = sanitize_key( $input['provider'] ?? 'gemini' );
-		$out['provider'] = in_array( $provider, array( 'gemini', 'ollama', 'openai_compatible', 'deepseek' ), true ) ? $provider : 'gemini';
-
-		$new_key = isset( $input['api_key'] ) ? trim( (string) $input['api_key'] ) : '';
-		if ( '' !== $new_key ) {
-			$out['api_key'] = $new_key;
-		} else {
-			$out['api_key'] = (string) ( $current['api_key'] ?? '' );
+		switch ( $tab ) {
+			case 'general':
+				self::sanitize_general_settings( $input, $current, $defaults, $out );
+				break;
+			case 'model':
+				self::sanitize_model_settings( $input, $current, $defaults, $out );
+				break;
+			case 'security':
+				self::sanitize_security_settings( $input, $current, $defaults, $out );
+				break;
+			case 'style':
+				self::sanitize_style_settings( $input, $current, $defaults, $out );
+				break;
+			default:
+				self::sanitize_all_settings( $input, $current, $defaults, $out );
+				break;
 		}
-
-		$out['model']            = sanitize_text_field( $input['model'] ?? $defaults['model'] );
-		$out['model_candidates'] = sanitize_text_field( $input['model_candidates'] ?? $defaults['model_candidates'] );
-		$out['ollama_base_url']  = esc_url_raw( $input['ollama_base_url'] ?? $defaults['ollama_base_url'] );
-		$out['openai_base_url']    = esc_url_raw( $input['openai_base_url'] ?? $defaults['openai_base_url'] );
-		$out['deepseek_base_url']  = esc_url_raw( $input['deepseek_base_url'] ?? $defaults['deepseek_base_url'] );
-		$out['request_timeout']    = max( 5, min( 120, (int) ( $input['request_timeout'] ?? $defaults['request_timeout'] ) ) );
-
-		$preset = sanitize_key( $input['style_preset'] ?? 'default' );
-		$out['style_preset'] = in_array( $preset, self::style_presets(), true ) ? $preset : 'default';
-		$out['style_primary']  = sanitize_hex_color( $input['style_primary'] ?? '' ) ?: '';
-		$out['style_accent']   = sanitize_hex_color( $input['style_accent'] ?? '' ) ?: '';
-		$out['style_radius']   = self::sanitize_css_size( $input['style_radius'] ?? '' );
-		$position = sanitize_key( $input['style_position'] ?? 'bottom-right' );
-		$out['style_position'] = in_array( $position, self::style_positions(), true ) ? $position : 'bottom-right';
-		$out['style_offset']       = self::sanitize_css_size( $input['style_offset'] ?? '1rem' ) ?: '1rem';
-		$out['style_panel_width']  = self::sanitize_css_size( $input['style_panel_width'] ?? '' );
-		$out['style_launcher_label'] = self::sanitize_checkbox( $input, $current, 'style_launcher_label', (bool) $defaults['style_launcher_label'] );
-
-		$out['widget_title']    = sanitize_text_field( $input['widget_title'] ?? $defaults['widget_title'] );
-		$out['widget_subtitle'] = sanitize_text_field( $input['widget_subtitle'] ?? $defaults['widget_subtitle'] );
-
-		self::maybe_add_css_size_warning(
-			$input['style_radius'] ?? '',
-			$out['style_radius'],
-			__( 'El radio de borde no es válido; se ignoró ese valor.', 'chatbot-plugin-wp' )
-		);
-		self::maybe_add_css_size_warning(
-			$input['style_panel_width'] ?? '',
-			$out['style_panel_width'],
-			__( 'El ancho del panel no es válido; se ignoró ese valor.', 'chatbot-plugin-wp' )
-		);
 
 		$has_errors = ! empty(
 			array_filter(
@@ -173,6 +133,159 @@ class Chatbot_Admin_Settings {
 		}
 
 		return wp_parse_args( $out, $defaults );
+	}
+
+	/**
+	 * Opciones guardadas en BD sin overrides de wp-config.php.
+	 *
+	 * @return array<string, mixed>
+	 */
+	public static function get_stored_settings(): array {
+		$stored = get_option( self::OPTION_KEY, array() );
+
+		if ( ! is_array( $stored ) ) {
+			$stored = array();
+		}
+
+		return wp_parse_args( $stored, self::default_settings() );
+	}
+
+	/**
+	 * Añade claves nuevas del plugin sin pisar valores existentes.
+	 */
+	public static function maybe_merge_settings(): void {
+		$stored = get_option( self::OPTION_KEY, false );
+
+		if ( false === $stored || ! is_array( $stored ) ) {
+			return;
+		}
+
+		$merged = wp_parse_args( $stored, self::default_settings() );
+
+		if ( $merged !== $stored ) {
+			update_option( self::OPTION_KEY, $merged, false );
+		}
+	}
+
+	/**
+	 * @param array<string, mixed> $input
+	 * @param array<string, mixed> $current
+	 * @param array<string, mixed> $defaults
+	 * @param array<string, mixed> $out
+	 */
+	private static function sanitize_general_settings( array $input, array $current, array $defaults, array &$out ): void {
+		$out['widget_enabled']  = self::sanitize_checkbox( $input, $current, 'widget_enabled', (bool) $defaults['widget_enabled'] );
+		$out['welcome_message'] = sanitize_textarea_field( $input['welcome_message'] ?? $current['welcome_message'] ?? $defaults['welcome_message'] );
+		$out['system_prompt']   = sanitize_textarea_field( $input['system_prompt'] ?? $current['system_prompt'] ?? $defaults['system_prompt'] );
+		$out['streaming_enabled'] = self::sanitize_checkbox( $input, $current, 'streaming_enabled', (bool) $defaults['streaming_enabled'] );
+		$out['widget_title']    = sanitize_text_field( $input['widget_title'] ?? $current['widget_title'] ?? $defaults['widget_title'] );
+		$out['widget_subtitle'] = sanitize_text_field( $input['widget_subtitle'] ?? $current['widget_subtitle'] ?? $defaults['widget_subtitle'] );
+	}
+
+	/**
+	 * @param array<string, mixed> $input
+	 * @param array<string, mixed> $current
+	 * @param array<string, mixed> $defaults
+	 * @param array<string, mixed> $out
+	 */
+	private static function sanitize_model_settings( array $input, array $current, array $defaults, array &$out ): void {
+		$provider = sanitize_key( $input['provider'] ?? $current['provider'] ?? 'gemini' );
+		$out['provider'] = in_array( $provider, array( 'gemini', 'ollama', 'openai_compatible', 'deepseek' ), true )
+			? $provider
+			: (string) ( $current['provider'] ?? 'gemini' );
+
+		$new_key = isset( $input['api_key'] ) ? trim( (string) $input['api_key'] ) : '';
+		if ( '' !== $new_key ) {
+			$out['api_key'] = $new_key;
+		} else {
+			$out['api_key'] = (string) ( $current['api_key'] ?? '' );
+		}
+
+		$out['model']            = sanitize_text_field( $input['model'] ?? $current['model'] ?? $defaults['model'] );
+		$out['model_candidates'] = sanitize_text_field( $input['model_candidates'] ?? $current['model_candidates'] ?? $defaults['model_candidates'] );
+		$out['ollama_base_url']  = esc_url_raw( $input['ollama_base_url'] ?? $current['ollama_base_url'] ?? $defaults['ollama_base_url'] );
+		$out['openai_base_url']  = esc_url_raw( $input['openai_base_url'] ?? $current['openai_base_url'] ?? $defaults['openai_base_url'] );
+		$out['deepseek_base_url'] = esc_url_raw( $input['deepseek_base_url'] ?? $current['deepseek_base_url'] ?? $defaults['deepseek_base_url'] );
+		$out['request_timeout']  = max( 5, min( 120, (int) ( $input['request_timeout'] ?? $current['request_timeout'] ?? $defaults['request_timeout'] ) ) );
+	}
+
+	/**
+	 * @param array<string, mixed> $input
+	 * @param array<string, mixed> $current
+	 * @param array<string, mixed> $defaults
+	 * @param array<string, mixed> $out
+	 */
+	private static function sanitize_security_settings( array $input, array $current, array $defaults, array &$out ): void {
+		$out['allowed_origins']             = self::sanitize_origins_list( (string) ( $input['allowed_origins'] ?? $current['allowed_origins'] ?? $defaults['allowed_origins'] ) );
+		$out['cache_ttl_seconds']           = max( 0, min( 86400, (int) ( $input['cache_ttl_seconds'] ?? $current['cache_ttl_seconds'] ?? $defaults['cache_ttl_seconds'] ) ) );
+		$out['telemetry_log_path']          = sanitize_text_field( (string) ( $input['telemetry_log_path'] ?? $current['telemetry_log_path'] ?? $defaults['telemetry_log_path'] ) );
+		$out['rate_limit_per_minute']       = max( 1, min( 120, (int) ( $input['rate_limit_per_minute'] ?? $current['rate_limit_per_minute'] ?? $defaults['rate_limit_per_minute'] ) ) );
+		$out['rate_limit_per_day']          = max( 1, min( 1000, (int) ( $input['rate_limit_per_day'] ?? $current['rate_limit_per_day'] ?? $defaults['rate_limit_per_day'] ) ) );
+		$out['rate_limit_model_per_minute'] = max( 1, min( 120, (int) ( $input['rate_limit_model_per_minute'] ?? $current['rate_limit_model_per_minute'] ?? $defaults['rate_limit_model_per_minute'] ) ) );
+		$out['rate_limit_model_per_day']    = max( 1, min( 5000, (int) ( $input['rate_limit_model_per_day'] ?? $current['rate_limit_model_per_day'] ?? $defaults['rate_limit_model_per_day'] ) ) );
+		$out['rate_limit_soft_threshold']   = max( 0.1, min( 1.0, (float) ( $input['rate_limit_soft_threshold'] ?? $current['rate_limit_soft_threshold'] ?? $defaults['rate_limit_soft_threshold'] ) ) );
+		$out['ip_suspend_after_violations'] = max( 1, min( 20, (int) ( $input['ip_suspend_after_violations'] ?? $current['ip_suspend_after_violations'] ?? $defaults['ip_suspend_after_violations'] ) ) );
+		$out['ip_suspend_seconds']          = max( 60, min( 86400, (int) ( $input['ip_suspend_seconds'] ?? $current['ip_suspend_seconds'] ?? $defaults['ip_suspend_seconds'] ) ) );
+		$out['internal_chat_base_url']      = esc_url_raw( (string) ( $input['internal_chat_base_url'] ?? $current['internal_chat_base_url'] ?? $defaults['internal_chat_base_url'] ) );
+	}
+
+	/**
+	 * @param array<string, mixed> $input
+	 * @param array<string, mixed> $current
+	 * @param array<string, mixed> $defaults
+	 * @param array<string, mixed> $out
+	 */
+	private static function sanitize_style_settings( array $input, array $current, array $defaults, array &$out ): void {
+		$preset = sanitize_key( $input['style_preset'] ?? $current['style_preset'] ?? 'default' );
+		$out['style_preset'] = in_array( $preset, self::style_presets(), true )
+			? $preset
+			: (string) ( $current['style_preset'] ?? 'default' );
+		$out['style_primary'] = sanitize_hex_color( $input['style_primary'] ?? $current['style_primary'] ?? '' ) ?: '';
+		$out['style_accent']  = sanitize_hex_color( $input['style_accent'] ?? $current['style_accent'] ?? '' ) ?: '';
+
+		if ( array_key_exists( 'style_radius', $input ) ) {
+			$out['style_radius'] = self::sanitize_css_size( (string) $input['style_radius'] );
+			self::maybe_add_css_size_warning(
+				$input['style_radius'],
+				$out['style_radius'],
+				__( 'El radio de borde no es válido; se ignoró ese valor.', 'chatbot-plugin-wp' )
+			);
+		}
+
+		$position = sanitize_key( $input['style_position'] ?? $current['style_position'] ?? 'bottom-right' );
+		$out['style_position'] = in_array( $position, self::style_positions(), true )
+			? $position
+			: (string) ( $current['style_position'] ?? 'bottom-right' );
+
+		if ( array_key_exists( 'style_offset', $input ) ) {
+			$out['style_offset'] = self::sanitize_css_size( (string) $input['style_offset'] ) ?: (string) ( $current['style_offset'] ?? '1rem' );
+		}
+
+		if ( array_key_exists( 'style_panel_width', $input ) ) {
+			$out['style_panel_width'] = self::sanitize_css_size( (string) $input['style_panel_width'] );
+			self::maybe_add_css_size_warning(
+				$input['style_panel_width'],
+				$out['style_panel_width'],
+				__( 'El ancho del panel no es válido; se ignoró ese valor.', 'chatbot-plugin-wp' )
+			);
+		}
+
+		$out['style_launcher_label'] = self::sanitize_checkbox( $input, $current, 'style_launcher_label', (bool) $defaults['style_launcher_label'] );
+	}
+
+	/**
+	 * Compatibilidad si falta chatbot_admin_tab en el POST.
+	 *
+	 * @param array<string, mixed> $input
+	 * @param array<string, mixed> $current
+	 * @param array<string, mixed> $defaults
+	 * @param array<string, mixed> $out
+	 */
+	private static function sanitize_all_settings( array $input, array $current, array $defaults, array &$out ): void {
+		self::sanitize_general_settings( $input, $current, $defaults, $out );
+		self::sanitize_model_settings( $input, $current, $defaults, $out );
+		self::sanitize_security_settings( $input, $current, $defaults, $out );
+		self::sanitize_style_settings( $input, $current, $defaults, $out );
 	}
 
 	/**

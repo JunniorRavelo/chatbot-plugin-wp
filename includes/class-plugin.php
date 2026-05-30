@@ -29,6 +29,7 @@ class Chatbot_Plugin {
 
 	public function init(): void {
 		Chatbot_Chat_History::maybe_upgrade();
+		Chatbot_Admin_Settings::maybe_merge_settings();
 	}
 
 	public function load_textdomain(): void {
@@ -43,8 +44,11 @@ class Chatbot_Plugin {
 		Chatbot_Telemetry::create_table();
 		Chatbot_Chat_History::create_tables();
 
-		if ( false === get_option( 'chatbot_plugin_settings', false ) ) {
+		$stored = get_option( 'chatbot_plugin_settings', false );
+		if ( false === $stored ) {
 			add_option( 'chatbot_plugin_settings', Chatbot_Admin_Settings::default_settings() );
+		} else {
+			Chatbot_Admin_Settings::maybe_merge_settings();
 		}
 
 		Chatbot_Rest_Api::register_stream_rewrite();
@@ -86,13 +90,30 @@ class Chatbot_Plugin {
 			'ip_suspend_after_violations' => 'CHATBOT_IP_SUSPEND_AFTER_VIOLATIONS',
 			'ip_suspend_seconds'          => 'CHATBOT_IP_SUSPEND_SECONDS',
 			'internal_chat_base_url'      => 'CHATBOT_INTERNAL_CHAT_BASE_URL',
-			'model'                       => 'CHATBOT_GEMINI_MODEL',
-			'model_candidates'            => 'CHATBOT_GEMINI_MODEL_CANDIDATES',
+			'provider'                    => 'CHATBOT_PROVIDER',
+			'model'                       => 'CHATBOT_MODEL',
+			'model_candidates'            => 'CHATBOT_MODEL_CANDIDATES',
+			'widget_title'                => 'CHATBOT_WIDGET_TITLE',
+			'widget_subtitle'             => 'CHATBOT_WIDGET_SUBTITLE',
+			'welcome_message'             => 'CHATBOT_WELCOME_MESSAGE',
+			'system_prompt'               => 'CHATBOT_SYSTEM_PROMPT',
 		);
 
 		foreach ( $string_map as $key => $constant ) {
 			if ( defined( $constant ) && '' !== (string) constant( $constant ) ) {
 				$settings[ $key ] = constant( $constant );
+			}
+		}
+
+		if ( defined( 'CHATBOT_GEMINI_MODEL' ) && '' !== (string) CHATBOT_GEMINI_MODEL && ! defined( 'CHATBOT_MODEL' ) ) {
+			if ( ( $settings['provider'] ?? '' ) === 'gemini' ) {
+				$settings['model'] = (string) CHATBOT_GEMINI_MODEL;
+			}
+		}
+
+		if ( defined( 'CHATBOT_GEMINI_MODEL_CANDIDATES' ) && '' !== (string) CHATBOT_GEMINI_MODEL_CANDIDATES && ! defined( 'CHATBOT_MODEL_CANDIDATES' ) ) {
+			if ( ( $settings['provider'] ?? '' ) === 'gemini' ) {
+				$settings['model_candidates'] = (string) CHATBOT_GEMINI_MODEL_CANDIDATES;
 			}
 		}
 
