@@ -2,6 +2,7 @@
 .git/
 *.log
 node_modules/
+.venv-i18n/
 languages/*.mo.bak
 .DS_Store
 *.zip

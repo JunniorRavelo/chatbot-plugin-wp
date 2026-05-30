@@ -201,6 +201,90 @@ class Chatbot_Admin_Settings {
 	}
 
 	/**
+	 * Defaults traducidos para la UI del admin (placeholders, restaurar, preview).
+	 * Los valores canónicos en BD siguen en default_settings() en inglés.
+	 *
+	 * @return array<string, string>
+	 */
+	public static function translated_general_defaults(): array {
+		return array(
+			'widget_title'    => __( 'AI Agent', 'chatbot-plugin-wp' ),
+			'widget_subtitle' => __( 'System online', 'chatbot-plugin-wp' ),
+			'welcome_message' => __(
+				"Hello. I'm an AI agent. I may make mistakes; please verify important information before making decisions.\n\nHow can I help you?",
+				'chatbot-plugin-wp'
+			),
+			'system_prompt'   => __(
+				'You are a helpful website assistant. Respond clearly, briefly, and kindly. If you don\'t know something, say so honestly.',
+				'chatbot-plugin-wp'
+			),
+		);
+	}
+
+	/**
+	 * Cadenas i18n compartidas del preview del admin (Estilo y General).
+	 *
+	 * @return array<string, string>
+	 */
+	private static function admin_preview_i18n_strings(): array {
+		return array(
+			'openPanel'            => __( 'Open panel', 'chatbot-plugin-wp' ),
+			'closePanel'           => __( 'Close panel', 'chatbot-plugin-wp' ),
+			'openChat'             => __( 'Open chat', 'chatbot-plugin-wp' ),
+			'minimize'             => __( 'Minimize', 'chatbot-plugin-wp' ),
+			'reset'                => __( 'Reset', 'chatbot-plugin-wp' ),
+			'close'                => __( 'Close', 'chatbot-plugin-wp' ),
+			'placeholder'          => __( 'Type your message…', 'chatbot-plugin-wp' ),
+			'send'                 => __( 'Send', 'chatbot-plugin-wp' ),
+			'fallbackTitle'        => __( 'AI Agent', 'chatbot-plugin-wp' ),
+			'fallbackSubtitle'     => __( 'System online', 'chatbot-plugin-wp' ),
+			'fallbackWelcome'      => __(
+				"Hello. I'm an AI agent. I may make mistakes; please verify important information before making decisions.\n\nHow can I help you?",
+				'chatbot-plugin-wp'
+			),
+			'previewSampleUser'      => __( 'What are your opening hours?', 'chatbot-plugin-wp' ),
+			'previewSampleAssistant' => __(
+				'We are open Monday through Friday, 9:00 AM to 6:00 PM.',
+				'chatbot-plugin-wp'
+			),
+			'widgetDisabled'       => __(
+				'Global widget is disabled. The preview shows how copy would look if enabled.',
+				'chatbot-plugin-wp'
+			),
+			'widgetEnabled'        => __( 'Enabled', 'chatbot-plugin-wp' ),
+			'widgetDisabledLabel'  => __( 'Disabled', 'chatbot-plugin-wp' ),
+			'contrastWarning'      => __(
+				'Low contrast between primary color and background; check accessibility.',
+				'chatbot-plugin-wp'
+			),
+			'resetOverrides'       => __( 'Reset color overrides', 'chatbot-plugin-wp' ),
+			'exportTheme'          => __( 'Export theme', 'chatbot-plugin-wp' ),
+			'importTheme'          => __( 'Import theme', 'chatbot-plugin-wp' ),
+			'importSuccess'        => __(
+				'Theme imported into the form. Save to apply on the site.',
+				'chatbot-plugin-wp'
+			),
+			'importError'          => __( 'Invalid theme JSON.', 'chatbot-plugin-wp' ),
+		);
+	}
+
+	/**
+	 * Cadenas i18n solo de la pestaña General (admin JS).
+	 *
+	 * @return array<string, string>
+	 */
+	private static function admin_general_i18n_strings(): array {
+		return array(
+			'copyShortcode'       => __( 'Copy shortcode', 'chatbot-plugin-wp' ),
+			'copied'              => __( 'Copied', 'chatbot-plugin-wp' ),
+			'copyFailed'          => __( 'Could not copy.', 'chatbot-plugin-wp' ),
+			'restoreWelcome'      => __( 'Restore default welcome message?', 'chatbot-plugin-wp' ),
+			'restoreSystemPrompt' => __( 'Restore default system instructions?', 'chatbot-plugin-wp' ),
+			'charCount'           => __( '%1$d / %2$d characters', 'chatbot-plugin-wp' ),
+		);
+	}
+
+	/**
 	 * @param string $value
 	 * @param int    $max
 	 */
@@ -719,27 +803,13 @@ class Chatbot_Admin_Settings {
 					'widgetTitle'     => (string) ( $settings['widget_title'] ?? '' ),
 					'widgetSubtitle'  => (string) ( $settings['widget_subtitle'] ?? '' ),
 					'welcomeMessage'  => (string) ( $settings['welcome_message'] ?? '' ),
+					'defaults'        => self::translated_general_defaults(),
 					'generalFieldNames' => array(
 						'widget_title',
 						'widget_subtitle',
 						'welcome_message',
 					),
-					'i18n'            => array(
-						'openPanel'        => __( 'Open panel', 'chatbot-plugin-wp' ),
-						'closePanel'       => __( 'Close panel', 'chatbot-plugin-wp' ),
-						'openChat'         => __( 'Open chat', 'chatbot-plugin-wp' ),
-						'minimize'         => __( 'Minimize', 'chatbot-plugin-wp' ),
-						'reset'            => __( 'Reset', 'chatbot-plugin-wp' ),
-						'close'            => __( 'Close', 'chatbot-plugin-wp' ),
-						'placeholder'      => __( 'Type your message…', 'chatbot-plugin-wp' ),
-						'send'             => __( 'Send', 'chatbot-plugin-wp' ),
-						'resetOverrides'   => __( 'Reset color overrides', 'chatbot-plugin-wp' ),
-						'exportTheme'      => __( 'Export theme', 'chatbot-plugin-wp' ),
-						'importTheme'      => __( 'Import theme', 'chatbot-plugin-wp' ),
-						'importSuccess'    => __( 'Theme imported into the form. Save to apply on the site.', 'chatbot-plugin-wp' ),
-						'importError'      => __( 'Invalid theme JSON.', 'chatbot-plugin-wp' ),
-						'contrastWarning'  => __( 'Low contrast between primary color and background; check accessibility.', 'chatbot-plugin-wp' ),
-					),
+					'i18n'            => self::admin_preview_i18n_strings(),
 					'positionLabels'  => self::style_position_labels(),
 				)
 			);
@@ -784,8 +854,8 @@ class Chatbot_Admin_Settings {
 				true
 			);
 
-			$settings  = Chatbot_Plugin::get_settings();
-			$defaults  = self::default_settings();
+			$settings         = Chatbot_Plugin::get_settings();
+			$display_defaults = self::translated_general_defaults();
 
 			wp_localize_script(
 				'chatbot-plugin-admin-general',
@@ -795,38 +865,16 @@ class Chatbot_Admin_Settings {
 					'savedStyle'        => self::preview_style_settings_for_js( $settings ),
 					'presets'           => self::style_presets(),
 					'limits'            => self::general_field_limits(),
-					'defaults'          => array(
-						'widget_title'    => (string) $defaults['widget_title'],
-						'widget_subtitle' => (string) $defaults['widget_subtitle'],
-						'welcome_message' => (string) $defaults['welcome_message'],
-						'system_prompt'   => (string) $defaults['system_prompt'],
-					),
+					'defaults'          => $display_defaults,
 					'shortcode'         => '[chatbot_widget]',
 					'generalFieldNames' => array(
 						'widget_title',
 						'widget_subtitle',
 						'welcome_message',
 					),
-					'i18n'              => array(
-						'openPanel'             => __( 'Open panel', 'chatbot-plugin-wp' ),
-						'closePanel'            => __( 'Close panel', 'chatbot-plugin-wp' ),
-						'openChat'              => __( 'Open chat', 'chatbot-plugin-wp' ),
-						'minimize'              => __( 'Minimize', 'chatbot-plugin-wp' ),
-						'reset'                 => __( 'Reset', 'chatbot-plugin-wp' ),
-						'close'                 => __( 'Close', 'chatbot-plugin-wp' ),
-						'placeholder'           => __( 'Type your message…', 'chatbot-plugin-wp' ),
-						'send'                  => __( 'Send', 'chatbot-plugin-wp' ),
-						'widgetDisabled'        => __( 'Global widget is disabled. The preview shows how copy would look if enabled.', 'chatbot-plugin-wp' ),
-						'widgetEnabled'         => __( 'Enabled', 'chatbot-plugin-wp' ),
-						'widgetDisabledLabel'   => __( 'Disabled', 'chatbot-plugin-wp' ),
-						'streamingOn'           => __( 'On', 'chatbot-plugin-wp' ),
-						'streamingOff'          => __( 'Off', 'chatbot-plugin-wp' ),
-						'copyShortcode'         => __( 'Copy shortcode', 'chatbot-plugin-wp' ),
-						'copied'                => __( 'Copied', 'chatbot-plugin-wp' ),
-						'copyFailed'            => __( 'Could not copy.', 'chatbot-plugin-wp' ),
-						'restoreWelcome'        => __( 'Restore default welcome message?', 'chatbot-plugin-wp' ),
-						'restoreSystemPrompt'   => __( 'Restore default system instructions?', 'chatbot-plugin-wp' ),
-						'charCount'             => __( '%1$d / %2$d characters', 'chatbot-plugin-wp' ),
+					'i18n'              => array_merge(
+						self::admin_preview_i18n_strings(),
+						self::admin_general_i18n_strings()
 					),
 				)
 			);
@@ -1412,8 +1460,8 @@ class Chatbot_Admin_Settings {
 	 * @param array<string, mixed> $settings
 	 */
 	private static function render_general_fields( array $settings ): void {
-		$defaults     = self::default_settings();
-		$limits       = self::general_field_limits();
+		$display_defaults = self::translated_general_defaults();
+		$limits           = self::general_field_limits();
 		$widget_on    = ! empty( $settings['widget_enabled'] );
 		$streaming_on = ! empty( $settings['streaming_enabled'] );
 		$position     = sanitize_key( (string) ( $settings['style_position'] ?? 'bottom-right' ) );
@@ -1449,8 +1497,8 @@ class Chatbot_Admin_Settings {
 					<span class="chatbot-admin-kpi__value" id="chatbot-general-kpi-streaming">
 						<?php
 						echo $streaming_on
-							? esc_html__( 'On', 'chatbot-plugin-wp' )
-							: esc_html__( 'Off', 'chatbot-plugin-wp' );
+							? esc_html__( 'Enabled', 'chatbot-plugin-wp' )
+							: esc_html__( 'Disabled', 'chatbot-plugin-wp' );
 						?>
 					</span>
 				</div>
@@ -1507,7 +1555,7 @@ class Chatbot_Admin_Settings {
 						id="chatbot-widget-title"
 						value="<?php echo esc_attr( (string) $settings['widget_title'] ); ?>"
 						maxlength="<?php echo esc_attr( (string) $limits['widget_title'] ); ?>"
-						placeholder="<?php echo esc_attr( (string) $defaults['widget_title'] ); ?>"
+						placeholder="<?php echo esc_attr( (string) $display_defaults['widget_title'] ); ?>"
 						data-char-max="<?php echo esc_attr( (string) $limits['widget_title'] ); ?>"
 					/>
 					<p class="chatbot-admin-char-count" data-char-for="chatbot-widget-title" aria-live="polite"></p>
@@ -1523,7 +1571,7 @@ class Chatbot_Admin_Settings {
 						id="chatbot-widget-subtitle"
 						value="<?php echo esc_attr( (string) $settings['widget_subtitle'] ); ?>"
 						maxlength="<?php echo esc_attr( (string) $limits['widget_subtitle'] ); ?>"
-						placeholder="<?php echo esc_attr( (string) $defaults['widget_subtitle'] ); ?>"
+						placeholder="<?php echo esc_attr( (string) $display_defaults['widget_subtitle'] ); ?>"
 						data-char-max="<?php echo esc_attr( (string) $limits['widget_subtitle'] ); ?>"
 					/>
 					<p class="chatbot-admin-char-count" data-char-for="chatbot-widget-subtitle" aria-live="polite"></p>
@@ -1539,13 +1587,13 @@ class Chatbot_Admin_Settings {
 						rows="4"
 						class="large-text chatbot-admin-char-field"
 						maxlength="<?php echo esc_attr( (string) $limits['welcome_message'] ); ?>"
-						placeholder="<?php echo esc_attr( (string) $defaults['welcome_message'] ); ?>"
+						placeholder="<?php echo esc_attr( (string) $display_defaults['welcome_message'] ); ?>"
 						data-char-max="<?php echo esc_attr( (string) $limits['welcome_message'] ); ?>"
 					><?php echo esc_textarea( (string) $settings['welcome_message'] ); ?></textarea>
 					<p class="chatbot-admin-char-count" data-char-for="chatbot-welcome-message" aria-live="polite"></p>
 					<p class="description"><?php esc_html_e( 'First message visitors see when they open the chat. Visible to everyone.', 'chatbot-plugin-wp' ); ?></p>
 					<p class="chatbot-admin-field-actions">
-						<button type="button" class="button button-secondary" id="chatbot-restore-welcome" data-default="<?php echo esc_attr( (string) $defaults['welcome_message'] ); ?>">
+						<button type="button" class="button button-secondary" id="chatbot-restore-welcome" data-default="<?php echo esc_attr( (string) $display_defaults['welcome_message'] ); ?>">
 							<?php esc_html_e( 'Restore default welcome', 'chatbot-plugin-wp' ); ?>
 						</button>
 					</p>
@@ -1570,7 +1618,7 @@ class Chatbot_Admin_Settings {
 						rows="6"
 						class="large-text chatbot-admin-char-field"
 						maxlength="<?php echo esc_attr( (string) $limits['system_prompt'] ); ?>"
-						placeholder="<?php echo esc_attr( (string) $defaults['system_prompt'] ); ?>"
+						placeholder="<?php echo esc_attr( (string) $display_defaults['system_prompt'] ); ?>"
 						data-char-max="<?php echo esc_attr( (string) $limits['system_prompt'] ); ?>"
 					><?php echo esc_textarea( (string) $settings['system_prompt'] ); ?></textarea>
 					<p class="chatbot-admin-char-count" data-char-for="chatbot-system-prompt" aria-live="polite"></p>
@@ -1579,7 +1627,7 @@ class Chatbot_Admin_Settings {
 						<a href="<?php echo esc_url( $model_url ); ?>"><?php esc_html_e( 'Model and timeout settings', 'chatbot-plugin-wp' ); ?></a>
 					</p>
 					<p class="chatbot-admin-field-actions">
-						<button type="button" class="button button-secondary" id="chatbot-restore-system-prompt" data-default="<?php echo esc_attr( (string) $defaults['system_prompt'] ); ?>">
+						<button type="button" class="button button-secondary" id="chatbot-restore-system-prompt" data-default="<?php echo esc_attr( (string) $display_defaults['system_prompt'] ); ?>">
 							<?php esc_html_e( 'Restore default system prompt', 'chatbot-plugin-wp' ); ?>
 						</button>
 					</p>

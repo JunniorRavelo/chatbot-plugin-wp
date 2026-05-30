@@ -20,7 +20,7 @@ class Chatbot_Plugin {
 
 	private function __construct() {
 		add_action( 'init', array( $this, 'init' ) );
-		add_action( 'plugins_loaded', array( $this, 'load_textdomain' ) );
+		add_action( 'plugins_loaded', array( $this, 'load_textdomain' ), 0 );
 
 		Chatbot_Admin_Settings::init();
 		Chatbot_Rest_Api::init();

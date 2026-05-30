@@ -435,6 +435,29 @@ msgstr ""
 msgid "The widget is enabled but the title is empty. Visitors may see a blank header until you set a title."
 msgstr ""
 
+#: includes/admin-settings.php
+msgid "AI Agent"
+msgstr ""
+
+#: includes/admin-settings.php
+msgid ""
+"Hello. I'm an AI agent. I may make mistakes; please verify important information before making decisions.\n"
+"\n"
+"How can I help you?"
+msgstr ""
+
+#: includes/admin-settings.php
+msgid "You are a helpful website assistant. Respond clearly, briefly, and kindly. If you don't know something, say so honestly."
+msgstr ""
+
+#: includes/admin-settings.php
+msgid "What are your opening hours?"
+msgstr ""
+
+#: includes/admin-settings.php
+msgid "We are open Monday through Friday, 9:00 AM to 6:00 PM."
+msgstr ""
+
 #: includes/admin-settings.php:943
 msgid "Visibility and text"
 msgstr ""

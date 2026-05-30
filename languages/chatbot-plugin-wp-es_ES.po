@@ -439,6 +439,32 @@ msgstr "%1$d / %2$d caracteres"
 msgid "The widget is enabled but the title is empty. Visitors may see a blank header until you set a title."
 msgstr "El widget está activado pero el título está vacío. Los visitantes pueden ver una cabecera en blanco hasta que indique un título."
 
+#: includes/admin-settings.php
+msgid "AI Agent"
+msgstr "Agente IA"
+
+#: includes/admin-settings.php
+msgid ""
+"Hello. I'm an AI agent. I may make mistakes; please verify important information before making decisions.\n"
+"\n"
+"How can I help you?"
+msgstr ""
+"Hola. Soy un agente de IA. Puedo cometer errores; verifique la información importante antes de tomar decisiones.\n"
+"\n"
+"¿En qué puedo ayudarle?"
+
+#: includes/admin-settings.php
+msgid "You are a helpful website assistant. Respond clearly, briefly, and kindly. If you don't know something, say so honestly."
+msgstr "Eres un asistente web útil. Responde con claridad, brevedad y amabilidad. Si no sabes algo, dilo con honestidad."
+
+#: includes/admin-settings.php
+msgid "What are your opening hours?"
+msgstr "¿Cuál es su horario de atención?"
+
+#: includes/admin-settings.php
+msgid "We are open Monday through Friday, 9:00 AM to 6:00 PM."
+msgstr "Estamos abiertos de lunes a viernes, de 9:00 a 18:00."
+
 #: includes/admin-settings.php:943
 msgid "Visibility and text"
 msgstr "Visibilidad y texto"

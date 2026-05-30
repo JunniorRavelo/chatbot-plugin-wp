@@ -66,8 +66,8 @@
 
     if (streamingKpi && streamingEl) {
       streamingKpi.textContent = streamingEl.checked
-        ? i18n("streamingOn", "On")
-        : i18n("streamingOff", "Off");
+        ? i18n("widgetEnabled", "Enabled")
+        : i18n("widgetDisabledLabel", "Disabled");
     }
   }
 

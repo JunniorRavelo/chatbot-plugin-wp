@@ -51,12 +51,23 @@
       var title = field("widget_title");
       var subtitle = field("widget_subtitle");
       var welcome = field("welcome_message");
+      var displayDefaults = cfg.defaults || {};
       return {
-        title: title ? title.value.trim() : cfg.widgetTitle || "AI Agent",
-        subtitle: subtitle ? subtitle.value.trim() : cfg.widgetSubtitle || "System online",
+        title: title
+          ? title.value.trim()
+          : cfg.widgetTitle ||
+            displayDefaults.widget_title ||
+            previewI18n("fallbackTitle", "AI Agent"),
+        subtitle: subtitle
+          ? subtitle.value.trim()
+          : cfg.widgetSubtitle ||
+            displayDefaults.widget_subtitle ||
+            previewI18n("fallbackSubtitle", "System online"),
         welcome: welcome
           ? welcome.value.trim()
-          : cfg.welcomeMessage || "Hello! How can I help you?",
+          : cfg.welcomeMessage ||
+            displayDefaults.welcome_message ||
+            previewI18n("fallbackWelcome", "Hello! How can I help you?"),
       };
     }
 
@@ -390,13 +401,22 @@
 
     function renderMessages(messagesEl, settings) {
       messagesEl.innerHTML = "";
-      var welcomeText = settings.welcome || "Hello! How can I help you?";
+      var welcomeText =
+        settings.welcome || previewI18n("fallbackWelcome", "Hello! How can I help you?");
       messagesEl.appendChild(createPreviewMessage("assistant", welcomeText));
-      messagesEl.appendChild(createPreviewMessage("user", "What are your opening hours?"));
+      messagesEl.appendChild(
+        createPreviewMessage(
+          "user",
+          previewI18n("previewSampleUser", "What are your opening hours?")
+        )
+      );
       messagesEl.appendChild(
         createPreviewMessage(
           "assistant",
-          "We are open Monday through Friday, 9:00 AM to 6:00 PM."
+          previewI18n(
+            "previewSampleAssistant",
+            "We are open Monday through Friday, 9:00 AM to 6:00 PM."
+          )
         )
       );
     }
