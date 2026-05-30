@@ -1568,3 +1568,9 @@ msgstr "JSON de tema no válido."
 
 msgid "Low contrast between primary color and background; check accessibility."
 msgstr "Bajo contraste entre el color primario y el fondo; revise la accesibilidad."
+
+msgid "Obsidian"
+msgstr "Obsidiana"
+
+msgid "Charcoal slate with emerald and teal highlights. Calm dark UI."
+msgstr "Pizarra carbón con acentos esmeralda y turquesa. Interfaz oscura y tranquila."

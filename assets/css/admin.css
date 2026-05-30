@@ -549,6 +549,32 @@
   background: rgba(255, 255, 255, 0.12);
 }
 
+#chatbot-preview-viewport #chatbot-style-preview.maicb-preset-obsidian .maicb-header {
+  color: #f8fafc;
+}
+
+#chatbot-preview-viewport #chatbot-style-preview.maicb-preset-obsidian .maicb-header .maicb-header-title,
+#chatbot-preview-viewport #chatbot-style-preview.maicb-preset-obsidian .maicb-header h3.maicb-header-title {
+  font-weight: 600;
+  color: #f8fafc !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+#chatbot-preview-viewport #chatbot-style-preview.maicb-preset-obsidian .maicb-header .maicb-header-sub,
+#chatbot-preview-viewport #chatbot-style-preview.maicb-preset-obsidian .maicb-header p.maicb-header-sub {
+  color: #cbd5e1 !important;
+}
+
+#chatbot-preview-viewport #chatbot-style-preview.maicb-preset-obsidian .maicb-header .maicb-icon-btn {
+  color: #cbd5e1 !important;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+#chatbot-preview-viewport #chatbot-style-preview.maicb-preset-obsidian .maicb-header .maicb-icon-btn:hover {
+  color: #f8fafc !important;
+  background: rgba(255, 255, 255, 0.1);
+}
+
 /* Preview — posicionamiento dentro del viewport (anula position:fixed del widget) */
 #chatbot-preview-viewport .maicb-preview-widget-host {
   position: absolute;
@@ -752,12 +778,14 @@
 }
 
 #chatbot-preview-viewport #chatbot-style-preview.maicb-preset-dark-glass .maicb-composer,
+#chatbot-preview-viewport #chatbot-style-preview.maicb-preset-obsidian .maicb-composer,
 #chatbot-preview-viewport #chatbot-style-preview.maicb-preset-plum .maicb-composer {
   border-top-color: rgba(148, 163, 184, 0.2) !important;
   box-shadow: 0 -8px 24px -12px rgba(0, 0, 0, 0.45);
 }
 
 #chatbot-preview-viewport #chatbot-style-preview.maicb-preset-dark-glass .maicb-composer-inner,
+#chatbot-preview-viewport #chatbot-style-preview.maicb-preset-obsidian .maicb-composer-inner,
 #chatbot-preview-viewport #chatbot-style-preview.maicb-preset-plum .maicb-composer-inner {
   background: rgba(30, 41, 59, 0.72) !important;
   border-color: rgba(148, 163, 184, 0.22);

@@ -214,6 +214,7 @@
   const PRESET_IDS = [
     "default",
     "dark-glass",
+    "obsidian",
     "minimal",
     "ocean",
     "sunset",

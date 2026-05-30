@@ -1546,3 +1546,9 @@ msgstr ""
 #: includes/admin-settings.php
 msgid "Low contrast between primary color and background; check accessibility."
 msgstr ""
+
+msgid "Obsidian"
+msgstr ""
+
+msgid "Charcoal slate with emerald and teal highlights. Calm dark UI."
+msgstr ""

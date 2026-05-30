@@ -5,7 +5,7 @@
   const optionKey = cfg.optionKey || "chatbot_plugin_settings";
   const PRESETS = Array.isArray(cfg.presets) && cfg.presets.length
     ? cfg.presets
-    : ["default", "dark-glass", "minimal", "ocean", "sunset", "forest", "lavender", "plum"];
+    : ["default", "dark-glass", "obsidian", "minimal", "ocean", "sunset", "forest", "lavender", "plum"];
   const PRESET_META = cfg.presetMeta || {};
   const EXPORT_KEYS = Array.isArray(cfg.exportKeys) ? cfg.exportKeys : [];
   const POSITIONS = [

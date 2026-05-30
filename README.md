@@ -109,6 +109,7 @@ Presets disponibles en la pestaña **Estilo del chat** (selector visual con vist
 |----|--------|
 | `default` | Sapphire |
 | `dark-glass` | Midnight |
+| `obsidian` | Obsidian |
 | `minimal` | Monochrome |
 | `ocean` | Aqua |
 | `sunset` | Ember |

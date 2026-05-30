@@ -664,7 +664,7 @@ class Chatbot_Admin_Settings {
 	 * @return list<string>
 	 */
 	public static function style_presets(): array {
-		$presets = array( 'default', 'dark-glass', 'minimal', 'ocean', 'sunset', 'forest', 'lavender', 'plum' );
+		$presets = array( 'default', 'dark-glass', 'obsidian', 'minimal', 'ocean', 'sunset', 'forest', 'lavender', 'plum' );
 
 		/**
 		 * Filter available chat style preset IDs.
@@ -705,6 +705,13 @@ class Chatbot_Admin_Settings {
 				'badge'      => __( 'Dark', 'chatbot-plugin-wp' ),
 				'badge_type' => 'dark',
 				'colors'     => array( '#38bdf8', '#a78bfa', '#0f172a' ),
+			),
+			'obsidian'   => array(
+				'label'      => __( 'Obsidian', 'chatbot-plugin-wp' ),
+				'desc'       => __( 'Charcoal slate with emerald and teal highlights. Calm dark UI.', 'chatbot-plugin-wp' ),
+				'badge'      => __( 'Dark', 'chatbot-plugin-wp' ),
+				'badge_type' => 'dark',
+				'colors'     => array( '#34d399', '#2dd4bf', '#0c1117' ),
 			),
 			'minimal'    => array(
 				'label'      => __( 'Monochrome', 'chatbot-plugin-wp' ),
