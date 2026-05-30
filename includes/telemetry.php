@@ -9,7 +9,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 class Chatbot_Telemetry {
 
-	const DB_VERSION = '1.0';
+	const DB_VERSION = '1.1';
 
 	public static function table_name(): string {
 		global $wpdb;
@@ -31,16 +31,24 @@ class Chatbot_Telemetry {
 			status varchar(32) NOT NULL DEFAULT '',
 			latency_ms int(11) NOT NULL DEFAULT 0,
 			error_code varchar(64) DEFAULT NULL,
+			conversation_id bigint(20) unsigned DEFAULT NULL,
 			PRIMARY KEY  (id),
 			KEY created_at (created_at),
 			KEY status (status),
-			KEY provider (provider)
+			KEY provider (provider),
+			KEY conversation_id (conversation_id)
 		) {$charset};";
 
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 		dbDelta( $sql );
 
-		update_option( 'chatbot_plugin_db_version', self::DB_VERSION );
+		update_option( 'chatbot_plugin_telemetry_db_version', self::DB_VERSION );
+	}
+
+	public static function maybe_upgrade(): void {
+		if ( self::DB_VERSION !== get_option( 'chatbot_plugin_telemetry_db_version', '' ) ) {
+			self::create_table();
+		}
 	}
 
 	/**
@@ -50,19 +58,20 @@ class Chatbot_Telemetry {
 		global $wpdb;
 
 		$row = array(
-			'created_at'   => current_time( 'mysql', true ),
-			'session_hash' => isset( $event['session_hash'] ) ? sanitize_text_field( (string) $event['session_hash'] ) : '',
-			'provider'     => isset( $event['provider'] ) ? sanitize_text_field( (string) $event['provider'] ) : '',
-			'model'        => isset( $event['model'] ) ? sanitize_text_field( (string) $event['model'] ) : '',
-			'status'       => isset( $event['status'] ) ? sanitize_text_field( (string) $event['status'] ) : '',
-			'latency_ms'   => isset( $event['latency_ms'] ) ? (int) $event['latency_ms'] : 0,
-			'error_code'   => ! empty( $event['error_code'] ) ? sanitize_text_field( (string) $event['error_code'] ) : null,
+			'created_at'      => current_time( 'mysql', true ),
+			'session_hash'    => isset( $event['session_hash'] ) ? sanitize_text_field( (string) $event['session_hash'] ) : '',
+			'provider'        => isset( $event['provider'] ) ? sanitize_text_field( (string) $event['provider'] ) : '',
+			'model'           => isset( $event['model'] ) ? sanitize_text_field( (string) $event['model'] ) : '',
+			'status'          => isset( $event['status'] ) ? sanitize_text_field( (string) $event['status'] ) : '',
+			'latency_ms'      => isset( $event['latency_ms'] ) ? (int) $event['latency_ms'] : 0,
+			'error_code'      => ! empty( $event['error_code'] ) ? sanitize_text_field( (string) $event['error_code'] ) : null,
+			'conversation_id' => ! empty( $event['conversation_id'] ) ? (int) $event['conversation_id'] : null,
 		);
 
 		$wpdb->insert(
 			self::table_name(),
 			$row,
-			array( '%s', '%s', '%s', '%s', '%s', '%d', '%s' )
+			array( '%s', '%s', '%s', '%s', '%s', '%d', '%s', '%d' )
 		);
 
 		self::maybe_append_file_log( $row );
@@ -87,7 +96,8 @@ class Chatbot_Telemetry {
 				'model'        => $row['model'] ?? '',
 				'status'       => $row['status'] ?? '',
 				'latency_ms'   => $row['latency_ms'] ?? 0,
-				'error_code'   => $row['error_code'] ?? '',
+				'error_code'       => $row['error_code'] ?? '',
+				'conversation_id'  => $row['conversation_id'] ?? 0,
 			)
 		);
 
@@ -243,5 +253,31 @@ class Chatbot_Telemetry {
 		}
 
 		return implode( "\n", $lines );
+	}
+
+	/**
+	 * @return array<int, array<string, mixed>>
+	 */
+	public static function get_events_by_conversation( int $conversation_id, int $limit = 50 ): array {
+		if ( $conversation_id <= 0 ) {
+			return array();
+		}
+
+		global $wpdb;
+
+		$table = self::table_name();
+		$limit = max( 1, min( 200, $limit ) );
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$rows = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT * FROM {$table} WHERE conversation_id = %d ORDER BY created_at DESC LIMIT %d",
+				$conversation_id,
+				$limit
+			),
+			ARRAY_A
+		);
+
+		return $rows ?: array();
 	}
 }

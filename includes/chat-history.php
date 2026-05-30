@@ -298,50 +298,97 @@ class Chatbot_Chat_History {
 
 	/**
 	 * @param array<string, mixed> $args
-	 * @return array<int, array<string, mixed>>
+	 * @return array{join: string, where: list<string>, params: list<mixed>, alias: string}
 	 */
-	public static function list_conversations( array $args = array() ): array {
+	private static function query_filters( array $args ): array {
 		global $wpdb;
 
-		$table  = self::conversations_table();
 		$where  = array( '1=1' );
 		$params = array();
+		$join   = '';
+		$alias  = 'c';
 
 		$days = isset( $args['days'] ) ? (int) $args['days'] : 0;
 		if ( $days > 0 ) {
-			$where[]  = 'updated_at >= %s';
+			$where[]  = "{$alias}.updated_at >= %s";
 			$params[] = gmdate( 'Y-m-d H:i:s', strtotime( "-{$days} days" ) );
 		}
 
 		$provider = isset( $args['provider'] ) ? sanitize_key( (string) $args['provider'] ) : '';
 		if ( '' !== $provider && 'all' !== $provider ) {
-			$where[]  = 'provider = %s';
+			$where[]  = "{$alias}.provider = %s";
 			$params[] = $provider;
 		}
 
 		$status = isset( $args['status'] ) ? sanitize_key( (string) $args['status'] ) : '';
 		if ( '' !== $status && 'all' !== $status ) {
-			$where[]  = 'status = %s';
+			$where[]  = "{$alias}.status = %s";
 			$params[] = $status;
+		}
+
+		$page_path = isset( $args['page_path'] ) ? sanitize_text_field( (string) $args['page_path'] ) : '';
+		if ( '' !== $page_path && 'all' !== $page_path ) {
+			$where[]  = "{$alias}.page_path = %s";
+			$params[] = $page_path;
 		}
 
 		$search = isset( $args['search'] ) ? trim( (string) $args['search'] ) : '';
 		if ( '' !== $search ) {
-			$like     = '%' . $wpdb->esc_like( $search ) . '%';
-			$where[]  = '(public_id LIKE %s OR title LIKE %s OR page_path LIKE %s OR session_hash LIKE %s)';
-			$params[] = $like;
-			$params[] = $like;
-			$params[] = $like;
-			$params[] = $like;
+			$like    = '%' . $wpdb->esc_like( $search ) . '%';
+			$scope   = isset( $args['search_in'] ) ? sanitize_key( (string) $args['search_in'] ) : 'all';
+			$meta_sql = "({$alias}.public_id LIKE %s OR {$alias}.title LIKE %s OR {$alias}.page_path LIKE %s OR {$alias}.session_hash LIKE %s)";
+
+			if ( 'messages' === $scope ) {
+				$messages = self::messages_table();
+				$join     = " INNER JOIN {$messages} m ON m.conversation_id = {$alias}.id ";
+				$where[]  = "m.content LIKE %s";
+				$params[] = $like;
+			} elseif ( 'all' === $scope ) {
+				$messages = self::messages_table();
+				$join     = " LEFT JOIN {$messages} m ON m.conversation_id = {$alias}.id ";
+				$where[]  = '(' . $meta_sql . ' OR m.content LIKE %s)';
+				$params[] = $like;
+				$params[] = $like;
+				$params[] = $like;
+				$params[] = $like;
+				$params[] = $like;
+			} else {
+				$where[]  = $meta_sql;
+				$params[] = $like;
+				$params[] = $like;
+				$params[] = $like;
+				$params[] = $like;
+			}
 		}
 
-		$per    = max( 1, min( 50, (int) ( $args['per_page'] ?? 12 ) ) );
-		$offset = max( 0, (int) ( $args['offset'] ?? 0 ) );
+		return array(
+			'join'   => $join,
+			'where'  => $where,
+			'params' => $params,
+			'alias'  => $alias,
+		);
+	}
 
-		$order = isset( $args['orderby'] ) && 'started_at' === $args['orderby'] ? 'started_at' : 'updated_at';
-		$dir   = isset( $args['order'] ) && 'asc' === strtolower( (string) $args['order'] ) ? 'ASC' : 'DESC';
+	/**
+	 * @param array<string, mixed> $args
+	 * @return array<int, array<string, mixed>>
+	 */
+	public static function list_conversations( array $args = array() ): array {
+		global $wpdb;
 
-		$sql = "SELECT * FROM {$table} WHERE " . implode( ' AND ', $where ) . " ORDER BY {$order} {$dir} LIMIT %d OFFSET %d";
+		$table   = self::conversations_table();
+		$filters = self::query_filters( $args );
+		$per     = max( 1, min( 50, (int) ( $args['per_page'] ?? 12 ) ) );
+		$offset  = max( 0, (int) ( $args['offset'] ?? 0 ) );
+		$order   = isset( $args['orderby'] ) && 'started_at' === $args['orderby'] ? 'started_at' : 'updated_at';
+		$dir     = isset( $args['order'] ) && 'asc' === strtolower( (string) $args['order'] ) ? 'ASC' : 'DESC';
+		$alias   = $filters['alias'];
+
+		$sql = "SELECT DISTINCT {$alias}.* FROM {$table} {$alias} {$filters['join']} WHERE "
+			. implode( ' AND ', $filters['where'] )
+			. " ORDER BY {$alias}.{$order} {$dir} LIMIT %d OFFSET %d";
+
+		$params   = $filters['params'];
 		$params[] = $per;
 		$params[] = $offset;
 
@@ -357,47 +404,131 @@ class Chatbot_Chat_History {
 	public static function count_conversations( array $args = array() ): int {
 		global $wpdb;
 
-		$table  = self::conversations_table();
-		$where  = array( '1=1' );
-		$params = array();
+		$table   = self::conversations_table();
+		$filters = self::query_filters( $args );
+		$alias   = $filters['alias'];
 
-		$days = isset( $args['days'] ) ? (int) $args['days'] : 0;
-		if ( $days > 0 ) {
-			$where[]  = 'updated_at >= %s';
-			$params[] = gmdate( 'Y-m-d H:i:s', strtotime( "-{$days} days" ) );
-		}
+		$sql = "SELECT COUNT(DISTINCT {$alias}.id) FROM {$table} {$alias} {$filters['join']} WHERE "
+			. implode( ' AND ', $filters['where'] );
 
-		$provider = isset( $args['provider'] ) ? sanitize_key( (string) $args['provider'] ) : '';
-		if ( '' !== $provider && 'all' !== $provider ) {
-			$where[]  = 'provider = %s';
-			$params[] = $provider;
-		}
-
-		$status = isset( $args['status'] ) ? sanitize_key( (string) $args['status'] ) : '';
-		if ( '' !== $status && 'all' !== $status ) {
-			$where[]  = 'status = %s';
-			$params[] = $status;
-		}
-
-		$search = isset( $args['search'] ) ? trim( (string) $args['search'] ) : '';
-		if ( '' !== $search ) {
-			$like     = '%' . $wpdb->esc_like( $search ) . '%';
-			$where[]  = '(public_id LIKE %s OR title LIKE %s OR page_path LIKE %s OR session_hash LIKE %s)';
-			$params[] = $like;
-			$params[] = $like;
-			$params[] = $like;
-			$params[] = $like;
-		}
-
-		$sql = "SELECT COUNT(*) FROM {$table} WHERE " . implode( ' AND ', $where );
-
-		if ( empty( $params ) ) {
+		if ( empty( $filters['params'] ) ) {
 			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 			return (int) $wpdb->get_var( $sql );
 		}
 
 		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
-		return (int) $wpdb->get_var( $wpdb->prepare( $sql, $params ) );
+		return (int) $wpdb->get_var( $wpdb->prepare( $sql, $filters['params'] ) );
+	}
+
+	/**
+	 * @param array<string, mixed> $args
+	 * @return array{total: int, errors: int, messages: int, avg_messages: float}
+	 */
+	public static function get_summary_stats( array $args = array() ): array {
+		global $wpdb;
+
+		$table   = self::conversations_table();
+		$filters = self::query_filters( $args );
+		$alias   = $filters['alias'];
+
+		$sql = "SELECT
+			COUNT(DISTINCT {$alias}.id) AS total,
+			SUM(CASE WHEN {$alias}.status = 'error' THEN 1 ELSE 0 END) AS errors,
+			COALESCE(SUM({$alias}.message_count), 0) AS messages
+			FROM {$table} {$alias} {$filters['join']} WHERE "
+			. implode( ' AND ', $filters['where'] );
+
+		if ( empty( $filters['params'] ) ) {
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+			$row = $wpdb->get_row( $sql, ARRAY_A );
+		} else {
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+			$row = $wpdb->get_row( $wpdb->prepare( $sql, $filters['params'] ), ARRAY_A );
+		}
+
+		$total    = (int) ( $row['total'] ?? 0 );
+		$errors   = (int) ( $row['errors'] ?? 0 );
+		$messages = (int) ( $row['messages'] ?? 0 );
+
+		return array(
+			'total'        => $total,
+			'errors'       => $errors,
+			'messages'     => $messages,
+			'avg_messages' => $total > 0 ? round( $messages / $total, 1 ) : 0.0,
+		);
+	}
+
+	/**
+	 * @param array<string, mixed> $args
+	 * @return list<string>
+	 */
+	public static function get_distinct_page_paths( array $args = array() ): array {
+		global $wpdb;
+
+		$table   = self::conversations_table();
+		$filters = self::query_filters( array_merge( $args, array( 'page_path' => 'all', 'search' => '' ) ) );
+		$alias   = $filters['alias'];
+
+		$sql = "SELECT DISTINCT {$alias}.page_path FROM {$table} {$alias} WHERE "
+			. implode( ' AND ', $filters['where'] )
+			. " AND {$alias}.page_path IS NOT NULL AND {$alias}.page_path != '' ORDER BY {$alias}.page_path ASC LIMIT 100";
+
+		if ( empty( $filters['params'] ) ) {
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+			$rows = $wpdb->get_col( $sql );
+		} else {
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+			$rows = $wpdb->get_col( $wpdb->prepare( $sql, $filters['params'] ) );
+		}
+
+		return array_values( array_filter( array_map( 'strval', $rows ?: array() ) ) );
+	}
+
+	/**
+	 * @param array<string, mixed> $args
+	 */
+	public static function find_conversation_page( int $conversation_id, array $args, int $per_page = 12 ): int {
+		if ( $conversation_id <= 0 || $per_page <= 0 ) {
+			return 1;
+		}
+
+		global $wpdb;
+
+		$conv = self::get_conversation( $conversation_id );
+		if ( ! $conv ) {
+			return 1;
+		}
+
+		$table   = self::conversations_table();
+		$filters = self::query_filters( $args );
+		$alias   = $filters['alias'];
+		$order   = isset( $args['orderby'] ) && 'started_at' === $args['orderby'] ? 'started_at' : 'updated_at';
+		$dir     = isset( $args['order'] ) && 'asc' === strtolower( (string) $args['order'] ) ? 'ASC' : 'DESC';
+		$pivot   = (string) ( $conv[ $order ] ?? '' );
+
+		if ( '' === $pivot ) {
+			return 1;
+		}
+
+		if ( 'ASC' === $dir ) {
+			$where_op = "{$alias}.{$order} < %s OR ({$alias}.{$order} = %s AND {$alias}.id < %d)";
+		} else {
+			$where_op = "{$alias}.{$order} > %s OR ({$alias}.{$order} = %s AND {$alias}.id > %d)";
+		}
+
+		$sql = "SELECT COUNT(DISTINCT {$alias}.id) FROM {$table} {$alias} {$filters['join']} WHERE "
+			. implode( ' AND ', $filters['where'] )
+			. ' AND (' . $where_op . ')';
+
+		$params   = $filters['params'];
+		$params[] = $pivot;
+		$params[] = $pivot;
+		$params[] = $conversation_id;
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		$before = (int) $wpdb->get_var( $wpdb->prepare( $sql, $params ) );
+
+		return max( 1, (int) floor( $before / $per_page ) + 1 );
 	}
 
 	/**
@@ -452,6 +583,227 @@ class Chatbot_Chat_History {
 			return $mysql_utc;
 		}
 		return wp_date( 'd/m/Y H:i', $ts );
+	}
+
+	public static function format_relative_time( string $mysql_utc ): string {
+		if ( '' === $mysql_utc ) {
+			return '';
+		}
+		$ts = strtotime( $mysql_utc . ' UTC' );
+		if ( false === $ts ) {
+			return '';
+		}
+		return human_time_diff( $ts, time() );
+	}
+
+	public static function format_duration( string $started_at, string $updated_at ): string {
+		$start = strtotime( $started_at . ' UTC' );
+		$end   = strtotime( $updated_at . ' UTC' );
+		if ( false === $start || false === $end || $end <= $start ) {
+			return '—';
+		}
+		$seconds = $end - $start;
+		if ( $seconds < 60 ) {
+			/* translators: %d: seconds */
+			return sprintf( _n( '%d s', '%d s', $seconds, 'chatbot-plugin-wp' ), $seconds );
+		}
+		if ( $seconds < 3600 ) {
+			$mins = (int) floor( $seconds / 60 );
+			/* translators: %d: minutes */
+			return sprintf( _n( '%d min', '%d min', $mins, 'chatbot-plugin-wp' ), $mins );
+		}
+		$hours = (int) floor( $seconds / 3600 );
+		$mins  = (int) floor( ( $seconds % 3600 ) / 60 );
+		if ( $mins > 0 ) {
+			/* translators: 1: hours, 2: minutes */
+			return sprintf( __( '%1$dh %2$dmin', 'chatbot-plugin-wp' ), $hours, $mins );
+		}
+		/* translators: %d: hours */
+		return sprintf( _n( '%d h', '%d h', $hours, 'chatbot-plugin-wp' ), $hours );
+	}
+
+	/**
+	 * @param array<string, mixed> $args
+	 */
+	public static function export_csv( array $args = array() ): void {
+		$rows = self::list_conversations(
+			array_merge(
+				$args,
+				array(
+					'per_page' => 5000,
+					'offset'   => 0,
+				)
+			)
+		);
+
+		$filename = 'chatbot-history-' . gmdate( 'Y-m-d-His' ) . '.csv';
+		nocache_headers();
+		header( 'Content-Type: text/csv; charset=utf-8' );
+		header( 'Content-Disposition: attachment; filename="' . $filename . '"' );
+
+		$out = fopen( 'php://output', 'w' );
+		if ( false === $out ) {
+			return;
+		}
+
+		fputcsv(
+			$out,
+			array(
+				__( 'ID público', 'chatbot-plugin-wp' ),
+				__( 'Título', 'chatbot-plugin-wp' ),
+				__( 'Proveedor', 'chatbot-plugin-wp' ),
+				__( 'Modelo', 'chatbot-plugin-wp' ),
+				__( 'Estado', 'chatbot-plugin-wp' ),
+				__( 'Mensajes', 'chatbot-plugin-wp' ),
+				__( 'Ruta', 'chatbot-plugin-wp' ),
+				__( 'Inicio', 'chatbot-plugin-wp' ),
+				__( 'Última actividad', 'chatbot-plugin-wp' ),
+			)
+		);
+
+		foreach ( $rows as $row ) {
+			fputcsv(
+				$out,
+				array(
+					(string) ( $row['public_id'] ?? '' ),
+					(string) ( $row['title'] ?? '' ),
+					(string) ( $row['provider'] ?? '' ),
+					(string) ( $row['model'] ?? '' ),
+					(string) ( $row['status'] ?? '' ),
+					(int) ( $row['message_count'] ?? 0 ),
+					(string) ( $row['page_path'] ?? '' ),
+					(string) ( $row['started_at'] ?? '' ),
+					(string) ( $row['updated_at'] ?? '' ),
+				)
+			);
+		}
+
+		fclose( $out );
+	}
+
+	/**
+	 * @return array{deleted_conversations: int, deleted_messages: int}
+	 */
+	public static function purge_older_than_days( int $days ): array {
+		if ( $days <= 0 ) {
+			return array(
+				'deleted_conversations' => 0,
+				'deleted_messages'      => 0,
+			);
+		}
+
+		global $wpdb;
+
+		$conv_table = self::conversations_table();
+		$msg_table  = self::messages_table();
+		$cutoff     = gmdate( 'Y-m-d H:i:s', strtotime( "-{$days} days" ) );
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$ids = $wpdb->get_col(
+			$wpdb->prepare(
+				"SELECT id FROM {$conv_table} WHERE updated_at < %s",
+				$cutoff
+			)
+		);
+
+		if ( empty( $ids ) ) {
+			return array(
+				'deleted_conversations' => 0,
+				'deleted_messages'      => 0,
+			);
+		}
+
+		$ids          = array_map( 'intval', $ids );
+		$placeholders = implode( ',', array_fill( 0, count( $ids ), '%d' ) );
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
+		$deleted_messages = (int) $wpdb->query(
+			$wpdb->prepare(
+				"DELETE FROM {$msg_table} WHERE conversation_id IN ({$placeholders})",
+				...$ids
+			)
+		);
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
+		$deleted_conversations = (int) $wpdb->query(
+			$wpdb->prepare(
+				"DELETE FROM {$conv_table} WHERE id IN ({$placeholders})",
+				...$ids
+			)
+		);
+
+		return array(
+			'deleted_conversations' => $deleted_conversations,
+			'deleted_messages'      => $deleted_messages,
+		);
+	}
+
+	public static function delete_conversation( int $conversation_id ): bool {
+		if ( $conversation_id <= 0 ) {
+			return false;
+		}
+
+		global $wpdb;
+
+		$msg_table  = self::messages_table();
+		$conv_table = self::conversations_table();
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$wpdb->delete( $msg_table, array( 'conversation_id' => $conversation_id ), array( '%d' ) );
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$deleted = $wpdb->delete( $conv_table, array( 'id' => $conversation_id ), array( '%d' ) );
+
+		return (bool) $deleted;
+	}
+
+	/**
+	 * @param list<int> $conversation_ids
+	 * @return array<int, string>
+	 */
+	public static function get_first_user_previews( array $conversation_ids ): array {
+		$conversation_ids = array_values( array_filter( array_map( 'intval', $conversation_ids ) ) );
+		if ( empty( $conversation_ids ) ) {
+			return array();
+		}
+
+		global $wpdb;
+
+		$msg_table    = self::messages_table();
+		$placeholders = implode( ',', array_fill( 0, count( $conversation_ids ), '%d' ) );
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
+		$sql = "SELECT m.conversation_id, m.content
+			FROM {$msg_table} m
+			INNER JOIN (
+				SELECT conversation_id, MIN(id) AS min_id
+				FROM {$msg_table}
+				WHERE role = 'user' AND conversation_id IN ({$placeholders})
+				GROUP BY conversation_id
+			) first_msg ON m.id = first_msg.min_id";
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		$rows = $wpdb->get_results( $wpdb->prepare( $sql, ...$conversation_ids ), ARRAY_A );
+
+		$out = array();
+		foreach ( $rows ?: array() as $row ) {
+			$cid = (int) ( $row['conversation_id'] ?? 0 );
+			if ( $cid > 0 ) {
+				$text = wp_strip_all_tags( (string) ( $row['content'] ?? '' ) );
+				$text = preg_replace( '/\s+/', ' ', $text ) ?? $text;
+				$out[ $cid ] = self::truncate_title( trim( $text ) );
+			}
+		}
+
+		return $out;
+	}
+
+	public static function run_retention_purge(): void {
+		$settings = Chatbot_Plugin::get_settings();
+		$days     = isset( $settings['history_retention_days'] ) ? (int) $settings['history_retention_days'] : 0;
+		if ( $days <= 0 ) {
+			return;
+		}
+		self::purge_older_than_days( $days );
 	}
 
 	private static function truncate_title( string $text ): string {

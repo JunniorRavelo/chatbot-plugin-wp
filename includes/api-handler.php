@@ -72,7 +72,7 @@ class Chatbot_Api_Handler {
 			$cached = get_transient( $cache_key );
 			if ( is_array( $cached ) && ! empty( $cached['answer'] ) ) {
 				$latency = (int) ( ( microtime( true ) - $started ) * 1000 );
-				self::record_event( $session_hash, $settings, (string) ( $cached['meta']['model'] ?? '' ), 'cached', $latency );
+				self::record_event( $session_hash, $settings, (string) ( $cached['meta']['model'] ?? '' ), 'cached', $latency, '', $conversation );
 				self::persist_history_exchange(
 					$conversation,
 					$parsed['message'],
@@ -116,7 +116,7 @@ class Chatbot_Api_Handler {
 			$error_code = is_array( $error_data ) && isset( $error_data['error_code'] ) ? (string) $error_data['error_code'] : 'SERVER_ERROR';
 			$retry_after = is_array( $error_data ) && isset( $error_data['retry_after'] ) ? (int) $error_data['retry_after'] : 0;
 
-			self::record_event( $session_hash, $settings, '', 'error', $latency, $error_code );
+			self::record_event( $session_hash, $settings, '', 'error', $latency, $error_code, $conversation );
 			self::persist_history_exchange(
 				$conversation,
 				$parsed['message'],
@@ -141,7 +141,7 @@ class Chatbot_Api_Handler {
 			return $response;
 		}
 
-		self::record_event( $session_hash, $settings, $result['model'], 'success', $latency );
+		self::record_event( $session_hash, $settings, $result['model'], 'success', $latency, '', $conversation );
 		self::persist_history_exchange(
 			$conversation,
 			$parsed['message'],
@@ -782,15 +782,19 @@ class Chatbot_Api_Handler {
 	/**
 	 * @param array<string, mixed> $settings
 	 */
-	private static function record_event( string $session_hash, array $settings, string $model, string $status, int $latency_ms, string $error_code = '' ): void {
+	/**
+	 * @param array{id: int, public_id: string}|null $conversation
+	 */
+	private static function record_event( string $session_hash, array $settings, string $model, string $status, int $latency_ms, string $error_code = '', ?array $conversation = null ): void {
 		Chatbot_Telemetry::record(
 			array(
-				'session_hash' => $session_hash,
-				'provider'     => ! empty( $settings['provider'] ) ? (string) $settings['provider'] : 'gemini',
-				'model'        => $model,
-				'status'       => $status,
-				'latency_ms'   => $latency_ms,
-				'error_code'   => $error_code,
+				'session_hash'    => $session_hash,
+				'provider'        => ! empty( $settings['provider'] ) ? (string) $settings['provider'] : 'gemini',
+				'model'           => $model,
+				'status'          => $status,
+				'latency_ms'      => $latency_ms,
+				'error_code'      => $error_code,
+				'conversation_id' => null !== $conversation ? (int) ( $conversation['id'] ?? 0 ) : 0,
 			)
 		);
 	}
