@@ -1611,6 +1611,7 @@ private static function render_history_card( array $item, bool $expanded = false
 		class="chatbot-admin-history-card chatbot-admin-history-card--<?php echo esc_attr( $status ); ?><?php echo $expanded ? ' is-open' : ''; ?>"
 		id="<?php echo esc_attr( $card_id ); ?>"
 		data-conversation-id="<?php echo esc_attr( (string) $id ); ?>"
+		data-provider="<?php echo esc_attr( $provider ); ?>"
 		data-loaded="<?php echo $loaded ? '1' : '0'; ?>"
 	>
 		<button
@@ -1644,23 +1645,25 @@ private static function render_history_card( array $item, bool $expanded = false
 				</span>
 			</span>
 
-			<span class="chatbot-admin-history-table__cell chatbot-admin-history-table__cell--provider">
-				<?php if ( '' !== $provider_name ) : ?>
-					<span class="chatbot-admin-history-card__provider-name"><?php echo esc_html( $provider_name ); ?></span>
-				<?php endif; ?>
-				<?php if ( '' !== $model ) : ?>
-					<span class="chatbot-admin-history-card__model" title="<?php echo esc_attr( $model ); ?>"><?php echo esc_html( $model ); ?></span>
-				<?php elseif ( '' !== $provider_label ) : ?>
-					<span class="chatbot-admin-history-card__model"><?php echo esc_html( $provider_label ); ?></span>
-				<?php endif; ?>
+			<span class="chatbot-admin-history-table__cell chatbot-admin-history-table__cell--provider" data-label="<?php esc_attr_e( 'Proveedor', 'chatbot-plugin-wp' ); ?>">
+				<span class="chatbot-admin-history-card__provider-stack">
+					<?php if ( '' !== $provider_name ) : ?>
+						<span class="chatbot-admin-history-card__provider-name"><?php echo esc_html( $provider_name ); ?></span>
+					<?php endif; ?>
+					<?php if ( '' !== $model ) : ?>
+						<span class="chatbot-admin-history-card__model" title="<?php echo esc_attr( $model ); ?>"><?php echo esc_html( $model ); ?></span>
+					<?php elseif ( '' !== $provider_label ) : ?>
+						<span class="chatbot-admin-history-card__model"><?php echo esc_html( $provider_label ); ?></span>
+					<?php endif; ?>
+				</span>
 			</span>
 
-			<span class="chatbot-admin-history-table__cell chatbot-admin-history-table__cell--date">
+			<span class="chatbot-admin-history-table__cell chatbot-admin-history-table__cell--date" data-label="<?php esc_attr_e( 'Actualizado', 'chatbot-plugin-wp' ); ?>">
 				<time datetime="<?php echo esc_attr( (string) ( $item['updated_at'] ?? '' ) ); ?>"><?php echo esc_html( $updated ); ?></time>
 			</span>
 
-			<span class="chatbot-admin-history-table__cell chatbot-admin-history-table__cell--msgs" data-label="<?php esc_attr_e( 'Mensajes:', 'chatbot-plugin-wp' ); ?>">
-				<?php echo esc_html( number_format_i18n( $msg_count ) ); ?>
+			<span class="chatbot-admin-history-table__cell chatbot-admin-history-table__cell--msgs" data-label="<?php esc_attr_e( 'Mensajes', 'chatbot-plugin-wp' ); ?>">
+				<span class="chatbot-admin-history-card__msgs-count"><?php echo esc_html( number_format_i18n( $msg_count ) ); ?></span>
 			</span>
 
 			<span class="chatbot-admin-history-table__cell chatbot-admin-history-table__cell--action">
