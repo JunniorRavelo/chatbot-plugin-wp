@@ -276,8 +276,8 @@
   overflow: hidden;
   width: var(--cb-panel-width);
   max-width: calc(100vw - 2rem);
-  height: min(560px, calc(100vh - 4rem));
-  max-height: calc(100vh - 2rem);
+  height: min(620px, calc(100vh - 3.5rem));
+  max-height: calc(100vh - 1.5rem);
   border: 1px solid var(--cb-border);
   border-radius: var(--cb-radius);
   background: var(--cb-card);
@@ -305,7 +305,7 @@
   bottom: calc(env(safe-area-inset-bottom, 0px) + 5rem);
   left: auto;
   transform: none;
-  height: min(480px, calc(100vh - 7rem));
+  height: min(580px, calc(100vh - 6rem));
 }
 
 .cb-panel.cb-position-center-left {
@@ -322,7 +322,7 @@
   right: auto;
   bottom: calc(env(safe-area-inset-bottom, 0px) + 5rem);
   transform: none;
-  height: min(480px, calc(100vh - 7rem));
+  height: min(580px, calc(100vh - 6rem));
 }
 
 .cb-panel.cb-position-bottom-center {
@@ -331,7 +331,7 @@
   right: auto;
   bottom: calc(env(safe-area-inset-bottom, 0px) + 5rem);
   transform: translateX(-50%);
-  height: min(480px, calc(100vh - 7rem));
+  height: min(580px, calc(100vh - 6rem));
 }
 
 /* Inline mode */
@@ -344,7 +344,7 @@
   transform: none;
   width: 100%;
   max-width: 420px;
-  height: 420px;
+  height: 480px;
   margin: 0 auto;
 }
 
@@ -551,7 +551,8 @@
 
 /* Messages */
 .cb-messages {
-  flex: 1;
+  flex: 1 1 auto;
+  min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
   padding: 1rem 0.875rem 0.75rem;
@@ -889,7 +890,13 @@
     bottom: calc(env(safe-area-inset-bottom, 0px) + 5rem);
     transform: none;
     width: calc(100vw - 1.5rem);
-    height: min(70vh, 520px);
+    height: min(78vh, 600px);
+  }
+
+  .cb-panel.cb-position-bottom-right,
+  .cb-panel.cb-position-bottom-left,
+  .cb-panel.cb-position-bottom-center {
+    height: min(72vh, 560px);
   }
 
   .cb-panel.cb-position-center-left {
