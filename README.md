@@ -176,7 +176,7 @@ Exportación CSV desde la pestaña **Estadísticas**. Al desinstalar el plugin, 
 
 **J. Santiago Ravelo Velasco**
 
-- GitHub: [github.com/JunniorRavelo/chatbot-plugin-wp](https://github.com/JunniorRavelo/chatbot-plugin-wp)
+- GitHub: [github.com/JunniorRavelo/multiai-chatbot-for-wordpress](https://github.com/JunniorRavelo/multiai-chatbot-for-wordpress)
 - LinkedIn: [linkedin.com/in/jsravelo](https://www.linkedin.com/in/jsravelo/)
 
 ## Licencia

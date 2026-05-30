@@ -1,6 +1,6 @@
 === MultiAI Chatbot for WordPress ===
 Contributors: jsravelo
-Donate link: https://github.com/JunniorRavelo/chatbot-plugin-wp
+Donate link: https://github.com/JunniorRavelo/multiai-chatbot-for-wordpress
 Tags: chatbot, ai, gemini, live chat, customer support
 Requires at least: 6.0
 Tested up to: 6.8

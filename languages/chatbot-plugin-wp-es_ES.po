@@ -24,8 +24,8 @@ msgstr "MultiAI Chatbot for WordPress"
 
 #. Plugin URI of the plugin
 #: chatbot-plugin-wp.php
-msgid "https://github.com/JunniorRavelo/chatbot-plugin-wp"
-msgstr "https://github.com/JunniorRavelo/chatbot-plugin-wp"
+msgid "https://github.com/JunniorRavelo/multiai-chatbot-for-wordpress"
+msgstr "https://github.com/JunniorRavelo/multiai-chatbot-for-wordpress"
 
 #. Description of the plugin
 #: chatbot-plugin-wp.php
