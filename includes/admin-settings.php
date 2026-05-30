@@ -193,31 +193,93 @@ class Chatbot_Admin_Settings {
 	}
 
 	/**
-	 * @return array<string, array{label: string, desc: string, swatch: string}>
+	 * @return array<string, array{label: string, desc: string, badge: string, badge_type: string, colors: list<string>}>
 	 */
 	public static function style_preset_meta(): array {
 		return array(
 			'default'    => array(
-				'label'  => __( 'Por defecto', 'chatbot-plugin-wp' ),
-				'desc'   => __( 'Azul limpio y legible', 'chatbot-plugin-wp' ),
-				'swatch' => 'linear-gradient(135deg,#2563eb,#7c3aed)',
+				'label'      => __( 'Sapphire', 'chatbot-plugin-wp' ),
+				'desc'       => __( 'Azul índigo con violeta suave. Profesional y confiable.', 'chatbot-plugin-wp' ),
+				'badge'      => __( 'Claro', 'chatbot-plugin-wp' ),
+				'badge_type' => 'light',
+				'colors'     => array( '#2563eb', '#6366f1', '#ffffff' ),
 			),
 			'dark-glass' => array(
-				'label'  => __( 'Dark glass', 'chatbot-plugin-wp' ),
-				'desc'   => __( 'Oscuro con efecto cristal', 'chatbot-plugin-wp' ),
-				'swatch' => 'linear-gradient(135deg,#1e293b,#3b82f6)',
+				'label'      => __( 'Midnight', 'chatbot-plugin-wp' ),
+				'desc'       => __( 'Oscuro translúcido con brillo azul y púrpura.', 'chatbot-plugin-wp' ),
+				'badge'      => __( 'Oscuro', 'chatbot-plugin-wp' ),
+				'badge_type' => 'dark',
+				'colors'     => array( '#60a5fa', '#c084fc', '#0f172a' ),
 			),
 			'minimal'    => array(
-				'label'  => __( 'Minimal', 'chatbot-plugin-wp' ),
-				'desc'   => __( 'Neutro y discreto', 'chatbot-plugin-wp' ),
-				'swatch' => 'linear-gradient(135deg,#18181b,#71717a)',
+				'label'      => __( 'Monochrome', 'chatbot-plugin-wp' ),
+				'desc'       => __( 'Zinc neutro, bordes rectos y sombras discretas.', 'chatbot-plugin-wp' ),
+				'badge'      => __( 'Neutro', 'chatbot-plugin-wp' ),
+				'badge_type' => 'neutral',
+				'colors'     => array( '#27272a', '#71717a', '#ffffff' ),
 			),
 			'ocean'      => array(
-				'label'  => __( 'Ocean', 'chatbot-plugin-wp' ),
-				'desc'   => __( 'Tonos cyan y agua', 'chatbot-plugin-wp' ),
-				'swatch' => 'linear-gradient(135deg,#0891b2,#06b6d4)',
+				'label'      => __( 'Aqua', 'chatbot-plugin-wp' ),
+				'desc'       => __( 'Cian profundo con destellos turquesa. Fresco y moderno.', 'chatbot-plugin-wp' ),
+				'badge'      => __( 'Claro', 'chatbot-plugin-wp' ),
+				'badge_type' => 'light',
+				'colors'     => array( '#0e7490', '#22d3ee', '#f0fdff' ),
 			),
 		);
+	}
+
+	/**
+	 * @param string $id
+	 * @param array{label: string, desc: string, badge: string, badge_type: string, colors: list<string>} $meta
+	 * @param bool   $active
+	 */
+	private static function render_preset_card( string $id, array $meta, bool $active ): void {
+		?>
+		<button type="button"
+			class="chatbot-preset-card<?php echo $active ? ' is-active' : ''; ?>"
+			data-preset="<?php echo esc_attr( $id ); ?>"
+			role="radio"
+			aria-checked="<?php echo $active ? 'true' : 'false'; ?>">
+			<span class="chatbot-preset-card__check" aria-hidden="true">
+				<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2.5 7.5L5.5 10.5L11.5 3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+			</span>
+			<div class="chatbot-preset-card__scene chatbot-preset-card__scene--<?php echo esc_attr( $meta['badge_type'] ?? 'light' ); ?>">
+				<div class="cb-widget cb-preset-<?php echo esc_attr( $id ); ?> chatbot-preset-mini-wrap">
+					<div class="chatbot-preset-mini">
+						<div class="chatbot-preset-mini__panel">
+							<div class="chatbot-preset-mini__header">
+								<div class="chatbot-preset-mini__header-text">
+									<span class="chatbot-preset-mini__title"></span>
+									<span class="chatbot-preset-mini__sub"></span>
+								</div>
+							</div>
+							<div class="chatbot-preset-mini__body">
+								<span class="chatbot-preset-mini__bubble chatbot-preset-mini__bubble--bot"></span>
+								<span class="chatbot-preset-mini__bubble chatbot-preset-mini__bubble--user"></span>
+							</div>
+							<div class="chatbot-preset-mini__composer">
+								<span class="chatbot-preset-mini__input"></span>
+								<span class="chatbot-preset-mini__send"></span>
+							</div>
+						</div>
+						<span class="chatbot-preset-mini__launcher"></span>
+					</div>
+				</div>
+			</div>
+			<div class="chatbot-preset-card__meta">
+				<div class="chatbot-preset-card__meta-row">
+					<span class="chatbot-preset-card__label"><?php echo esc_html( $meta['label'] ); ?></span>
+					<span class="chatbot-preset-card__badge chatbot-preset-card__badge--<?php echo esc_attr( $meta['badge_type'] ?? 'light' ); ?>"><?php echo esc_html( $meta['badge'] ); ?></span>
+				</div>
+				<p class="chatbot-preset-card__desc"><?php echo esc_html( $meta['desc'] ); ?></p>
+				<div class="chatbot-preset-card__palette" aria-hidden="true">
+					<?php foreach ( $meta['colors'] as $color ) : ?>
+						<span class="chatbot-preset-card__chip" style="background-color:<?php echo esc_attr( $color ); ?>"></span>
+					<?php endforeach; ?>
+				</div>
+			</div>
+		</button>
+		<?php
 	}
 
 	/**
@@ -538,23 +600,22 @@ class Chatbot_Admin_Settings {
 			<div class="chatbot-admin-style-fields">
 		<?php
 		self::card_open(
-			__( 'Preset visual', 'chatbot-plugin-wp' ),
-			__( 'Elige un tema base. Puedes ajustar colores y bordes debajo.', 'chatbot-plugin-wp' )
+			__( 'Temas visuales', 'chatbot-plugin-wp' ),
+			__( 'Cada tema combina colores, tipografía y formas de forma coherente. Haz clic para previsualizar.', 'chatbot-plugin-wp' )
 		);
 		?>
 		<input type="hidden" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[style_preset]" value="<?php echo esc_attr( $preset ); ?>" id="chatbot-style-preset-input" />
-		<div class="chatbot-preset-grid" role="radiogroup" aria-label="<?php esc_attr_e( 'Preset del chat', 'chatbot-plugin-wp' ); ?>">
+		<div class="chatbot-preset-gallery" role="radiogroup" aria-label="<?php esc_attr_e( 'Tema del chat', 'chatbot-plugin-wp' ); ?>">
 			<?php foreach ( self::style_presets() as $id ) : ?>
-				<?php $meta = $preset_meta[ $id ] ?? array( 'label' => $id, 'desc' => '', 'swatch' => '#2563eb' ); ?>
-				<button type="button"
-					class="chatbot-preset-card<?php echo $preset === $id ? ' is-active' : ''; ?>"
-					data-preset="<?php echo esc_attr( $id ); ?>"
-					role="radio"
-					aria-checked="<?php echo $preset === $id ? 'true' : 'false'; ?>">
-					<span class="chatbot-preset-card__swatch" style="background:<?php echo esc_attr( $meta['swatch'] ); ?>"></span>
-					<span class="chatbot-preset-card__label"><?php echo esc_html( $meta['label'] ); ?></span>
-					<span class="chatbot-preset-card__desc"><?php echo esc_html( $meta['desc'] ); ?></span>
-				</button>
+				<?php
+				$meta = $preset_meta[ $id ] ?? array(
+					'label'  => $id,
+					'desc'   => '',
+					'badge'  => '',
+					'colors' => array( '#2563eb', '#6366f1', '#fff' ),
+				);
+				self::render_preset_card( $id, $meta, $preset === $id );
+				?>
 			<?php endforeach; ?>
 		</div>
 		<?php
