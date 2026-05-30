@@ -44,11 +44,48 @@ class Chatbot_Plugin {
 	}
 
 	public function load_textdomain(): void {
+		$domain = 'chatbot-plugin-wp';
+		$locale = determine_locale();
+		$mofile = self::resolve_translation_file( $domain, $locale );
+
+		if ( $mofile ) {
+			load_textdomain( $domain, $mofile, $locale );
+			return;
+		}
+
 		load_plugin_textdomain(
-			'chatbot-plugin-wp',
+			$domain,
 			false,
 			dirname( CHATBOT_PLUGIN_BASENAME ) . '/languages'
 		);
+	}
+
+	/**
+	 * Busca el .mo del locale activo y variantes cercanas (p. ej. es_CO → es_ES).
+	 */
+	private static function resolve_translation_file( string $domain, string $locale ): string {
+		$candidates = array( $locale );
+		$base       = strtok( $locale, '_' );
+
+		if ( 'es' === $base && 'es_ES' !== $locale ) {
+			$candidates[] = 'es_ES';
+		}
+
+		foreach ( array_unique( $candidates ) as $candidate ) {
+			$mofile_name = $domain . '-' . $candidate . '.mo';
+
+			$wp_lang_mofile = WP_LANG_DIR . '/plugins/' . $mofile_name;
+			if ( is_readable( $wp_lang_mofile ) ) {
+				return $wp_lang_mofile;
+			}
+
+			$plugin_mofile = CHATBOT_PLUGIN_PATH . 'languages/' . $mofile_name;
+			if ( is_readable( $plugin_mofile ) ) {
+				return $plugin_mofile;
+			}
+		}
+
+		return '';
 	}
 
 	public static function activate(): void {
