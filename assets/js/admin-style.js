@@ -167,10 +167,15 @@
     };
   }
 
-  function launcherSide(position) {
-    if (position.indexOf("left") !== -1) return "left";
-    if (position === "bottom-center") return "center";
-    return "right";
+  function launcherClassForPosition(position) {
+    const allowed = {
+      "bottom-right": "bottom-right",
+      "center-right": "center-right",
+      "bottom-left": "bottom-left",
+      "center-left": "center-left",
+      "bottom-center": "center",
+    };
+    return allowed[position] || "bottom-right";
   }
 
   function fontCssValue(fontKey) {
@@ -336,7 +341,7 @@
     launcher.type = "button";
     launcher.className =
       "maicb-launcher maicb-launcher-" +
-      launcherSide(settings.position) +
+      launcherClassForPosition(settings.position) +
       (settings.launcherLabel ? "" : " maicb-launcher--icon-only");
     launcher.setAttribute("aria-label", previewI18n("openChat", "Open chat"));
     launcher.innerHTML = launcherMarkup(settings.launcherLabel, settings.title);
@@ -439,8 +444,6 @@
 
   function applyPreview(settings, refs) {
     const { wrap, launcher, panel } = refs;
-    const side = launcherSide(settings.position);
-
     applyPresetClasses(wrap, settings);
 
     POSITIONS.forEach(function (p) {
@@ -448,10 +451,10 @@
     });
     panel.classList.add("maicb-position-" + settings.position);
 
-    ["left", "right", "center"].forEach(function (s) {
+    ["bottom-right", "center-right", "bottom-left", "center-left", "center"].forEach(function (s) {
       launcher.classList.remove("maicb-launcher-" + s);
     });
-    launcher.classList.add("maicb-launcher-" + side);
+    launcher.classList.add("maicb-launcher-" + launcherClassForPosition(settings.position));
     launcher.classList.toggle("maicb-launcher--icon-only", !settings.launcherLabel);
     launcher.innerHTML = launcherMarkup(settings.launcherLabel, settings.title);
 

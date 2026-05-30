@@ -607,21 +607,42 @@
   padding: 0.4rem 0.75rem 0.4rem 0.4rem;
 }
 
+#chatbot-preview-viewport #chatbot-style-preview .maicb-launcher.maicb-launcher-bottom-right,
 #chatbot-preview-viewport #chatbot-style-preview .maicb-launcher.maicb-launcher-right {
   right: var(--maicb-offset, 0.85rem) !important;
   left: auto !important;
+  top: auto !important;
   transform: none;
 }
 
+#chatbot-preview-viewport #chatbot-style-preview .maicb-launcher.maicb-launcher-bottom-left,
 #chatbot-preview-viewport #chatbot-style-preview .maicb-launcher.maicb-launcher-left {
   left: var(--maicb-offset, 0.85rem) !important;
   right: auto !important;
+  top: auto !important;
   transform: none;
+}
+
+#chatbot-preview-viewport #chatbot-style-preview .maicb-launcher.maicb-launcher-center-right {
+  right: var(--maicb-offset, 0.85rem) !important;
+  left: auto !important;
+  top: 50% !important;
+  bottom: auto !important;
+  transform: translateY(-50%) !important;
+}
+
+#chatbot-preview-viewport #chatbot-style-preview .maicb-launcher.maicb-launcher-center-left {
+  left: var(--maicb-offset, 0.85rem) !important;
+  right: auto !important;
+  top: 50% !important;
+  bottom: auto !important;
+  transform: translateY(-50%) !important;
 }
 
 #chatbot-preview-viewport #chatbot-style-preview .maicb-launcher.maicb-launcher-center {
   left: 50% !important;
   right: auto !important;
+  top: auto !important;
   transform: translateX(-50%);
 }
 

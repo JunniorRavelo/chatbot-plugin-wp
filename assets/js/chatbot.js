@@ -322,10 +322,18 @@
     }
   }
 
-  function launcherSide(position) {
-    if (position.indexOf("left") !== -1) return "left";
-    if (position === "bottom-center") return "center";
-    return "right";
+  /**
+   * CSS class suffix for launcher placement (must match chatbot.css).
+   */
+  function launcherClassForPosition(position) {
+    const allowed = {
+      "bottom-right": "bottom-right",
+      "center-right": "center-right",
+      "bottom-left": "bottom-left",
+      "center-left": "center-left",
+      "bottom-center": "center",
+    };
+    return allowed[position] || "bottom-right";
   }
 
   function buildWelcomeMessage() {
@@ -391,7 +399,9 @@
     launcher.type = "button";
     launcher.dataset.maicb = "launcher";
     launcher.className =
-      "maicb-launcher maicb-launcher-" + launcherSide(position) + (launcherLabel ? "" : " maicb-launcher--icon-only");
+      "maicb-launcher maicb-launcher-" +
+      launcherClassForPosition(position) +
+      (launcherLabel ? "" : " maicb-launcher--icon-only");
     launcher.setAttribute("aria-label", i18n.openLabel || "Open chat");
     launcher.innerHTML = launcherMarkup(launcherLabel, config.widgetTitle || "AI Agent");
     if (mode === "inline" || isOpen) launcher.hidden = true;
