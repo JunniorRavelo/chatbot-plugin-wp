@@ -224,8 +224,21 @@
     };
   }
 
+  function mountFloatingRoot(root) {
+    if (!root || root.dataset.mode !== "floating") {
+      return;
+    }
+    root.classList.add("cb-is-floating");
+    if (root.parentNode !== document.body) {
+      document.body.appendChild(root);
+    }
+  }
+
   function initRoot(root) {
     const mode = root.dataset.mode || config.mode || "floating";
+    if (mode === "floating") {
+      mountFloatingRoot(root);
+    }
     const style = config.style || {};
     const preset = style.preset || "default";
     const position = style.position || "bottom-right";
