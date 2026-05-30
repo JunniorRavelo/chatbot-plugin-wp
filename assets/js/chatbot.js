@@ -11,6 +11,19 @@
   const config = window.chatbotPluginConfig || {};
   const i18n = config.i18n || {};
 
+  function launcherMarkup(showLabel, labelText) {
+    return (
+      '<span class="cb-launcher-icon-wrap" aria-hidden="true">' +
+      '<span class="cb-launcher-pulse"></span>' +
+      '<span class="cb-launcher-icon">' +
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+      '<path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/>' +
+      '<path d="M8 10h.01"/><path d="M12 10h.01"/><path d="M16 10h.01"/>' +
+      "</svg></span></span>" +
+      (showLabel ? '<span class="cb-launcher-text">' + labelText + "</span>" : "")
+    );
+  }
+
   function buildHeaderHtml(labels) {
     const resetLabel = labels.resetLabel || "Reiniciar chat";
     const minimizeLabel = labels.minimizeLabel || "Minimizar chat";
@@ -237,13 +250,10 @@
 
     const launcher = document.createElement("button");
     launcher.type = "button";
-    launcher.className = "cb-launcher cb-launcher-" + launcherSide(position);
+    launcher.className =
+      "cb-launcher cb-launcher-" + launcherSide(position) + (launcherLabel ? "" : " cb-launcher--icon-only");
     launcher.setAttribute("aria-label", i18n.openLabel || "Abrir chat");
-    launcher.innerHTML =
-      '<span class="cb-launcher-icon" aria-hidden="true">💬</span>' +
-      (launcherLabel
-        ? '<span class="cb-launcher-text">' + (config.widgetTitle || "Agente IA") + "</span>"
-        : "");
+    launcher.innerHTML = launcherMarkup(launcherLabel, config.widgetTitle || "Agente IA");
     if (mode === "inline" || isOpen) launcher.hidden = true;
 
     const panel = document.createElement("section");

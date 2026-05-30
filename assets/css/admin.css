@@ -526,8 +526,19 @@
 
 .chatbot-admin-preview__viewport .cb-launcher {
   font-size: 0.75rem;
-  padding: 0.45rem 0.75rem;
+  padding: 0.35rem 0.65rem 0.35rem 0.35rem;
   bottom: 0.85rem;
+}
+
+.chatbot-admin-preview__viewport .cb-launcher-icon-wrap,
+.chatbot-admin-preview__viewport .cb-launcher-icon {
+  width: 2rem;
+  height: 2rem;
+}
+
+.chatbot-admin-preview__viewport .cb-launcher-icon svg {
+  width: 0.95rem;
+  height: 0.95rem;
 }
 
 .chatbot-admin-preview__viewport .cb-panel.cb-position-center-right,

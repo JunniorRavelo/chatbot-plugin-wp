@@ -13,6 +13,19 @@
   const cfg = window.chatbotStylePreview || {};
   const optionKey = cfg.optionKey || "chatbot_plugin_settings";
 
+  function launcherMarkup(showLabel, labelText) {
+    return (
+      '<span class="cb-launcher-icon-wrap" aria-hidden="true">' +
+      '<span class="cb-launcher-pulse"></span>' +
+      '<span class="cb-launcher-icon">' +
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+      '<path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/>' +
+      '<path d="M8 10h.01"/><path d="M12 10h.01"/><path d="M16 10h.01"/>' +
+      "</svg></span></span>" +
+      (showLabel ? '<span class="cb-launcher-text">' + labelText + "</span>" : "")
+    );
+  }
+
   function buildHeaderHtml() {
     return (
       '<div class="cb-header-brand">' +
@@ -118,9 +131,7 @@
     launcher.type = "button";
     launcher.className = "cb-launcher cb-launcher-right";
     launcher.setAttribute("aria-label", "Abrir chat");
-    launcher.innerHTML =
-      '<span class="cb-launcher-icon" aria-hidden="true">💬</span>' +
-      '<span class="cb-launcher-text"></span>';
+    launcher.innerHTML = launcherMarkup(true, cfg.widgetTitle || "Agente IA");
 
     const panel = document.createElement("section");
     panel.className = "cb-panel cb-position-bottom-right";
@@ -233,12 +244,8 @@
       launcher.classList.remove("cb-launcher-" + s);
     });
     launcher.classList.add("cb-launcher-" + side);
-
-    const labelEl = launcher.querySelector(".cb-launcher-text");
-    if (labelEl) {
-      labelEl.textContent = settings.launcherLabel ? settings.title : "";
-      labelEl.hidden = !settings.launcherLabel;
-    }
+    launcher.classList.toggle("cb-launcher--icon-only", !settings.launcherLabel);
+    launcher.innerHTML = launcherMarkup(settings.launcherLabel, settings.title);
 
     panel.querySelector(".cb-header-title").textContent = settings.title;
     panel.querySelector(".cb-header-sub-text").textContent = settings.subtitle;
