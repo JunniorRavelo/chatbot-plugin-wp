@@ -70,14 +70,18 @@ class Chatbot_Enqueue {
 			'chatbot-plugin',
 			CHATBOT_PLUGIN_URL . 'assets/css/chatbot.css',
 			array(),
-			CHATBOT_PLUGIN_VERSION
+			file_exists( CHATBOT_PLUGIN_PATH . 'assets/css/chatbot.css' )
+				? (string) filemtime( CHATBOT_PLUGIN_PATH . 'assets/css/chatbot.css' )
+				: CHATBOT_PLUGIN_VERSION
 		);
 
 		wp_enqueue_script(
 			'chatbot-plugin',
 			CHATBOT_PLUGIN_URL . 'assets/js/chatbot.js',
 			array(),
-			CHATBOT_PLUGIN_VERSION,
+			file_exists( CHATBOT_PLUGIN_PATH . 'assets/js/chatbot.js' )
+				? (string) filemtime( CHATBOT_PLUGIN_PATH . 'assets/js/chatbot.js' )
+				: CHATBOT_PLUGIN_VERSION,
 			true
 		);
 
@@ -121,6 +125,7 @@ class Chatbot_Enqueue {
 					'openLabel'     => __( 'Abrir chat', 'chatbot-plugin-wp' ),
 					'closeLabel'    => __( 'Cerrar chat', 'chatbot-plugin-wp' ),
 					'resetLabel'    => __( 'Reiniciar chat', 'chatbot-plugin-wp' ),
+					'onlineLabel'   => __( 'Sistema en línea', 'chatbot-plugin-wp' ),
 					'thinking'      => __( 'Pensando…', 'chatbot-plugin-wp' ),
 					'errorGeneric'  => __( 'No se pudo enviar el mensaje. Intenta de nuevo.', 'chatbot-plugin-wp' ),
 				),
