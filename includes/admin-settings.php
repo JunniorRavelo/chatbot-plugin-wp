@@ -1428,7 +1428,7 @@ class Chatbot_Admin_Settings {
 								<div class="chatbot-admin-preview__page-mock">
 									<span></span><span></span><span></span>
 								</div>
-								<div class="cb-preview-widget-host" aria-hidden="false"></div>
+								<div class="maicb-preview-widget-host" aria-hidden="false"></div>
 							</div>
 							<p class="chatbot-admin-preview__hint"><?php esc_html_e( 'The preview reflects theme, position, and styles instantly. Save to apply them on the public site.', 'chatbot-plugin-wp' ); ?></p>
 						</div>

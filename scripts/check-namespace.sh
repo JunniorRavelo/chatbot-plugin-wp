@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+# Namespace audit for MultiAI ChatBot — fails on forbidden patterns in widget assets.
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$ROOT"
+
+ERR=0
+
+fail() {
+  echo "check-namespace: $1" >&2
+  ERR=1
+}
+
+echo "Checking widget namespace (maicb)…"
+
+# Deprecated widget cb- class tokens (exclude maicb-* and --cb-admin-*)
+if grep -RnE '(\.cb-[a-z]|class="cb-|class='\''cb-|--cb-primary|--cb-accent|--cb-panel-width)' \
+  assets/css/chatbot.css assets/js/chatbot.js assets/js/admin-style.js 2>/dev/null; then
+  fail "Found deprecated cb- widget tokens in assets (use maicb- / --maicb-)."
+fi
+
+# Unscoped top-level .maicb- rules (allowed: .maicb-widget and descendants on same line)
+while IFS= read -r line; do
+  case "$line" in
+    *.maicb-widget*) continue ;;
+    *) fail "Unscoped top-level selector in chatbot.css: $line" ;;
+  esac
+done < <(grep -nE '^\.maicb-' assets/css/chatbot.css 2>/dev/null || true)
+
+# Widget cb- in admin preview block only (not --cb-admin)
+if grep -nE '#chatbot-style-preview.*\.cb-|#chatbot-preview.*\.cb-' assets/css/admin.css 2>/dev/null; then
+  fail "Found deprecated .cb- in admin preview CSS."
+fi
+
+if [[ "$ERR" -ne 0 ]]; then
+  exit 1
+fi
+
+echo "check-namespace: OK"

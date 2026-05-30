@@ -2,6 +2,10 @@
 
 Plugin de WordPress que añade un widget de chat con IA (Gemini, DeepSeek, Ollama u OpenAI-compatible), panel de administración y telemetría de uso.
 
+## Convenciones de nombres (namespace)
+
+El widget público usa el prefijo de clases `maicb-*` y el contenedor `#chatbot-plugin-root` con `data-maicb-root`. Ver [docs/NAMING.md](docs/NAMING.md). Antes de publicar, ejecuta `./scripts/check-namespace.sh`.
+
 ## Requisitos
 
 - WordPress 6.0+

@@ -10,17 +10,34 @@
 
   const config = window.chatbotPluginConfig || {};
   const i18n = config.i18n || {};
+  const ROOT_SELECTOR = "[data-maicb-root]";
+
+  function q(scope, name) {
+    return scope.querySelector('[data-maicb="' + name + '"]');
+  }
+
+  function prepareRoot(root) {
+    if (!root.dataset.maicbRoot) {
+      root.dataset.maicbRoot = "1";
+    }
+    if (!root.id) {
+      root.id = "chatbot-plugin-root";
+    }
+    if (!root.classList.contains("maicb-root")) {
+      root.classList.add("maicb-root");
+    }
+  }
 
   function launcherMarkup(showLabel, labelText) {
     return (
-      '<span class="cb-launcher-icon-wrap" aria-hidden="true">' +
-      '<span class="cb-launcher-pulse"></span>' +
-      '<span class="cb-launcher-icon">' +
+      '<span class="maicb-launcher-icon-wrap" aria-hidden="true">' +
+      '<span class="maicb-launcher-pulse"></span>' +
+      '<span class="maicb-launcher-icon">' +
       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
       '<path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/>' +
       '<path d="M8 10h.01"/><path d="M12 10h.01"/><path d="M16 10h.01"/>' +
       "</svg></span></span>" +
-      (showLabel ? '<span class="cb-launcher-text">' + labelText + "</span>" : "")
+      (showLabel ? '<span class="maicb-launcher-text">' + labelText + "</span>" : "")
     );
   }
 
@@ -29,19 +46,19 @@
     const minimizeLabel = labels.minimizeLabel || "Minimize chat";
     const closeLabel = labels.closeLabel || "Close chat";
     return (
-      '<div class="cb-header-brand">' +
-      '<span class="cb-header-avatar" aria-hidden="true">' +
+      '<div class="maicb-header-brand">' +
+      '<span class="maicb-header-avatar" aria-hidden="true">' +
       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">' +
       '<path d="M12 8V4H8"/><path d="M16 12h2"/><path d="M6 12H4"/>' +
       '<rect width="16" height="12" x="4" y="8" rx="2"/><path d="M9 13v2"/><path d="M15 13v2"/>' +
       "</svg></span>" +
-      '<div class="cb-header-info">' +
-      '<h3 class="cb-header-title"></h3>' +
-      '<p class="cb-header-sub"><span class="cb-header-status" aria-hidden="true"></span>' +
-      '<span class="cb-header-sub-text"></span></p>' +
+      '<div class="maicb-header-info">' +
+      '<h3 class="maicb-header-title" data-maicb="header-title"></h3>' +
+      '<p class="maicb-header-sub"><span class="maicb-header-status" aria-hidden="true"></span>' +
+      '<span class="maicb-header-sub-text" data-maicb="header-sub"></span></p>' +
       "</div></div>" +
-      '<div class="cb-header-actions">' +
-      '<button type="button" class="cb-icon-btn cb-minimize" title="' +
+      '<div class="maicb-header-actions">' +
+      '<button type="button" class="maicb-icon-btn maicb-minimize" data-maicb="minimize" title="' +
       minimizeLabel +
       '" aria-label="' +
       minimizeLabel +
@@ -49,7 +66,7 @@
       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">' +
       '<path d="M5 12h14"/>' +
       "</svg></button>" +
-      '<button type="button" class="cb-icon-btn cb-reset" title="' +
+      '<button type="button" class="maicb-icon-btn maicb-reset" data-maicb="reset" title="' +
       resetLabel +
       '" aria-label="' +
       resetLabel +
@@ -57,7 +74,7 @@
       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
       '<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/>' +
       "</svg></button>" +
-      '<button type="button" class="cb-icon-btn cb-close" title="' +
+      '<button type="button" class="maicb-icon-btn maicb-close" data-maicb="close" title="' +
       closeLabel +
       '" aria-label="' +
       closeLabel +
@@ -198,12 +215,12 @@
     if (!style) return;
     if (style.vars) {
       const vars = style.vars;
-      if (vars.primary) el.style.setProperty("--cb-primary", vars.primary);
-      if (vars.accent) el.style.setProperty("--cb-accent", vars.accent);
-      if (vars.radius) el.style.setProperty("--cb-radius", vars.radius);
+      if (vars.primary) el.style.setProperty("--maicb-primary", vars.primary);
+      if (vars.accent) el.style.setProperty("--maicb-accent", vars.accent);
+      if (vars.radius) el.style.setProperty("--maicb-radius", vars.radius);
     }
-    if (style.offset) el.style.setProperty("--cb-offset", style.offset);
-    if (style.panelWidth) el.style.setProperty("--cb-panel-width", style.panelWidth);
+    if (style.offset) el.style.setProperty("--maicb-offset", style.offset);
+    if (style.panelWidth) el.style.setProperty("--maicb-panel-width", style.panelWidth);
   }
 
   function launcherSide(position) {
@@ -228,13 +245,18 @@
     if (!root || root.dataset.mode !== "floating") {
       return;
     }
-    root.classList.add("cb-is-floating");
+    root.classList.add("maicb-is-floating");
     if (root.parentNode !== document.body) {
       document.body.appendChild(root);
     }
   }
 
   function initRoot(root) {
+    if (root.dataset.maicbInitialized === "1") {
+      return;
+    }
+    root.dataset.maicbInitialized = "1";
+    prepareRoot(root);
     const mode = root.dataset.mode || config.mode || "floating";
     if (mode === "floating") {
       mountFloatingRoot(root);
@@ -256,59 +278,58 @@
     let errorText = "";
 
     const wrap = document.createElement("div");
-    wrap.className = "cb-widget cb-wrap" + (mode === "inline" ? " cb-inline-wrap" : "");
-    wrap.classList.add("cb-preset-" + preset);
+    wrap.className = "maicb-widget maicb-wrap" + (mode === "inline" ? " maicb-inline-wrap" : "");
+    wrap.classList.add("maicb-preset-" + preset);
     wrap.dataset.preset = preset;
     applyStyleVars(wrap, style);
 
     const launcher = document.createElement("button");
     launcher.type = "button";
+    launcher.dataset.maicb = "launcher";
     launcher.className =
-      "cb-launcher cb-launcher-" + launcherSide(position) + (launcherLabel ? "" : " cb-launcher--icon-only");
+      "maicb-launcher maicb-launcher-" + launcherSide(position) + (launcherLabel ? "" : " maicb-launcher--icon-only");
     launcher.setAttribute("aria-label", i18n.openLabel || "Open chat");
     launcher.innerHTML = launcherMarkup(launcherLabel, config.widgetTitle || "AI Agent");
     if (mode === "inline" || isOpen) launcher.hidden = true;
 
     const panel = document.createElement("section");
-    panel.className = "cb-panel cb-position-" + position;
+    panel.dataset.maicb = "panel";
+    panel.className = "maicb-panel maicb-position-" + position;
     panel.setAttribute("aria-label", config.widgetTitle || "MultiAI ChatBot");
     if (!isOpen) panel.hidden = true;
 
     const header = document.createElement("header");
-    header.className = "cb-header";
+    header.dataset.maicb = "header";
+    header.className = "maicb-header";
     header.innerHTML = buildHeaderHtml(i18n);
 
-    header.querySelector(".cb-header-title").textContent = config.widgetTitle || "AI Agent";
-    header.querySelector(".cb-header-sub-text").textContent =
-      config.widgetSubtitle || i18n.onlineLabel || "System online";
-
     const messagesEl = document.createElement("div");
-    messagesEl.className = "cb-messages";
+    messagesEl.dataset.maicb = "messages";
+    messagesEl.className = "maicb-messages";
     messagesEl.setAttribute("role", "log");
     messagesEl.setAttribute("aria-live", "polite");
 
     const errorEl = document.createElement("div");
-    errorEl.className = "cb-error";
+    errorEl.dataset.maicb = "error";
+    errorEl.className = "maicb-error";
     errorEl.hidden = true;
 
     const composer = document.createElement("form");
-    composer.className = "cb-composer";
+    composer.dataset.maicb = "composer";
+    composer.className = "maicb-composer";
     composer.innerHTML =
-      '<div class="cb-composer-inner">' +
-      '<textarea class="cb-input" rows="1" placeholder="' +
+      '<div class="maicb-composer-inner">' +
+      '<textarea class="maicb-input" data-maicb="input" rows="1" placeholder="' +
       (i18n.placeholder || "Type your message…") +
       '" maxlength="700" aria-label="' +
       (i18n.placeholder || "Type your message…") +
       '"></textarea>' +
-      '<button type="submit" class="cb-send" aria-label="' +
+      '<button type="submit" class="maicb-send" data-maicb="send" aria-label="' +
       (i18n.send || "Send") +
       '">' +
       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
       '<path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/>' +
       "</svg></button></div>";
-
-    const input = composer.querySelector(".cb-input");
-    const sendBtn = composer.querySelector(".cb-send");
 
     panel.appendChild(header);
     panel.appendChild(messagesEl);
@@ -319,13 +340,21 @@
     wrap.appendChild(panel);
     root.appendChild(wrap);
 
+    const input = q(root, "input");
+    const sendBtn = q(root, "send");
+    const minimizeBtn = q(root, "minimize");
+    const closeBtn = q(root, "close");
+    const resetBtn = q(root, "reset");
+
+    q(root, "header-title").textContent = config.widgetTitle || "AI Agent";
+    q(root, "header-sub").textContent = config.widgetSubtitle || i18n.onlineLabel || "System online";
+
     if (mode === "inline") {
       launcher.hidden = true;
       panel.hidden = false;
       isOpen = true;
-      header.querySelectorAll(".cb-minimize, .cb-close").forEach((btn) => {
-        btn.hidden = true;
-      });
+      if (minimizeBtn) minimizeBtn.hidden = true;
+      if (closeBtn) closeBtn.hidden = true;
     }
 
     function createMessageRow(msg, showThinking) {
@@ -333,17 +362,17 @@
 
       if (role === "system") {
         const system = document.createElement("div");
-        system.className = "cb-msg cb-msg-system";
+        system.className = "maicb-msg maicb-msg-system";
         system.textContent = msg.content || "";
         return system;
       }
 
       const row = document.createElement("div");
-      row.className = "cb-msg-row cb-msg-row-" + role;
+      row.className = "maicb-msg-row maicb-msg-row-" + role;
 
       if (role === "assistant") {
         const avatar = document.createElement("span");
-        avatar.className = "cb-msg-avatar";
+        avatar.className = "maicb-msg-avatar";
         avatar.setAttribute("aria-hidden", "true");
         avatar.innerHTML =
           '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">' +
@@ -354,22 +383,22 @@
       }
 
       const bubble = document.createElement("div");
-      bubble.className = "cb-msg cb-msg-" + role;
+      bubble.className = "maicb-msg maicb-msg-" + role;
 
       if (showThinking) {
-        bubble.classList.add("cb-msg-pending");
+        bubble.classList.add("maicb-msg-pending");
         bubble.setAttribute("aria-label", i18n.thinking || "Thinking…");
         bubble.innerHTML =
-          '<div class="cb-thinking" aria-hidden="true">' +
-          '<span class="cb-thinking-dot"></span>' +
-          '<span class="cb-thinking-dot"></span>' +
-          '<span class="cb-thinking-dot"></span>' +
+          '<div class="maicb-thinking" aria-hidden="true">' +
+          '<span class="maicb-thinking-dot"></span>' +
+          '<span class="maicb-thinking-dot"></span>' +
+          '<span class="maicb-thinking-dot"></span>' +
           "</div>";
       } else {
         bubble.textContent = msg.content || "";
         if (role === "assistant" && msg.model && msg.model !== "system") {
           const meta = document.createElement("span");
-          meta.className = "cb-msg-meta";
+          meta.className = "maicb-msg-meta";
           meta.textContent = msg.model;
           bubble.appendChild(meta);
         }
@@ -503,7 +532,7 @@
       if (isSending || !text.trim()) return;
       isSending = true;
       setError("");
-      sendBtn.disabled = true;
+      if (sendBtn) sendBtn.disabled = true;
 
       const userMsg = {
         id: generateId(),
@@ -588,15 +617,15 @@
       saveState(messages);
       renderMessages();
       isSending = false;
-      sendBtn.disabled = false;
+      if (sendBtn) sendBtn.disabled = false;
       input.focus();
     }
 
     launcher.addEventListener("click", () => setOpen(true));
-    header.querySelector(".cb-minimize").addEventListener("click", () => setOpen(false));
-    header.querySelector(".cb-close").addEventListener("click", () => setOpen(false));
+    if (minimizeBtn) minimizeBtn.addEventListener("click", () => setOpen(false));
+    if (closeBtn) closeBtn.addEventListener("click", () => setOpen(false));
 
-    header.querySelector(".cb-reset").addEventListener("click", () => {
+    if (resetBtn) resetBtn.addEventListener("click", () => {
       messages = welcome ? [welcome] : [];
       clearConversationId();
       saveState(messages);
@@ -605,12 +634,14 @@
     });
 
     function resizeInput() {
+      if (!input) return;
       input.style.height = "auto";
       input.style.height = Math.min(input.scrollHeight, 96) + "px";
     }
 
     composer.addEventListener("submit", (e) => {
       e.preventDefault();
+      if (!input) return;
       const value = input.value.trim();
       if (!value) return;
       input.value = "";
@@ -618,14 +649,15 @@
       sendMessage(value);
     });
 
-    input.addEventListener("input", resizeInput);
-
-    input.addEventListener("keydown", (e) => {
+    if (input) {
+      input.addEventListener("input", resizeInput);
+      input.addEventListener("keydown", (e) => {
       if (e.key === "Enter" && !e.shiftKey) {
         e.preventDefault();
         composer.requestSubmit();
       }
-    });
+      });
+    }
 
     document.addEventListener("keydown", (e) => {
       if (e.key === "Escape" && isOpen && mode !== "inline") setOpen(false);
@@ -641,8 +673,12 @@
   }
 
   function boot() {
-    const roots = document.querySelectorAll("#chatbot-plugin-root");
+    const roots = document.querySelectorAll(ROOT_SELECTOR);
     roots.forEach(initRoot);
+    document.querySelectorAll('[id^="chatbot-plugin-root"]:not([data-maicb-root])').forEach((legacy) => {
+      legacy.dataset.maicbRoot = "1";
+      initRoot(legacy);
+    });
   }
 
   if (document.readyState === "loading") {

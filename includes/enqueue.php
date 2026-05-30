@@ -146,8 +146,11 @@ class Chatbot_Enqueue {
 			$rendered_floating = true;
 		}
 
+		$root_id = chatbot_plugin_allocate_root_id( $mode );
+
 		printf(
-			'<div id="chatbot-plugin-root" data-mode="%s"></div>',
+			'<div id="%1$s" class="maicb-root" data-maicb-root data-mode="%2$s"></div>',
+			esc_attr( $root_id ),
 			esc_attr( $mode )
 		);
 	}

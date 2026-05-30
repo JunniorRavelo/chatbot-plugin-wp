@@ -20,14 +20,14 @@
 
   function launcherMarkup(showLabel, labelText) {
     return (
-      '<span class="cb-launcher-icon-wrap" aria-hidden="true">' +
-      '<span class="cb-launcher-pulse"></span>' +
-      '<span class="cb-launcher-icon">' +
+      '<span class="maicb-launcher-icon-wrap" aria-hidden="true">' +
+      '<span class="maicb-launcher-pulse"></span>' +
+      '<span class="maicb-launcher-icon">' +
       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
       '<path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/>' +
       '<path d="M8 10h.01"/><path d="M12 10h.01"/><path d="M16 10h.01"/>' +
       "</svg></span></span>" +
-      (showLabel ? '<span class="cb-launcher-text">' + labelText + "</span>" : "")
+      (showLabel ? '<span class="maicb-launcher-text">' + labelText + "</span>" : "")
     );
   }
 
@@ -35,13 +35,13 @@
     const placeholder = previewI18n("placeholder", "Type your message…");
     const sendLabel = previewI18n("send", "Send");
     return (
-      '<div class="cb-composer-inner">' +
-      '<textarea class="cb-input" rows="1" placeholder="' +
+      '<div class="maicb-composer-inner">' +
+      '<textarea class="maicb-input" rows="1" placeholder="' +
       placeholder +
       '" maxlength="700" readonly aria-label="' +
       placeholder +
       '"></textarea>' +
-      '<button type="submit" class="cb-send" aria-label="' +
+      '<button type="submit" class="maicb-send" aria-label="' +
       sendLabel +
       '">' +
       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
@@ -52,27 +52,27 @@
 
   function buildHeaderHtml() {
     return (
-      '<div class="cb-header-brand">' +
-      '<span class="cb-header-avatar" aria-hidden="true">' +
+      '<div class="maicb-header-brand">' +
+      '<span class="maicb-header-avatar" aria-hidden="true">' +
       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">' +
       '<path d="M12 8V4H8"/><path d="M16 12h2"/><path d="M6 12H4"/>' +
       '<rect width="16" height="12" x="4" y="8" rx="2"/><path d="M9 13v2"/><path d="M15 13v2"/>' +
       "</svg></span>" +
-      '<div class="cb-header-info">' +
-      '<h3 class="cb-header-title"></h3>' +
-      '<p class="cb-header-sub"><span class="cb-header-status" aria-hidden="true"></span>' +
-      '<span class="cb-header-sub-text"></span></p>' +
+      '<div class="maicb-header-info">' +
+      '<h3 class="maicb-header-title"></h3>' +
+      '<p class="maicb-header-sub"><span class="maicb-header-status" aria-hidden="true"></span>' +
+      '<span class="maicb-header-sub-text"></span></p>' +
       "</div></div>" +
-      '<div class="cb-header-actions">' +
-      '<button type="button" class="cb-icon-btn cb-minimize" title="Minimize" aria-label="Minimize">' +
+      '<div class="maicb-header-actions">' +
+      '<button type="button" class="maicb-icon-btn maicb-minimize" title="Minimize" aria-label="Minimize">' +
       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">' +
       '<path d="M5 12h14"/>' +
       "</svg></button>" +
-      '<button type="button" class="cb-icon-btn cb-reset" title="Reset" aria-label="Reset">' +
+      '<button type="button" class="maicb-icon-btn maicb-reset" title="Reset" aria-label="Reset">' +
       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
       '<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/>' +
       "</svg></button>" +
-      '<button type="button" class="cb-icon-btn cb-close" title="Close" aria-label="Close">' +
+      '<button type="button" class="maicb-icon-btn maicb-close" title="Close" aria-label="Close">' +
       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">' +
       '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>' +
       "</svg></button></div>"
@@ -121,17 +121,17 @@
   }
 
   function applyStyleVars(wrap, settings) {
-    wrap.style.removeProperty("--cb-primary");
-    wrap.style.removeProperty("--cb-accent");
-    wrap.style.removeProperty("--cb-radius");
-    wrap.style.removeProperty("--cb-offset");
-    wrap.style.removeProperty("--cb-panel-width");
+    wrap.style.removeProperty("--maicb-primary");
+    wrap.style.removeProperty("--maicb-accent");
+    wrap.style.removeProperty("--maicb-radius");
+    wrap.style.removeProperty("--maicb-offset");
+    wrap.style.removeProperty("--maicb-panel-width");
 
-    if (settings.primary) wrap.style.setProperty("--cb-primary", settings.primary);
-    if (settings.accent) wrap.style.setProperty("--cb-accent", settings.accent);
-    if (settings.radius) wrap.style.setProperty("--cb-radius", settings.radius);
-    if (settings.offset) wrap.style.setProperty("--cb-offset", settings.offset);
-    if (settings.panelWidth) wrap.style.setProperty("--cb-panel-width", settings.panelWidth);
+    if (settings.primary) wrap.style.setProperty("--maicb-primary", settings.primary);
+    if (settings.accent) wrap.style.setProperty("--maicb-accent", settings.accent);
+    if (settings.radius) wrap.style.setProperty("--maicb-radius", settings.radius);
+    if (settings.offset) wrap.style.setProperty("--maicb-offset", settings.offset);
+    if (settings.panelWidth) wrap.style.setProperty("--maicb-panel-width", settings.panelWidth);
   }
 
   function updatePositionButtons(position) {
@@ -145,7 +145,7 @@
   }
 
   function buildPreviewDOM(viewport) {
-    const widgetHost = viewport.querySelector(".cb-preview-widget-host");
+    const widgetHost = viewport.querySelector(".maicb-preview-widget-host");
     const mount = widgetHost || viewport;
     if (widgetHost) {
       widgetHost.innerHTML = "";
@@ -154,32 +154,32 @@
     }
 
     const wrap = document.createElement("div");
-    wrap.className = "cb-widget cb-wrap cb-preview-widget";
+    wrap.className = "maicb-widget maicb-wrap maicb-preview-widget";
     wrap.id = "chatbot-style-preview";
 
     const settings = readSettings();
-    wrap.classList.add("cb-preset-" + settings.preset);
+    wrap.classList.add("maicb-preset-" + settings.preset);
 
     const launcher = document.createElement("button");
     launcher.type = "button";
     launcher.className =
-      "cb-launcher cb-launcher-" +
+      "maicb-launcher maicb-launcher-" +
       launcherSide(settings.position) +
-      (settings.launcherLabel ? "" : " cb-launcher--icon-only");
+      (settings.launcherLabel ? "" : " maicb-launcher--icon-only");
     launcher.setAttribute("aria-label", "Open chat");
     launcher.innerHTML = launcherMarkup(settings.launcherLabel, settings.title);
 
     const panel = document.createElement("section");
-    panel.className = "cb-panel cb-position-" + settings.position;
+    panel.className = "maicb-panel maicb-position-" + settings.position;
     panel.setAttribute("aria-label", settings.title || "MultiAI ChatBot");
 
     panel.innerHTML =
-      '<header class="cb-header">' +
+      '<header class="maicb-header">' +
       buildHeaderHtml() +
       "</header>" +
-      '<div class="cb-messages" role="log"></div>' +
-      '<div class="cb-error" hidden></div>' +
-      '<form class="cb-composer">' +
+      '<div class="maicb-messages" role="log"></div>' +
+      '<div class="maicb-error" hidden></div>' +
+      '<form class="maicb-composer">' +
       buildComposerHtml() +
       "</form>";
 
@@ -198,13 +198,13 @@
     launcher.addEventListener("click", function () {
       setOpen(true);
     });
-    panel.querySelector(".cb-minimize").addEventListener("click", function () {
+    panel.querySelector(".maicb-minimize").addEventListener("click", function () {
       setOpen(false);
     });
-    panel.querySelector(".cb-close").addEventListener("click", function () {
+    panel.querySelector(".maicb-close").addEventListener("click", function () {
       setOpen(false);
     });
-    panel.querySelector(".cb-composer").addEventListener("submit", function (e) {
+    panel.querySelector(".maicb-composer").addEventListener("submit", function (e) {
       e.preventDefault();
     });
 
@@ -217,10 +217,10 @@
       });
     }
 
-    panel.querySelector(".cb-header-title").textContent = settings.title;
-    panel.querySelector(".cb-header-sub-text").textContent = settings.subtitle;
+    panel.querySelector(".maicb-header-title").textContent = settings.title;
+    panel.querySelector(".maicb-header-sub-text").textContent = settings.subtitle;
     applyStyleVars(wrap, settings);
-    renderMessages(panel.querySelector(".cb-messages"), settings);
+    renderMessages(panel.querySelector(".maicb-messages"), settings);
 
     setOpen(true);
     if (toggleBtn) {
@@ -233,11 +233,11 @@
 
   function createPreviewMessage(role, text) {
     const row = document.createElement("div");
-    row.className = "cb-msg-row cb-msg-row-" + role;
+    row.className = "maicb-msg-row maicb-msg-row-" + role;
 
     if (role === "assistant") {
       const avatar = document.createElement("span");
-      avatar.className = "cb-msg-avatar";
+      avatar.className = "maicb-msg-avatar";
       avatar.setAttribute("aria-hidden", "true");
       avatar.innerHTML =
         '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">' +
@@ -248,7 +248,7 @@
     }
 
     const bubble = document.createElement("div");
-    bubble.className = "cb-msg cb-msg-" + role;
+    bubble.className = "maicb-msg maicb-msg-" + role;
     bubble.textContent = text;
     row.appendChild(bubble);
     return row;
@@ -268,28 +268,28 @@
     const side = launcherSide(settings.position);
 
     PRESETS.forEach(function (p) {
-      wrap.classList.remove("cb-preset-" + p);
+      wrap.classList.remove("maicb-preset-" + p);
     });
-    wrap.classList.add("cb-preset-" + settings.preset);
+    wrap.classList.add("maicb-preset-" + settings.preset);
     wrap.dataset.preset = settings.preset;
 
     POSITIONS.forEach(function (p) {
-      panel.classList.remove("cb-position-" + p);
+      panel.classList.remove("maicb-position-" + p);
     });
-    panel.classList.add("cb-position-" + settings.position);
+    panel.classList.add("maicb-position-" + settings.position);
 
     ["left", "right", "center"].forEach(function (s) {
-      launcher.classList.remove("cb-launcher-" + s);
+      launcher.classList.remove("maicb-launcher-" + s);
     });
-    launcher.classList.add("cb-launcher-" + side);
-    launcher.classList.toggle("cb-launcher--icon-only", !settings.launcherLabel);
+    launcher.classList.add("maicb-launcher-" + side);
+    launcher.classList.toggle("maicb-launcher--icon-only", !settings.launcherLabel);
     launcher.innerHTML = launcherMarkup(settings.launcherLabel, settings.title);
 
-    panel.querySelector(".cb-header-title").textContent = settings.title;
-    panel.querySelector(".cb-header-sub-text").textContent = settings.subtitle;
+    panel.querySelector(".maicb-header-title").textContent = settings.title;
+    panel.querySelector(".maicb-header-sub-text").textContent = settings.subtitle;
 
     applyStyleVars(wrap, settings);
-    renderMessages(panel.querySelector(".cb-messages"), settings);
+    renderMessages(panel.querySelector(".maicb-messages"), settings);
 
     updatePositionButtons(settings.position);
   }
