@@ -2,8 +2,6 @@
 
 Plugin de WordPress que añade un widget de chat con IA (Gemini, Ollama u OpenAI-compatible), panel de administración y telemetría de uso.
 
-Basado en la referencia Next.js del directorio [`chatbot/`](chatbot/).
-
 ## Requisitos
 
 - WordPress 6.0+
@@ -25,7 +23,7 @@ Basado en la referencia Next.js del directorio [`chatbot/`](chatbot/).
 |---------|-----------|
 | **General** | Widget global, mensaje de bienvenida, prompt del sistema, streaming, rate limit |
 | **Modelo IA** | Proveedor, API key, modelo, URLs de Ollama/OpenAI |
-| **Estilo del chat** | Presets CSS y colores personalizados |
+| **Estilo del chat** | Presets CSS, colores personalizados y posición del widget |
 | **Estadísticas** | Totales, desglose y exportación CSV |
 
 ## Proveedores de IA
@@ -74,6 +72,17 @@ Activa **Mostrar en todo el sitio** en la pestaña General. El widget se carga e
 - `floating` (por defecto): botón flotante + panel
 - `inline`: panel embebido en la página
 
+## Estilos
+
+Presets disponibles en la pestaña **Estilo del chat**:
+
+- `default`
+- `dark-glass`
+- `minimal`
+- `ocean`
+
+Puedes personalizar colores primario y de acento, radio de bordes y posición (`center-right` o `bottom-right`).
+
 ## API REST
 
 | Endpoint | Método | Descripción |
@@ -115,8 +124,11 @@ includes/
   enqueue.php
   providers/
 assets/
-  css/chatbot.css
-  js/chatbot.js
+  css/
+    admin.css
+    chatbot.css
+  js/
+    chatbot.js
 uninstall.php
 ```
 
@@ -127,23 +139,21 @@ Cada petición al chat registra un evento en la tabla `{prefix}chatbot_events`:
 - Proveedor, modelo, estado, latencia, código de error
 - Hash de sesión (no IP en claro)
 
-Exportación CSV desde la pestaña **Estadísticas**.
-
-## Fase 2 (no incluida en MVP)
-
-Funcionalidades de la referencia Next.js pendientes de portar:
-
-- RAG con `knowledge-base.json`
-- Intents locales (`intent-router`)
-- Flujo de correo y Cloudflare Turnstile
-- Caché de respuestas
+Exportación CSV desde la pestaña **Estadísticas**. Al desinstalar el plugin, la tabla y las opciones se eliminan.
 
 ## Seguridad
 
 - No subas API keys al repositorio.
-- Usa constantes en `wp-config.php` en producción.
+- Usa constantes en `wp-config.php` en producción en lugar de guardar claves solo en la base de datos.
 - El rate limit por IP usa transients de WordPress.
-- Rota las claves si compartiste el `.env` de la carpeta `chatbot/`.
+- Rota las claves si se han expuesto accidentalmente.
+
+## Autor
+
+**J. Santiago Ravelo Velasco**
+
+- GitHub: [github.com/JunniorRavelo/chatbot-plugin-wp](https://github.com/JunniorRavelo/chatbot-plugin-wp)
+- LinkedIn: [linkedin.com/in/jsravelo](https://www.linkedin.com/in/jsravelo/)
 
 ## Licencia
 
