@@ -1740,7 +1740,7 @@ class Chatbot_Admin_Settings {
 					</div>
 					<div class="chatbot-admin-card__body">
 						<div class="chatbot-admin-preview">
-							<div class="chatbot-admin-preview__viewport" id="chatbot-preview-viewport" data-preview-position="<?php echo esc_attr( $position ); ?>" aria-label="<?php esc_attr_e( 'Web page simulation', 'chatbot-plugin-wp' ); ?>">
+							<div class="chatbot-admin-preview__viewport" id="chatbot-preview-viewport" data-preview-position="<?php echo esc_attr( $position ); ?>" data-preview-panel-open="false" aria-label="<?php esc_attr_e( 'Web page simulation', 'chatbot-plugin-wp' ); ?>">
 								<div class="chatbot-admin-preview__page-mock">
 									<span></span><span></span><span></span>
 								</div>

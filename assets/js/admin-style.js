@@ -386,6 +386,10 @@
       isOpen = open;
       panel.hidden = !open;
       launcher.hidden = open;
+      const vp = document.getElementById("chatbot-preview-viewport");
+      if (vp) {
+        vp.setAttribute("data-preview-panel-open", open ? "true" : "false");
+      }
     }
 
     launcher.addEventListener("click", function () {
