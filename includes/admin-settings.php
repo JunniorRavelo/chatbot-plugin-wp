@@ -1106,19 +1106,20 @@ class Chatbot_Admin_Settings {
 		<div class="chatbot-admin-card chatbot-admin-history-panel">
 			<div class="chatbot-admin-card__head chatbot-admin-history-panel__head">
 				<div class="chatbot-admin-history-toolbar">
-					<div class="chatbot-admin-history-toolbar__main">
-						<div class="chatbot-admin-history-toolbar__brand">
-							<span class="chatbot-admin-history-toolbar__icon dashicons dashicons-backup" aria-hidden="true"></span>
-							<div class="chatbot-admin-history-toolbar__intro">
-								<h2><?php esc_html_e( 'Conversaciones', 'chatbot-plugin-wp' ); ?></h2>
-								<p><?php esc_html_e( 'Pulsa una tarjeta para desplegar el historial de mensajes.', 'chatbot-plugin-wp' ); ?></p>
-							</div>
-						</div>
-						<div class="chatbot-admin-history-toolbar__summary" aria-live="polite">
-							<span class="chatbot-admin-history-toolbar__count"><?php echo esc_html( number_format_i18n( $total ) ); ?></span>
-							<span class="chatbot-admin-history-toolbar__count-label"><?php echo esc_html( $count_label ); ?></span>
-							<span class="chatbot-admin-history-toolbar__period-badge"><?php echo esc_html( $active_period ); ?></span>
-						</div>
+					<div class="chatbot-admin-history-toolbar__intro">
+						<h2><?php esc_html_e( 'Conversaciones', 'chatbot-plugin-wp' ); ?></h2>
+						<p>
+							<?php
+							echo esc_html(
+								sprintf(
+									/* translators: 1: conversation count label, 2: active period */
+									__( '%1$s · %2$s', 'chatbot-plugin-wp' ),
+									$count_label,
+									$active_period
+								)
+							);
+							?>
+						</p>
 					</div>
 					<div class="chatbot-admin-history-toolbar__period">
 						<span class="chatbot-admin-history-toolbar__period-label" id="chatbot-history-period-label">
@@ -1204,9 +1205,8 @@ class Chatbot_Admin_Settings {
 		</div>
 
 		<div class="chatbot-admin-card chatbot-admin-history-list">
-			<div class="chatbot-admin-card__head chatbot-admin-history-list__head">
-				<h2><?php echo esc_html( $count_label ); ?></h2>
-				<?php if ( $pages > 1 ) : ?>
+			<?php if ( $pages > 1 ) : ?>
+				<div class="chatbot-admin-card__head chatbot-admin-history-list__head">
 					<p>
 						<?php
 						echo esc_html(
@@ -1219,11 +1219,12 @@ class Chatbot_Admin_Settings {
 						);
 						?>
 					</p>
-				<?php endif; ?>
-			</div>
+				</div>
+			<?php endif; ?>
 
 			<?php if ( empty( $items ) ) : ?>
 				<div class="chatbot-admin-card__body chatbot-admin-history-empty">
+					<span class="chatbot-admin-history-empty__icon dashicons dashicons-backup" aria-hidden="true"></span>
 					<p><?php esc_html_e( 'No hay conversaciones en este periodo o con estos filtros.', 'chatbot-plugin-wp' ); ?></p>
 				</div>
 			<?php else : ?>
@@ -1342,14 +1343,11 @@ private static function render_history_card( array $item, bool $expanded = false
 			aria-expanded="<?php echo $expanded ? 'true' : 'false'; ?>"
 			aria-controls="<?php echo esc_attr( $panel_id ); ?>"
 		>
-			<span class="chatbot-admin-history-card__visual" aria-hidden="true">
-				<span class="chatbot-admin-history-card__avatar">
-					<span class="chatbot-admin-history-card__avatar-label"><?php echo esc_html( $avatar_label ); ?></span>
-				</span>
-				<span class="chatbot-admin-history-card__count"><?php echo esc_html( number_format_i18n( $msg_count ) ); ?></span>
+			<span class="chatbot-admin-history-card__provider" aria-hidden="true" title="<?php echo esc_attr( $provider_name ); ?>">
+				<?php echo esc_html( $avatar_label ); ?>
 			</span>
 
-			<span class="chatbot-admin-history-card__preview">
+			<span class="chatbot-admin-history-card__content">
 				<span class="chatbot-admin-history-card__headline">
 					<span class="chatbot-admin-history-card__title"><?php echo esc_html( $title ); ?></span>
 					<span class="chatbot-admin-history-card__status <?php echo esc_attr( $status_class ); ?>">
@@ -1358,40 +1356,36 @@ private static function render_history_card( array $item, bool $expanded = false
 					</span>
 				</span>
 
-				<span class="chatbot-admin-history-card__metrics">
-					<span class="chatbot-admin-history-metric">
-						<span class="chatbot-admin-history-metric__label"><?php esc_html_e( 'Actualizado', 'chatbot-plugin-wp' ); ?></span>
-						<span class="chatbot-admin-history-metric__value"><?php echo esc_html( $updated ); ?></span>
+				<span class="chatbot-admin-history-card__meta">
+					<span class="chatbot-admin-history-card__meta-item">
+						<span class="chatbot-admin-history-card__meta-label"><?php esc_html_e( 'Actualizado', 'chatbot-plugin-wp' ); ?></span>
+						<span class="chatbot-admin-history-card__meta-value"><?php echo esc_html( $updated ); ?></span>
 					</span>
-
 					<?php if ( '' !== $provider_name ) : ?>
-						<span class="chatbot-admin-history-metric">
-							<span class="chatbot-admin-history-metric__label"><?php esc_html_e( 'Proveedor', 'chatbot-plugin-wp' ); ?></span>
-							<span class="chatbot-admin-history-metric__value"><?php echo esc_html( $provider_name ); ?></span>
+						<span class="chatbot-admin-history-card__meta-item">
+							<span class="chatbot-admin-history-card__meta-label"><?php esc_html_e( 'Proveedor', 'chatbot-plugin-wp' ); ?></span>
+							<span class="chatbot-admin-history-card__meta-value"><?php echo esc_html( $provider_name ); ?></span>
 						</span>
 					<?php endif; ?>
-
 					<?php if ( '' !== $model ) : ?>
-						<span class="chatbot-admin-history-metric">
-							<span class="chatbot-admin-history-metric__label"><?php esc_html_e( 'Modelo', 'chatbot-plugin-wp' ); ?></span>
-							<span class="chatbot-admin-history-metric__value" title="<?php echo esc_attr( $model ); ?>"><?php echo esc_html( $model ); ?></span>
+						<span class="chatbot-admin-history-card__meta-item">
+							<span class="chatbot-admin-history-card__meta-label"><?php esc_html_e( 'Modelo', 'chatbot-plugin-wp' ); ?></span>
+							<span class="chatbot-admin-history-card__meta-value" title="<?php echo esc_attr( $model ); ?>"><?php echo esc_html( $model ); ?></span>
 						</span>
 					<?php elseif ( '' !== $provider_label ) : ?>
-						<span class="chatbot-admin-history-metric">
-							<span class="chatbot-admin-history-metric__label"><?php esc_html_e( 'Motor', 'chatbot-plugin-wp' ); ?></span>
-							<span class="chatbot-admin-history-metric__value"><?php echo esc_html( $provider_label ); ?></span>
+						<span class="chatbot-admin-history-card__meta-item">
+							<span class="chatbot-admin-history-card__meta-label"><?php esc_html_e( 'Motor', 'chatbot-plugin-wp' ); ?></span>
+							<span class="chatbot-admin-history-card__meta-value"><?php echo esc_html( $provider_label ); ?></span>
 						</span>
 					<?php endif; ?>
-
-					<span class="chatbot-admin-history-metric">
-						<span class="chatbot-admin-history-metric__label"><?php esc_html_e( 'Mensajes', 'chatbot-plugin-wp' ); ?></span>
-						<span class="chatbot-admin-history-metric__value"><?php echo esc_html( number_format_i18n( $msg_count ) ); ?></span>
+					<span class="chatbot-admin-history-card__meta-item">
+						<span class="chatbot-admin-history-card__meta-label"><?php esc_html_e( 'Mensajes', 'chatbot-plugin-wp' ); ?></span>
+						<span class="chatbot-admin-history-card__meta-value"><?php echo esc_html( number_format_i18n( $msg_count ) ); ?></span>
 					</span>
 				</span>
 
 				<span class="chatbot-admin-history-card__foot">
 					<code class="chatbot-admin-history-card__ref"><?php echo esc_html( $public_id ); ?></code>
-
 					<?php if ( '' !== $page_path || '' !== $session ) : ?>
 						<span class="chatbot-admin-history-card__tags">
 							<?php if ( '' !== $page_path ) : ?>
@@ -1399,7 +1393,6 @@ private static function render_history_card( array $item, bool $expanded = false
 									<?php echo esc_html( $page_path ); ?>
 								</span>
 							<?php endif; ?>
-
 							<?php if ( '' !== $session ) : ?>
 								<span class="chatbot-admin-history-tag chatbot-admin-history-tag--session" title="<?php echo esc_attr( $session ); ?>">
 									<?php echo esc_html( substr( $session, 0, 8 ) ); ?>…
@@ -1410,10 +1403,7 @@ private static function render_history_card( array $item, bool $expanded = false
 				</span>
 			</span>
 
-			<span class="chatbot-admin-history-card__aside" aria-hidden="true">
-				<span class="chatbot-admin-history-card__expand-label"><?php esc_html_e( 'Detalle', 'chatbot-plugin-wp' ); ?></span>
-				<span class="chatbot-admin-history-card__chevron"></span>
-			</span>
+			<span class="chatbot-admin-history-card__chevron" aria-hidden="true"></span>
 		</button>
 
 		<div
