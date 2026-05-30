@@ -25,6 +25,7 @@ Plugin de WordPress que añade un widget de chat con IA (Gemini, Ollama u OpenAI
 | **Modelo IA** | Proveedor, API key, modelo, URLs de Ollama/OpenAI |
 | **Estilo del chat** | Presets CSS, colores personalizados y posición del widget |
 | **Estadísticas** | Totales, desglose y exportación CSV |
+| **Historial** | Conversaciones en tarjetas (ID `CB-AAAA-MM-DD-HH-MM-SS`), filtros y detalle de mensajes |
 
 ## Proveedores de IA
 
@@ -131,6 +132,15 @@ assets/
     chatbot.js
 uninstall.php
 ```
+
+## Historial de conversaciones
+
+Cada intercambio usuario/asistente se guarda en `{prefix}chatbot_conversations` y `{prefix}chatbot_messages`.
+
+- **ID público:** `CB-2026-05-29-14-35-42` (fecha y hora en la zona del sitio)
+- **ID interno:** número autoincremental para administración
+- Agrupación por sesión del visitante (30 min de inactividad abre conversación nueva)
+- El frontend envía `conversationId` en el body para continuar el mismo hilo
 
 ## Telemetría
 

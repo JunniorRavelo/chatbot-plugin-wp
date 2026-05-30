@@ -28,7 +28,7 @@ class Chatbot_Plugin {
 	}
 
 	public function init(): void {
-		// Reserved for future hooks.
+		Chatbot_Chat_History::maybe_upgrade();
 	}
 
 	public function load_textdomain(): void {
@@ -41,6 +41,7 @@ class Chatbot_Plugin {
 
 	public static function activate(): void {
 		Chatbot_Telemetry::create_table();
+		Chatbot_Chat_History::create_tables();
 
 		if ( false === get_option( 'chatbot_plugin_settings', false ) ) {
 			add_option( 'chatbot_plugin_settings', Chatbot_Admin_Settings::default_settings() );

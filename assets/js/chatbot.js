@@ -4,6 +4,7 @@
   const STORAGE_KEY = "chatbot-plugin-session-v1";
   const OPEN_KEY = "chatbot-plugin-open-state-v1";
   const SESSION_KEY = "chatbot-plugin-anon-id";
+  const CONV_KEY = "chatbot-plugin-conversation-v1";
   const HISTORY_TTL_MS = 24 * 60 * 60 * 1000;
   const MAX_MESSAGES = 60;
 
@@ -12,6 +13,31 @@
 
   function generateId() {
     return "m-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 8);
+  }
+
+  function getConversationId() {
+    try {
+      return localStorage.getItem(CONV_KEY) || "";
+    } catch {
+      return "";
+    }
+  }
+
+  function setConversationId(id) {
+    if (!id) return;
+    try {
+      localStorage.setItem(CONV_KEY, String(id));
+    } catch {
+      /* ignore */
+    }
+  }
+
+  function clearConversationId() {
+    try {
+      localStorage.removeItem(CONV_KEY);
+    } catch {
+      /* ignore */
+    }
   }
 
   function getSessionId() {
@@ -36,6 +62,7 @@
       const parsed = JSON.parse(raw);
       const updated = new Date(parsed.updatedAt || 0).getTime();
       if (Date.now() - updated > HISTORY_TTL_MS) {
+        clearConversationId();
         return { messages: [], updatedAt: new Date().toISOString() };
       }
       return {
@@ -295,23 +322,26 @@
         return null;
       }
 
+      const streamMeta = {
+        model: res.headers.get("X-Chat-Model") || "",
+        conversationId: res.headers.get("X-Chat-Conversation-Id") || "",
+      };
+
       const reader = res.body && res.body.getReader ? res.body.getReader() : null;
       if (!reader) {
         const text = await res.text();
         if (text) onChunk(text);
-        return res.headers.get("X-Chat-Model") || "";
+        return streamMeta;
       }
 
       const decoder = new TextDecoder();
-      let full = "";
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
         const chunk = decoder.decode(value, { stream: true });
-        full += chunk;
         onChunk(chunk);
       }
-      return res.headers.get("X-Chat-Model") || "";
+      return streamMeta;
     }
 
     async function requestChat(body) {
@@ -369,18 +399,23 @@
       messagesEl.appendChild(thinking);
       scrollToBottom();
 
+      const convId = getConversationId();
       const body = {
         message: userMsg.content,
         history: getHistoryForApi().slice(0, -1),
         currentPath: window.location.pathname,
         currentUrl: window.location.href,
       };
+      if (convId) {
+        body.conversationId = convId;
+      }
 
       try {
         let modelUsed = "";
+        let streamConversationId = "";
         if (config.streaming) {
           try {
-            modelUsed = await requestStream(body, (chunk) => {
+            const streamResult = await requestStream(body, (chunk) => {
               thinking.remove();
               const idx = messages.findIndex((m) => m.id === assistantId);
               if (idx >= 0) {
@@ -388,6 +423,15 @@
                 renderMessages();
               }
             });
+            if (streamResult && typeof streamResult === "object") {
+              modelUsed = streamResult.model || "";
+              streamConversationId = streamResult.conversationId || "";
+            } else if (typeof streamResult === "string") {
+              modelUsed = streamResult;
+            }
+            if (streamConversationId) {
+              setConversationId(streamConversationId);
+            }
           } catch (streamErr) {
             if (streamErr && streamErr.status === 404) {
               /* streaming disabled */
@@ -404,6 +448,9 @@
           const data = await requestChat(body);
           messages[idx].content = data.answer || "";
           messages[idx].model = (data.meta && data.meta.model) || "";
+          if (data.meta && data.meta.conversationId) {
+            setConversationId(data.meta.conversationId);
+          }
         } else if (idx >= 0 && modelUsed) {
           messages[idx].model = modelUsed;
         }
@@ -428,6 +475,7 @@
 
     header.querySelector(".cb-reset").addEventListener("click", () => {
       messages = welcome ? [welcome] : [];
+      clearConversationId();
       saveState(messages);
       setError("");
       renderMessages();

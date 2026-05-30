@@ -39,7 +39,7 @@ class Chatbot_Api_Handler {
 		}
 
 		$provider_id = ! empty( $settings['provider'] ) ? (string) $settings['provider'] : 'gemini';
-		$provider = self::get_provider( $provider_id );
+		$provider    = self::get_provider( $provider_id );
 		if ( is_wp_error( $provider ) ) {
 			self::record_event( $session_hash, $settings, '', 'config_error', (int) ( ( microtime( true ) - $started ) * 1000 ), 'CONFIGURATION_ERROR' );
 			$data = $provider->get_error_data();
@@ -56,7 +56,12 @@ class Chatbot_Api_Handler {
 			? (string) $settings['system_prompt']
 			: __( 'Eres un asistente útil del sitio web. Responde en español de forma clara y breve.', 'chatbot-plugin-wp' );
 
-		$messages = self::build_messages( $parsed['message'], $parsed['history'] );
+		$messages     = self::build_messages( $parsed['message'], $parsed['history'] );
+		$conversation = self::resolve_history_conversation(
+			$session_hash,
+			$parsed,
+			$provider_id
+		);
 
 		$cache_ttl = isset( $settings['cache_ttl_seconds'] ) ? max( 0, (int) $settings['cache_ttl_seconds'] ) : 0;
 		$cache_key = '';
@@ -68,6 +73,20 @@ class Chatbot_Api_Handler {
 			if ( is_array( $cached ) && ! empty( $cached['answer'] ) ) {
 				$latency = (int) ( ( microtime( true ) - $started ) * 1000 );
 				self::record_event( $session_hash, $settings, (string) ( $cached['meta']['model'] ?? '' ), 'cached', $latency );
+				self::persist_history_exchange(
+					$conversation,
+					$parsed['message'],
+					(string) $cached['answer'],
+					$provider_id,
+					(string) ( $cached['meta']['model'] ?? '' ),
+					'cached',
+					$latency,
+					$parsed
+				);
+				$cached['meta'] = self::append_conversation_meta(
+					is_array( $cached['meta'] ?? null ) ? $cached['meta'] : array(),
+					$conversation
+				);
 				return new WP_REST_Response( $cached, 200 );
 			}
 		}
@@ -97,6 +116,16 @@ class Chatbot_Api_Handler {
 			$retry_after = is_array( $error_data ) && isset( $error_data['retry_after'] ) ? (int) $error_data['retry_after'] : 0;
 
 			self::record_event( $session_hash, $settings, '', 'error', $latency, $error_code );
+			self::persist_history_exchange(
+				$conversation,
+				$parsed['message'],
+				$result->get_error_message(),
+				$provider_id,
+				'',
+				'error',
+				$latency,
+				$parsed
+			);
 
 			$response = new WP_REST_Response(
 				array(
@@ -112,12 +141,25 @@ class Chatbot_Api_Handler {
 		}
 
 		self::record_event( $session_hash, $settings, $result['model'], 'success', $latency );
+		self::persist_history_exchange(
+			$conversation,
+			$parsed['message'],
+			$result['text'],
+			$provider_id,
+			$result['model'],
+			'success',
+			$latency,
+			$parsed
+		);
 
 		$response_data = array(
 			'answer' => $result['text'],
-			'meta'   => array(
-				'model'    => $result['model'],
-				'provider' => $provider_id,
+			'meta'   => self::append_conversation_meta(
+				array(
+					'model'    => $result['model'],
+					'provider' => $provider_id,
+				),
+				$conversation
 			),
 		);
 
@@ -223,6 +265,9 @@ class Chatbot_Api_Handler {
 		header( 'X-Chat-Stream: chunked-text' );
 		if ( ! empty( $data['meta']['model'] ) ) {
 			header( 'X-Chat-Model: ' . sanitize_text_field( (string) $data['meta']['model'] ) );
+		}
+		if ( ! empty( $data['meta']['conversationId'] ) ) {
+			header( 'X-Chat-Conversation-Id: ' . sanitize_text_field( (string) $data['meta']['conversationId'] ) );
 		}
 
 		foreach ( self::split_chunks( (string) $data['answer'] ) as $chunk ) {
@@ -437,10 +482,91 @@ class Chatbot_Api_Handler {
 			}
 		}
 
+		$conversation_id = isset( $body['conversationId'] ) ? trim( (string) $body['conversationId'] ) : '';
+		$current_path      = isset( $body['currentPath'] ) ? trim( (string) $body['currentPath'] ) : '';
+		$current_url       = isset( $body['currentUrl'] ) ? trim( (string) $body['currentUrl'] ) : '';
+
 		return array(
-			'message' => $message,
-			'history' => $history,
+			'message'          => $message,
+			'history'          => $history,
+			'conversation_id'  => substr( $conversation_id, 0, 64 ),
+			'current_path'     => substr( $current_path, 0, 255 ),
+			'current_url'      => substr( $current_url, 0, 500 ),
 		);
+	}
+
+	/**
+	 * @param array{message: string, history: array<int, array{role: string, content: string}>, conversation_id?: string, current_path?: string, current_url?: string} $parsed
+	 * @return array{id: int, public_id: string}|null
+	 */
+	private static function resolve_history_conversation( string $session_hash, array $parsed, string $provider_id ): ?array {
+		$conv = Chatbot_Chat_History::resolve_conversation(
+			$session_hash,
+			$parsed['conversation_id'] ?? '',
+			array(
+				'title'      => $parsed['message'],
+				'provider'   => $provider_id,
+				'page_url'   => $parsed['current_url'] ?? '',
+				'page_path'  => $parsed['current_path'] ?? '',
+			)
+		);
+
+		return $conv['id'] > 0 ? $conv : null;
+	}
+
+	/**
+	 * @param array{id: int, public_id: string}|null $conversation
+	 * @param array<string, mixed>                  $parsed
+	 */
+	private static function persist_history_exchange(
+		?array $conversation,
+		string $user_message,
+		string $assistant_message,
+		string $provider_id,
+		string $model,
+		string $status,
+		int $latency_ms,
+		array $parsed
+	): void {
+		if ( null === $conversation || $conversation['id'] <= 0 ) {
+			return;
+		}
+
+		Chatbot_Chat_History::add_message(
+			$conversation['id'],
+			'user',
+			$user_message,
+			array(
+				'provider'  => $provider_id,
+				'page_url'  => $parsed['current_url'] ?? '',
+				'page_path' => $parsed['current_path'] ?? '',
+			)
+		);
+
+		Chatbot_Chat_History::add_message(
+			$conversation['id'],
+			'assistant',
+			$assistant_message,
+			array(
+				'provider'   => $provider_id,
+				'model'      => $model,
+				'status'     => $status,
+				'latency_ms' => $latency_ms,
+			)
+		);
+	}
+
+	/**
+	 * @param array<string, mixed>               $meta
+	 * @param array{id: int, public_id: string}|null $conversation
+	 * @return array<string, mixed>
+	 */
+	private static function append_conversation_meta( array $meta, ?array $conversation ): array {
+		if ( null !== $conversation ) {
+			$meta['conversationId'] = $conversation['public_id'];
+			$meta['conversationDbId'] = $conversation['id'];
+		}
+		return $meta;
 	}
 
 	/**

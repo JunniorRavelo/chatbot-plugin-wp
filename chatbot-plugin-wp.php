@@ -27,6 +27,7 @@ define( 'CHATBOT_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'CHATBOT_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
 
 require_once CHATBOT_PLUGIN_PATH . 'includes/telemetry.php';
+require_once CHATBOT_PLUGIN_PATH . 'includes/chat-history.php';
 require_once CHATBOT_PLUGIN_PATH . 'includes/providers/interface-provider.php';
 require_once CHATBOT_PLUGIN_PATH . 'includes/providers/class-provider-gemini.php';
 require_once CHATBOT_PLUGIN_PATH . 'includes/providers/class-provider-ollama.php';
