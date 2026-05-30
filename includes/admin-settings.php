@@ -344,12 +344,7 @@ class Chatbot_Admin_Settings {
 			<header class="chatbot-admin-header">
 				<div class="chatbot-admin-header__brand">
 					<span class="chatbot-admin-header__icon dashicons dashicons-format-chat" aria-hidden="true"></span>
-					<div>
-						<h1><?php esc_html_e( 'Chatbot Plugin', 'chatbot-plugin-wp' ); ?></h1>
-						<p class="chatbot-admin-header__desc">
-							<?php esc_html_e( 'Configura el agente de IA, el proveedor y la apariencia del widget en tu sitio.', 'chatbot-plugin-wp' ); ?>
-						</p>
-					</div>
+					<h1><?php esc_html_e( 'Chatbot Plugin', 'chatbot-plugin-wp' ); ?></h1>
 				</div>
 				<span class="chatbot-admin-badge <?php echo $widget_on ? 'chatbot-admin-badge--on' : 'chatbot-admin-badge--off'; ?>">
 					<?php
