@@ -567,6 +567,19 @@
   border-top-color: rgba(255, 255, 255, 0.22);
 }
 
+.cb-msg-pending {
+  min-width: 3.5rem;
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+}
+
+.cb-msg-pending .cb-thinking {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
 .cb-thinking-row {
   opacity: 0.92;
 }

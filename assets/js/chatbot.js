@@ -302,7 +302,7 @@
       });
     }
 
-    function createMessageRow(msg) {
+    function createMessageRow(msg, showThinking) {
       const role = msg.role || "assistant";
 
       if (role === "system") {
@@ -329,33 +329,27 @@
 
       const bubble = document.createElement("div");
       bubble.className = "cb-msg cb-msg-" + role;
-      bubble.textContent = msg.content || "";
 
-      if (role === "assistant" && msg.model && msg.model !== "system") {
-        const meta = document.createElement("span");
-        meta.className = "cb-msg-meta";
-        meta.textContent = msg.model;
-        bubble.appendChild(meta);
+      if (showThinking) {
+        bubble.classList.add("cb-msg-pending");
+        bubble.setAttribute("aria-label", i18n.thinking || "Pensando…");
+        bubble.innerHTML =
+          '<div class="cb-thinking" aria-hidden="true">' +
+          '<span class="cb-thinking-dot"></span>' +
+          '<span class="cb-thinking-dot"></span>' +
+          '<span class="cb-thinking-dot"></span>' +
+          "</div>";
+      } else {
+        bubble.textContent = msg.content || "";
+        if (role === "assistant" && msg.model && msg.model !== "system") {
+          const meta = document.createElement("span");
+          meta.className = "cb-msg-meta";
+          meta.textContent = msg.model;
+          bubble.appendChild(meta);
+        }
       }
 
       row.appendChild(bubble);
-      return row;
-    }
-
-    function createThinkingRow() {
-      const row = document.createElement("div");
-      row.className = "cb-msg-row cb-msg-row-assistant cb-thinking-row";
-      row.innerHTML =
-        '<span class="cb-msg-avatar" aria-hidden="true">' +
-        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">' +
-        '<path d="M12 8V4H8"/><path d="M16 12h2"/><path d="M6 12H4"/>' +
-        '<rect width="16" height="12" x="4" y="8" rx="2"/><path d="M9 13v2"/><path d="M15 13v2"/>' +
-        "</svg></span>" +
-        '<div class="cb-thinking" aria-live="polite">' +
-        '<span class="cb-thinking-dot"></span>' +
-        '<span class="cb-thinking-dot"></span>' +
-        '<span class="cb-thinking-dot"></span>' +
-        "</div>";
       return row;
     }
 
@@ -365,8 +359,13 @@
 
     function renderMessages() {
       messagesEl.innerHTML = "";
-      messages.forEach((msg) => {
-        messagesEl.appendChild(createMessageRow(msg));
+      messages.forEach((msg, index) => {
+        const showThinking =
+          isSending &&
+          msg.role === "assistant" &&
+          !(msg.content || "").trim() &&
+          index === messages.length - 1;
+        messagesEl.appendChild(createMessageRow(msg, showThinking));
       });
       scrollToBottom();
     }
@@ -500,14 +499,6 @@
       messages.push(assistantMsg);
       renderMessages();
 
-      const thinking = createThinkingRow();
-      thinking.querySelector(".cb-thinking").setAttribute(
-        "aria-label",
-        i18n.thinking || "Pensando…"
-      );
-      messagesEl.appendChild(thinking);
-      scrollToBottom();
-
       const convId = getConversationId();
       const body = {
         message: userMsg.content,
@@ -525,7 +516,6 @@
         if (config.streaming) {
           try {
             const streamResult = await requestStream(body, (chunk) => {
-              thinking.remove();
               const idx = messages.findIndex((m) => m.id === assistantId);
               if (idx >= 0) {
                 messages[idx].content += chunk;
@@ -550,8 +540,6 @@
           }
         }
 
-        thinking.remove();
-
         const idx = messages.findIndex((m) => m.id === assistantId);
         if (idx >= 0 && !messages[idx].content.trim()) {
           const data = await requestChat(body);
@@ -564,7 +552,6 @@
           messages[idx].model = modelUsed;
         }
       } catch (err) {
-        thinking.remove();
         const idx = messages.findIndex((m) => m.id === assistantId);
         if (idx >= 0) {
           messages.splice(idx, 1);
