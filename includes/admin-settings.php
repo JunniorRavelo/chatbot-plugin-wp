@@ -1097,35 +1097,55 @@ class Chatbot_Admin_Settings {
 			_n( '%s conversación', '%s conversaciones', $total, 'chatbot-plugin-wp' ),
 			number_format_i18n( $total )
 		);
+		$active_period = $periods[ $days ] ?? ( $days > 0 ? sprintf(
+			/* translators: %d: number of days */
+			__( '%d días', 'chatbot-plugin-wp' ),
+			$days
+		) : __( 'Todo', 'chatbot-plugin-wp' ) );
 		?>
 		<div class="chatbot-admin-card chatbot-admin-history-panel">
 			<div class="chatbot-admin-card__head chatbot-admin-history-panel__head">
 				<div class="chatbot-admin-history-toolbar">
-					<div class="chatbot-admin-history-toolbar__intro">
-						<h2><?php esc_html_e( 'Conversaciones', 'chatbot-plugin-wp' ); ?></h2>
-						<p><?php esc_html_e( 'Explora el historial del chatbot. Pulsa una tarjeta para ver los mensajes.', 'chatbot-plugin-wp' ); ?></p>
+					<div class="chatbot-admin-history-toolbar__main">
+						<div class="chatbot-admin-history-toolbar__brand">
+							<span class="chatbot-admin-history-toolbar__icon dashicons dashicons-backup" aria-hidden="true"></span>
+							<div class="chatbot-admin-history-toolbar__intro">
+								<h2><?php esc_html_e( 'Conversaciones', 'chatbot-plugin-wp' ); ?></h2>
+								<p><?php esc_html_e( 'Pulsa una tarjeta para desplegar el historial de mensajes.', 'chatbot-plugin-wp' ); ?></p>
+							</div>
+						</div>
+						<div class="chatbot-admin-history-toolbar__summary" aria-live="polite">
+							<span class="chatbot-admin-history-toolbar__count"><?php echo esc_html( number_format_i18n( $total ) ); ?></span>
+							<span class="chatbot-admin-history-toolbar__count-label"><?php echo esc_html( $count_label ); ?></span>
+							<span class="chatbot-admin-history-toolbar__period-badge"><?php echo esc_html( $active_period ); ?></span>
+						</div>
 					</div>
-					<div class="chatbot-admin-pills" role="group" aria-label="<?php esc_attr_e( 'Periodo', 'chatbot-plugin-wp' ); ?>">
-						<?php foreach ( $periods as $p => $label ) : ?>
-							<?php
-							$url = add_query_arg(
-								array(
-									'page'     => 'chatbot-plugin',
-									'tab'      => 'history',
-									'days'     => $p,
-									's'        => $search,
-									'provider' => $provider,
-									'status'   => $status,
-									'orderby'  => $orderby,
-									'order'    => $order,
-								),
-								admin_url( 'admin.php' )
-							);
-							?>
-							<a href="<?php echo esc_url( $url ); ?>" class="<?php echo (int) $days === (int) $p ? 'is-active' : ''; ?>">
-								<?php echo esc_html( $label ); ?>
-							</a>
-						<?php endforeach; ?>
+					<div class="chatbot-admin-history-toolbar__period">
+						<span class="chatbot-admin-history-toolbar__period-label" id="chatbot-history-period-label">
+							<?php esc_html_e( 'Periodo', 'chatbot-plugin-wp' ); ?>
+						</span>
+						<div class="chatbot-admin-pills chatbot-admin-pills--history" role="group" aria-labelledby="chatbot-history-period-label">
+							<?php foreach ( $periods as $p => $label ) : ?>
+								<?php
+								$url = add_query_arg(
+									array(
+										'page'     => 'chatbot-plugin',
+										'tab'      => 'history',
+										'days'     => $p,
+										's'        => $search,
+										'provider' => $provider,
+										'status'   => $status,
+										'orderby'  => $orderby,
+										'order'    => $order,
+									),
+									admin_url( 'admin.php' )
+								);
+								?>
+								<a href="<?php echo esc_url( $url ); ?>" class="<?php echo (int) $days === (int) $p ? 'is-active' : ''; ?>">
+									<?php echo esc_html( $label ); ?>
+								</a>
+							<?php endforeach; ?>
+						</div>
 					</div>
 				</div>
 			</div>

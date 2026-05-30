@@ -800,7 +800,8 @@
 }
 
 .chatbot-admin-history-panel__head {
-  padding: 1rem 1.25rem;
+  padding: 0;
+  background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
 }
 
 .chatbot-admin-history-panel__filters {
@@ -812,25 +813,128 @@
 
 .chatbot-admin-history-toolbar {
   display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.chatbot-admin-history-toolbar__main {
+  display: flex;
   flex-wrap: wrap;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
-  gap: 1rem;
+  gap: 1rem 1.25rem;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--cb-admin-border);
+}
+
+.chatbot-admin-history-toolbar__brand {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  min-width: 0;
+  flex: 1 1 16rem;
+}
+
+.chatbot-admin-history-toolbar__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 10px;
+  background: #eff6ff;
+  color: var(--cb-admin-primary) !important;
+  font-size: 1.125rem !important;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.chatbot-admin-history-toolbar__intro {
+  min-width: 0;
 }
 
 .chatbot-admin-history-toolbar__intro h2 {
   margin: 0;
-  font-size: 1rem;
+  font-size: 1.0625rem;
   font-weight: 600;
   color: #0f172a;
+  line-height: 1.3;
 }
 
 .chatbot-admin-history-toolbar__intro p {
-  margin: 0.35rem 0 0;
-  max-width: 36rem;
+  margin: 0.3rem 0 0;
+  max-width: 28rem;
   font-size: 0.8125rem;
   color: var(--cb-admin-muted);
   line-height: 1.45;
+}
+
+.chatbot-admin-history-toolbar__summary {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.15rem;
+  flex-shrink: 0;
+  padding: 0.55rem 0.85rem;
+  border: 1px solid var(--cb-admin-border);
+  border-radius: 10px;
+  background: var(--cb-admin-surface);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  text-align: right;
+}
+
+.chatbot-admin-history-toolbar__count {
+  font-size: 1.375rem;
+  font-weight: 700;
+  line-height: 1.1;
+  color: #0f172a;
+  font-variant-numeric: tabular-nums;
+}
+
+.chatbot-admin-history-toolbar__count-label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--cb-admin-muted);
+}
+
+.chatbot-admin-history-toolbar__period-badge {
+  display: inline-flex;
+  align-items: center;
+  margin-top: 0.2rem;
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--cb-admin-primary);
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+}
+
+.chatbot-admin-history-toolbar__period {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.65rem 0.85rem;
+  padding: 0.75rem 1.25rem;
+  background: #f8fafc;
+}
+
+.chatbot-admin-history-toolbar__period-label {
+  flex-shrink: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #475569;
+}
+
+.chatbot-admin-pills--history {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.chatbot-admin-pills--history a {
+  white-space: nowrap;
 }
 
 .chatbot-admin-history-filters {
@@ -1212,8 +1316,49 @@
 }
 
 @media (max-width: 782px) {
-  .chatbot-admin-history-toolbar {
+  .chatbot-admin-history-toolbar__main {
     flex-direction: column;
+    align-items: stretch;
+    padding: 0.9rem 1rem;
+  }
+
+  .chatbot-admin-history-toolbar__summary {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    text-align: left;
+  }
+
+  .chatbot-admin-history-toolbar__count-label {
+    flex: 1 1 auto;
+    text-transform: none;
+    letter-spacing: normal;
+    font-size: 0.75rem;
+  }
+
+  .chatbot-admin-history-toolbar__period {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 0.75rem 1rem;
+  }
+
+  .chatbot-admin-pills--history {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .chatbot-admin-pills--history::-webkit-scrollbar {
+    display: none;
+  }
+
+  .chatbot-admin-pills--history a {
+    flex: 1 1 0;
+    text-align: center;
+    min-width: 4.5rem;
   }
 
   .chatbot-admin-history-filters {
