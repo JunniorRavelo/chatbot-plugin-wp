@@ -979,6 +979,7 @@
   min-height: 2.25rem;
   max-height: 6rem;
   padding: 0.5rem 0;
+  padding-right: 0.15rem;
   border: none;
   border-radius: 0;
   background: transparent;
@@ -986,21 +987,50 @@
   resize: none;
   overflow-x: hidden;
   overflow-y: auto;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--cb-muted) 42%, transparent) transparent;
   font: inherit;
   line-height: 1.45;
 }
 
 .cb-input::-webkit-scrollbar {
+  width: 4px;
+}
+
+.cb-input::-webkit-scrollbar-track {
+  background: transparent;
+  margin: 0.2rem 0;
+}
+
+.cb-input::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--cb-muted) 40%, transparent);
+}
+
+.cb-input::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--cb-muted) 62%, transparent);
+}
+
+.cb-input::-webkit-scrollbar-button,
+.cb-input::-webkit-scrollbar-button:single-button {
+  display: none;
   width: 0;
   height: 0;
 }
 
-.cb-input::-webkit-scrollbar-button {
-  display: none;
-  width: 0;
-  height: 0;
+.cb-preset-dark-glass .cb-input,
+.cb-preset-plum .cb-input {
+  scrollbar-color: color-mix(in srgb, var(--cb-primary) 48%, transparent) transparent;
+}
+
+.cb-preset-dark-glass .cb-input::-webkit-scrollbar-thumb,
+.cb-preset-plum .cb-input::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--cb-primary) 45%, transparent);
+}
+
+.cb-preset-dark-glass .cb-input::-webkit-scrollbar-thumb:hover,
+.cb-preset-plum .cb-input::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--cb-primary) 65%, transparent);
 }
 
 .cb-input::placeholder {
