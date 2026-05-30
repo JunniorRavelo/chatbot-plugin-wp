@@ -39,7 +39,10 @@ class Chatbot_Admin_Settings {
 			'style_primary'         => '',
 			'style_accent'          => '',
 			'style_radius'          => '',
-			'style_position'        => 'center-right',
+			'style_position'        => 'bottom-right',
+			'style_offset'          => '1rem',
+			'style_panel_width'     => '',
+			'style_launcher_label'  => true,
 			'widget_title'          => 'Agente IA',
 			'widget_subtitle'       => 'Sistema en línea',
 		);
@@ -103,12 +106,15 @@ class Chatbot_Admin_Settings {
 		$out['request_timeout']  = max( 5, min( 120, (int) ( $input['request_timeout'] ?? $defaults['request_timeout'] ) ) );
 
 		$preset = sanitize_key( $input['style_preset'] ?? 'default' );
-		$out['style_preset'] = in_array( $preset, array( 'default', 'dark-glass', 'minimal', 'ocean' ), true ) ? $preset : 'default';
+		$out['style_preset'] = in_array( $preset, self::style_presets(), true ) ? $preset : 'default';
 		$out['style_primary']  = sanitize_hex_color( $input['style_primary'] ?? '' ) ?: '';
 		$out['style_accent']   = sanitize_hex_color( $input['style_accent'] ?? '' ) ?: '';
-		$out['style_radius']   = sanitize_text_field( $input['style_radius'] ?? '' );
-		$position = sanitize_key( $input['style_position'] ?? 'center-right' );
-		$out['style_position'] = in_array( $position, array( 'center-right', 'bottom-right' ), true ) ? $position : 'center-right';
+		$out['style_radius']   = self::sanitize_css_size( $input['style_radius'] ?? '' );
+		$position = sanitize_key( $input['style_position'] ?? 'bottom-right' );
+		$out['style_position'] = in_array( $position, self::style_positions(), true ) ? $position : 'bottom-right';
+		$out['style_offset']       = self::sanitize_css_size( $input['style_offset'] ?? '1rem' ) ?: '1rem';
+		$out['style_panel_width']  = self::sanitize_css_size( $input['style_panel_width'] ?? '' );
+		$out['style_launcher_label'] = ! empty( $input['style_launcher_label'] );
 
 		$out['widget_title']    = sanitize_text_field( $input['widget_title'] ?? $defaults['widget_title'] );
 		$out['widget_subtitle'] = sanitize_text_field( $input['widget_subtitle'] ?? $defaults['widget_subtitle'] );
@@ -130,13 +136,112 @@ class Chatbot_Admin_Settings {
 
 		$tab = isset( $_GET['tab'] ) ? sanitize_key( wp_unslash( (string) $_GET['tab'] ) ) : 'general';
 		if ( 'style' === $tab ) {
+			wp_enqueue_style( 'wp-color-picker' );
+
 			wp_enqueue_style(
 				'chatbot-plugin-admin-preview',
 				CHATBOT_PLUGIN_URL . 'assets/css/chatbot.css',
 				array( 'chatbot-plugin-admin' ),
 				CHATBOT_PLUGIN_VERSION
 			);
+
+			wp_enqueue_script(
+				'chatbot-plugin-admin-style',
+				CHATBOT_PLUGIN_URL . 'assets/js/admin-style.js',
+				array( 'wp-color-picker' ),
+				CHATBOT_PLUGIN_VERSION,
+				true
+			);
+
+			$settings = Chatbot_Plugin::get_settings();
+			wp_localize_script(
+				'chatbot-plugin-admin-style',
+				'chatbotStylePreview',
+				array(
+					'optionKey'       => self::OPTION_KEY,
+					'widgetTitle'     => (string) ( $settings['widget_title'] ?? '' ),
+					'widgetSubtitle'  => (string) ( $settings['widget_subtitle'] ?? '' ),
+					'welcomeMessage'  => (string) ( $settings['welcome_message'] ?? '' ),
+					'i18n'            => array(
+						'openPanel'  => __( 'Abrir panel', 'chatbot-plugin-wp' ),
+						'closePanel' => __( 'Cerrar panel', 'chatbot-plugin-wp' ),
+					),
+					'positionLabels'  => self::style_position_labels(),
+				)
+			);
 		}
+	}
+
+	/**
+	 * @return list<string>
+	 */
+	public static function style_presets(): array {
+		return array( 'default', 'dark-glass', 'minimal', 'ocean' );
+	}
+
+	/**
+	 * @return list<string>
+	 */
+	public static function style_positions(): array {
+		return array(
+			'bottom-right',
+			'center-right',
+			'bottom-left',
+			'center-left',
+			'bottom-center',
+		);
+	}
+
+	/**
+	 * @return array<string, array{label: string, desc: string, swatch: string}>
+	 */
+	public static function style_preset_meta(): array {
+		return array(
+			'default'    => array(
+				'label'  => __( 'Por defecto', 'chatbot-plugin-wp' ),
+				'desc'   => __( 'Azul limpio y legible', 'chatbot-plugin-wp' ),
+				'swatch' => 'linear-gradient(135deg,#2563eb,#7c3aed)',
+			),
+			'dark-glass' => array(
+				'label'  => __( 'Dark glass', 'chatbot-plugin-wp' ),
+				'desc'   => __( 'Oscuro con efecto cristal', 'chatbot-plugin-wp' ),
+				'swatch' => 'linear-gradient(135deg,#1e293b,#3b82f6)',
+			),
+			'minimal'    => array(
+				'label'  => __( 'Minimal', 'chatbot-plugin-wp' ),
+				'desc'   => __( 'Neutro y discreto', 'chatbot-plugin-wp' ),
+				'swatch' => 'linear-gradient(135deg,#18181b,#71717a)',
+			),
+			'ocean'      => array(
+				'label'  => __( 'Ocean', 'chatbot-plugin-wp' ),
+				'desc'   => __( 'Tonos cyan y agua', 'chatbot-plugin-wp' ),
+				'swatch' => 'linear-gradient(135deg,#0891b2,#06b6d4)',
+			),
+		);
+	}
+
+	/**
+	 * @return array<string, string>
+	 */
+	public static function style_position_labels(): array {
+		return array(
+			'bottom-right'  => __( 'Abajo derecha', 'chatbot-plugin-wp' ),
+			'center-right'  => __( 'Centro derecha', 'chatbot-plugin-wp' ),
+			'bottom-left'   => __( 'Abajo izquierda', 'chatbot-plugin-wp' ),
+			'center-left'   => __( 'Centro izquierda', 'chatbot-plugin-wp' ),
+			'bottom-center' => __( 'Abajo centro', 'chatbot-plugin-wp' ),
+		);
+	}
+
+	private static function sanitize_css_size( string $value ): string {
+		$value = trim( $value );
+		if ( '' === $value ) {
+			return '';
+		}
+		if ( preg_match( '/^\d+(\.\d+)?(px|rem|em|%|vw|vh)$/', $value ) ) {
+			return $value;
+		}
+		return '';
 	}
 
 	public static function export_csv(): void {
@@ -424,48 +529,109 @@ class Chatbot_Admin_Settings {
 	 * @param array<string, mixed> $settings
 	 */
 	private static function render_style_fields( array $settings ): void {
-		$preset = (string) ( $settings['style_preset'] ?? 'default' );
-		$title  = (string) ( $settings['widget_title'] ?? 'Agente IA' );
+		$preset   = (string) ( $settings['style_preset'] ?? 'default' );
+		$position = (string) ( $settings['style_position'] ?? 'bottom-right' );
+		$preset_meta = self::style_preset_meta();
+		$position_labels = self::style_position_labels();
 		?>
 		<div class="chatbot-admin-layout chatbot-admin-layout--split">
-			<div>
+			<div class="chatbot-admin-style-fields">
 		<?php
 		self::card_open(
-			__( 'Apariencia', 'chatbot-plugin-wp' ),
-			__( 'Presets y colores personalizados del widget.', 'chatbot-plugin-wp' )
+			__( 'Preset visual', 'chatbot-plugin-wp' ),
+			__( 'Elige un tema base. Puedes ajustar colores y bordes debajo.', 'chatbot-plugin-wp' )
+		);
+		?>
+		<input type="hidden" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[style_preset]" value="<?php echo esc_attr( $preset ); ?>" id="chatbot-style-preset-input" />
+		<div class="chatbot-preset-grid" role="radiogroup" aria-label="<?php esc_attr_e( 'Preset del chat', 'chatbot-plugin-wp' ); ?>">
+			<?php foreach ( self::style_presets() as $id ) : ?>
+				<?php $meta = $preset_meta[ $id ] ?? array( 'label' => $id, 'desc' => '', 'swatch' => '#2563eb' ); ?>
+				<button type="button"
+					class="chatbot-preset-card<?php echo $preset === $id ? ' is-active' : ''; ?>"
+					data-preset="<?php echo esc_attr( $id ); ?>"
+					role="radio"
+					aria-checked="<?php echo $preset === $id ? 'true' : 'false'; ?>">
+					<span class="chatbot-preset-card__swatch" style="background:<?php echo esc_attr( $meta['swatch'] ); ?>"></span>
+					<span class="chatbot-preset-card__label"><?php echo esc_html( $meta['label'] ); ?></span>
+					<span class="chatbot-preset-card__desc"><?php echo esc_html( $meta['desc'] ); ?></span>
+				</button>
+			<?php endforeach; ?>
+		</div>
+		<?php
+		self::card_close();
+
+		self::card_open(
+			__( 'Colores y forma', 'chatbot-plugin-wp' ),
+			__( 'Opcional: sobrescribe los colores del preset seleccionado.', 'chatbot-plugin-wp' )
 		);
 		?>
 		<table class="form-table" role="presentation">
 			<tr>
-				<th scope="row"><?php esc_html_e( 'Preset', 'chatbot-plugin-wp' ); ?></th>
+				<th scope="row"><?php esc_html_e( 'Color primario', 'chatbot-plugin-wp' ); ?></th>
 				<td>
-					<select name="<?php echo esc_attr( self::OPTION_KEY ); ?>[style_preset]">
-						<option value="default" <?php selected( $preset, 'default' ); ?>><?php esc_html_e( 'Por defecto', 'chatbot-plugin-wp' ); ?></option>
-						<option value="dark-glass" <?php selected( $preset, 'dark-glass' ); ?>><?php esc_html_e( 'Dark glass', 'chatbot-plugin-wp' ); ?></option>
-						<option value="minimal" <?php selected( $preset, 'minimal' ); ?>><?php esc_html_e( 'Minimal', 'chatbot-plugin-wp' ); ?></option>
-						<option value="ocean" <?php selected( $preset, 'ocean' ); ?>><?php esc_html_e( 'Ocean', 'chatbot-plugin-wp' ); ?></option>
-					</select>
+					<input type="text" class="chatbot-color-picker" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[style_primary]" value="<?php echo esc_attr( (string) $settings['style_primary'] ); ?>" placeholder="#2563eb" data-default-color="#2563eb" />
+					<p class="description"><?php esc_html_e( 'Botón de envío, burbujas del usuario y acentos.', 'chatbot-plugin-wp' ); ?></p>
 				</td>
 			</tr>
 			<tr>
-				<th scope="row"><?php esc_html_e( 'Color primario', 'chatbot-plugin-wp' ); ?></th>
-				<td><input type="text" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[style_primary]" value="<?php echo esc_attr( (string) $settings['style_primary'] ); ?>" placeholder="#2563eb" class="regular-text" /></td>
-			</tr>
-			<tr>
 				<th scope="row"><?php esc_html_e( 'Color acento', 'chatbot-plugin-wp' ); ?></th>
-				<td><input type="text" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[style_accent]" value="<?php echo esc_attr( (string) $settings['style_accent'] ); ?>" placeholder="#7c3aed" class="regular-text" /></td>
+				<td>
+					<input type="text" class="chatbot-color-picker" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[style_accent]" value="<?php echo esc_attr( (string) $settings['style_accent'] ); ?>" placeholder="#7c3aed" data-default-color="#7c3aed" />
+					<p class="description"><?php esc_html_e( 'Degradado del botón flotante.', 'chatbot-plugin-wp' ); ?></p>
+				</td>
 			</tr>
 			<tr>
 				<th scope="row"><?php esc_html_e( 'Radio de borde', 'chatbot-plugin-wp' ); ?></th>
-				<td><input type="text" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[style_radius]" value="<?php echo esc_attr( (string) $settings['style_radius'] ); ?>" placeholder="1.5rem" class="regular-text" /></td>
+				<td>
+					<input type="text" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[style_radius]" value="<?php echo esc_attr( (string) $settings['style_radius'] ); ?>" placeholder="1.5rem" class="regular-text" />
+					<p class="description"><?php esc_html_e( 'Ej: 0.75rem, 1.5rem, 16px', 'chatbot-plugin-wp' ); ?></p>
+				</td>
 			</tr>
 			<tr>
-				<th scope="row"><?php esc_html_e( 'Posición', 'chatbot-plugin-wp' ); ?></th>
+				<th scope="row"><?php esc_html_e( 'Ancho del panel', 'chatbot-plugin-wp' ); ?></th>
 				<td>
-					<select name="<?php echo esc_attr( self::OPTION_KEY ); ?>[style_position]">
-						<option value="center-right" <?php selected( $settings['style_position'] ?? '', 'center-right' ); ?>><?php esc_html_e( 'Centro derecha', 'chatbot-plugin-wp' ); ?></option>
-						<option value="bottom-right" <?php selected( $settings['style_position'] ?? '', 'bottom-right' ); ?>><?php esc_html_e( 'Abajo derecha', 'chatbot-plugin-wp' ); ?></option>
-					</select>
+					<input type="text" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[style_panel_width]" value="<?php echo esc_attr( (string) ( $settings['style_panel_width'] ?? '' ) ); ?>" placeholder="380px" class="regular-text" />
+					<p class="description"><?php esc_html_e( 'Vacío = ancho adaptable (máx. 380px).', 'chatbot-plugin-wp' ); ?></p>
+				</td>
+			</tr>
+		</table>
+		<?php
+		self::card_close();
+
+		self::card_open(
+			__( 'Posición en pantalla', 'chatbot-plugin-wp' ),
+			__( 'Dónde aparece el panel y el botón flotante en el sitio.', 'chatbot-plugin-wp' )
+		);
+		?>
+		<input type="hidden" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[style_position]" value="<?php echo esc_attr( $position ); ?>" id="chatbot-style-position-input" />
+		<div class="chatbot-position-picker">
+			<div class="chatbot-position-map" role="group" aria-label="<?php esc_attr_e( 'Posición del widget', 'chatbot-plugin-wp' ); ?>">
+				<?php foreach ( self::style_positions() as $pos ) : ?>
+					<button type="button"
+						class="chatbot-position-btn<?php echo $position === $pos ? ' is-active' : ''; ?>"
+						data-position="<?php echo esc_attr( $pos ); ?>"
+						title="<?php echo esc_attr( $position_labels[ $pos ] ?? $pos ); ?>">
+						<span class="screen-reader-text"><?php echo esc_html( $position_labels[ $pos ] ?? $pos ); ?></span>
+					</button>
+				<?php endforeach; ?>
+			</div>
+			<p class="chatbot-position-label" id="chatbot-position-label"><?php echo esc_html( $position_labels[ $position ] ?? $position ); ?></p>
+		</div>
+		<table class="form-table" role="presentation">
+			<tr>
+				<th scope="row"><?php esc_html_e( 'Margen al borde', 'chatbot-plugin-wp' ); ?></th>
+				<td>
+					<input type="text" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[style_offset]" value="<?php echo esc_attr( (string) ( $settings['style_offset'] ?? '1rem' ) ); ?>" placeholder="1rem" class="regular-text" />
+				</td>
+			</tr>
+			<tr>
+				<th scope="row"><?php esc_html_e( 'Texto en botón flotante', 'chatbot-plugin-wp' ); ?></th>
+				<td>
+					<label class="chatbot-admin-toggle">
+						<input type="checkbox" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[style_launcher_label]" value="1" <?php checked( ! empty( $settings['style_launcher_label'] ) ); ?> />
+						<span><?php esc_html_e( 'Mostrar título junto al icono 💬', 'chatbot-plugin-wp' ); ?></span>
+					</label>
+					<p class="description"><?php esc_html_e( 'El título se configura en General → Cabecera del widget.', 'chatbot-plugin-wp' ); ?></p>
 				</td>
 			</tr>
 		</table>
@@ -475,19 +641,23 @@ class Chatbot_Admin_Settings {
 			</div>
 			<div class="chatbot-admin-preview-card">
 				<div class="chatbot-admin-card">
-					<div class="chatbot-admin-card__head">
-						<h2><?php esc_html_e( 'Vista previa', 'chatbot-plugin-wp' ); ?></h2>
-						<p><?php esc_html_e( 'Así se verá el panel con el preset seleccionado.', 'chatbot-plugin-wp' ); ?></p>
+					<div class="chatbot-admin-card__head chatbot-admin-preview__head">
+						<div>
+							<h2><?php esc_html_e( 'Vista previa', 'chatbot-plugin-wp' ); ?></h2>
+							<p><?php esc_html_e( 'Interactiva: prueba abrir/cerrar y cambia opciones al instante.', 'chatbot-plugin-wp' ); ?></p>
+						</div>
+						<button type="button" class="button button-secondary" id="chatbot-preview-toggle" aria-pressed="true">
+							<?php esc_html_e( 'Cerrar panel', 'chatbot-plugin-wp' ); ?>
+						</button>
 					</div>
 					<div class="chatbot-admin-card__body">
 						<div class="chatbot-admin-preview">
-							<div class="chatbot-admin-preview__frame">
-								<div id="chatbot-style-preview" class="cb-widget cb-preset-<?php echo esc_attr( $preset ); ?>" style="<?php echo esc_attr( self::preview_inline_style( $settings ) ); ?>">
-									<p class="chatbot-admin-preview__title"><?php echo esc_html( $title ); ?></p>
-									<p class="chatbot-admin-preview__sub"><?php echo esc_html( (string) ( $settings['widget_subtitle'] ?? '' ) ); ?></p>
-									<span class="chatbot-admin-preview__bubble"><?php esc_html_e( '¡Hola! ¿En qué puedo ayudarte?', 'chatbot-plugin-wp' ); ?></span>
+							<div class="chatbot-admin-preview__viewport" id="chatbot-preview-viewport" aria-label="<?php esc_attr_e( 'Simulación de página web', 'chatbot-plugin-wp' ); ?>">
+								<div class="chatbot-admin-preview__page-mock">
+									<span></span><span></span><span></span>
 								</div>
 							</div>
+							<p class="chatbot-admin-preview__hint"><?php esc_html_e( 'Los cambios se aplican al guardar en el sitio público.', 'chatbot-plugin-wp' ); ?></p>
 						</div>
 					</div>
 				</div>
@@ -496,22 +666,6 @@ class Chatbot_Admin_Settings {
 		<?php
 	}
 
-	/**
-	 * @param array<string, mixed> $settings
-	 */
-	private static function preview_inline_style( array $settings ): string {
-		$parts = array();
-		if ( ! empty( $settings['style_primary'] ) ) {
-			$parts[] = '--cb-primary:' . $settings['style_primary'];
-		}
-		if ( ! empty( $settings['style_accent'] ) ) {
-			$parts[] = '--cb-accent:' . $settings['style_accent'];
-		}
-		if ( ! empty( $settings['style_radius'] ) ) {
-			$parts[] = '--cb-radius:' . $settings['style_radius'];
-		}
-		return implode( ';', $parts );
-	}
 
 	private static function render_stats_tab(): void {
 		$days    = isset( $_GET['days'] ) ? max( 7, min( 90, (int) $_GET['days'] ) ) : 30;

@@ -1,12 +1,13 @@
 <?php
 /**
  * Plugin Name: Chatbot Plugin WP
- * Plugin URI: https://github.com/example/chatbot-plugin-wp
+ * Plugin URI: https://github.com/JunniorRavelo/chatbot-plugin-wp
  * Description: Widget de chat con IA (Gemini, Ollama, OpenAI-compatible), estilos configurables y telemetría.
  * Version: 1.0.0
  * Requires at least: 6.0
  * Requires PHP: 8.0
- * Author: Chatbot Plugin
+ * Author: J. Santiago Ravelo Velasco
+ * Author URI: https://www.linkedin.com/in/jsravelo/
  * Text Domain: chatbot-plugin-wp
  * License: GPL v2 or later
  */

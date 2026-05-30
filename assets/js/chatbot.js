@@ -94,11 +94,21 @@
   }
 
   function applyStyleVars(el, style) {
-    if (!style || !style.vars) return;
-    const vars = style.vars;
-    if (vars.primary) el.style.setProperty("--cb-primary", vars.primary);
-    if (vars.accent) el.style.setProperty("--cb-accent", vars.accent);
-    if (vars.radius) el.style.setProperty("--cb-radius", vars.radius);
+    if (!style) return;
+    if (style.vars) {
+      const vars = style.vars;
+      if (vars.primary) el.style.setProperty("--cb-primary", vars.primary);
+      if (vars.accent) el.style.setProperty("--cb-accent", vars.accent);
+      if (vars.radius) el.style.setProperty("--cb-radius", vars.radius);
+    }
+    if (style.offset) el.style.setProperty("--cb-offset", style.offset);
+    if (style.panelWidth) el.style.setProperty("--cb-panel-width", style.panelWidth);
+  }
+
+  function launcherSide(position) {
+    if (position.indexOf("left") !== -1) return "left";
+    if (position === "bottom-center") return "center";
+    return "right";
   }
 
   function buildWelcomeMessage() {
@@ -117,7 +127,8 @@
     const mode = root.dataset.mode || config.mode || "floating";
     const style = config.style || {};
     const preset = style.preset || "default";
-    const position = style.position || "center-right";
+    const position = style.position || "bottom-right";
+    const launcherLabel = style.launcherLabel !== false;
 
     const state = loadState();
     let messages = state.messages.length ? state.messages : [];
@@ -138,12 +149,13 @@
 
     const launcher = document.createElement("button");
     launcher.type = "button";
-    launcher.className = "cb-launcher";
+    launcher.className = "cb-launcher cb-launcher-" + launcherSide(position);
     launcher.setAttribute("aria-label", i18n.openLabel || "Abrir chat");
     launcher.innerHTML =
-      '<span class="cb-launcher-icon" aria-hidden="true">💬</span><span>' +
-      (config.widgetTitle || "Agente IA") +
-      "</span>";
+      '<span class="cb-launcher-icon" aria-hidden="true">💬</span>' +
+      (launcherLabel
+        ? '<span class="cb-launcher-text">' + (config.widgetTitle || "Agente IA") + "</span>"
+        : "");
     if (mode === "inline" || isOpen) launcher.hidden = true;
 
     const panel = document.createElement("section");

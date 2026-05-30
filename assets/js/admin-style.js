@@ -1,0 +1,278 @@
+(function () {
+  "use strict";
+
+  const PRESETS = ["default", "dark-glass", "minimal", "ocean"];
+  const POSITIONS = [
+    "bottom-right",
+    "center-right",
+    "bottom-left",
+    "center-left",
+    "bottom-center",
+  ];
+
+  const cfg = window.chatbotStylePreview || {};
+  const optionKey = cfg.optionKey || "chatbot_plugin_settings";
+
+  function field(name) {
+    return document.querySelector('[name="' + optionKey + "[" + name + ']"]');
+  }
+
+  function readSettings() {
+    const presetEl = field("style_preset");
+    const positionEl = field("style_position");
+    const primaryEl = field("style_primary");
+    const accentEl = field("style_accent");
+    const radiusEl = field("style_radius");
+    const offsetEl = field("style_offset");
+    const widthEl = field("style_panel_width");
+    const launcherLabelEl = field("style_launcher_label");
+
+    return {
+      preset: presetEl ? presetEl.value : "default",
+      position: positionEl ? positionEl.value : "bottom-right",
+      primary: primaryEl ? primaryEl.value.trim() : "",
+      accent: accentEl ? accentEl.value.trim() : "",
+      radius: radiusEl ? radiusEl.value.trim() : "",
+      offset: offsetEl ? offsetEl.value.trim() : "1rem",
+      panelWidth: widthEl ? widthEl.value.trim() : "",
+      launcherLabel: launcherLabelEl ? launcherLabelEl.checked : true,
+      title: cfg.widgetTitle || "Agente IA",
+      subtitle: cfg.widgetSubtitle || "Sistema en línea",
+      welcome: cfg.welcomeMessage || "¡Hola! ¿En qué puedo ayudarte?",
+    };
+  }
+
+  function launcherSide(position) {
+    if (position.indexOf("left") !== -1) return "left";
+    if (position === "bottom-center") return "center";
+    return "right";
+  }
+
+  function applyStyleVars(wrap, settings) {
+    wrap.style.removeProperty("--cb-primary");
+    wrap.style.removeProperty("--cb-accent");
+    wrap.style.removeProperty("--cb-radius");
+    wrap.style.removeProperty("--cb-offset");
+    wrap.style.removeProperty("--cb-panel-width");
+
+    if (settings.primary) wrap.style.setProperty("--cb-primary", settings.primary);
+    if (settings.accent) wrap.style.setProperty("--cb-accent", settings.accent);
+    if (settings.radius) wrap.style.setProperty("--cb-radius", settings.radius);
+    if (settings.offset) wrap.style.setProperty("--cb-offset", settings.offset);
+    if (settings.panelWidth) wrap.style.setProperty("--cb-panel-width", settings.panelWidth);
+  }
+
+  function updatePresetCards(preset) {
+    document.querySelectorAll(".chatbot-preset-card").forEach(function (card) {
+      const active = card.dataset.preset === preset;
+      card.classList.toggle("is-active", active);
+      card.setAttribute("aria-checked", active ? "true" : "false");
+    });
+  }
+
+  function updatePositionButtons(position) {
+    document.querySelectorAll(".chatbot-position-btn").forEach(function (btn) {
+      btn.classList.toggle("is-active", btn.dataset.position === position);
+    });
+    const label = document.getElementById("chatbot-position-label");
+    if (label && cfg.positionLabels && cfg.positionLabels[position]) {
+      label.textContent = cfg.positionLabels[position];
+    }
+  }
+
+  function buildPreviewDOM(viewport) {
+    viewport.innerHTML = "";
+
+    const wrap = document.createElement("div");
+    wrap.className = "cb-widget cb-wrap cb-preview-widget";
+    wrap.id = "chatbot-style-preview";
+
+    const launcher = document.createElement("button");
+    launcher.type = "button";
+    launcher.className = "cb-launcher cb-launcher-right";
+    launcher.setAttribute("aria-label", "Abrir chat");
+    launcher.innerHTML =
+      '<span class="cb-launcher-icon" aria-hidden="true">💬</span>' +
+      '<span class="cb-launcher-text"></span>';
+
+    const panel = document.createElement("section");
+    panel.className = "cb-panel cb-position-bottom-right";
+    panel.setAttribute("aria-label", "Chatbot");
+
+    panel.innerHTML =
+      '<header class="cb-header">' +
+      '<div><h3 class="cb-header-title"></h3><p class="cb-header-sub"></p></div>' +
+      '<div class="cb-header-actions">' +
+      '<button type="button" class="cb-icon-btn cb-reset" title="Reiniciar">↻</button>' +
+      '<button type="button" class="cb-icon-btn cb-close" title="Cerrar">✕</button>' +
+      "</div></header>" +
+      '<div class="cb-messages" role="log"></div>' +
+      '<form class="cb-composer">' +
+      '<textarea class="cb-input" rows="1" placeholder="Escribe tu mensaje…" readonly></textarea>' +
+      '<button type="submit" class="cb-send" type="button">Enviar</button>' +
+      "</form>";
+
+    wrap.appendChild(launcher);
+    wrap.appendChild(panel);
+    viewport.appendChild(wrap);
+
+    let isOpen = true;
+
+    function setOpen(open) {
+      isOpen = open;
+      panel.hidden = !open;
+      launcher.hidden = open;
+    }
+
+    launcher.addEventListener("click", function () {
+      setOpen(true);
+    });
+    panel.querySelector(".cb-close").addEventListener("click", function () {
+      setOpen(false);
+    });
+    panel.querySelector(".cb-composer").addEventListener("submit", function (e) {
+      e.preventDefault();
+    });
+
+    const toggleBtn = document.getElementById("chatbot-preview-toggle");
+    if (toggleBtn) {
+      toggleBtn.addEventListener("click", function () {
+        setOpen(!isOpen);
+        toggleBtn.setAttribute("aria-pressed", isOpen ? "true" : "false");
+        toggleBtn.textContent = isOpen ? cfg.i18n.closePanel : cfg.i18n.openPanel;
+      });
+    }
+
+    return { wrap: wrap, launcher: launcher, panel: panel, setOpen: setOpen };
+  }
+
+  function renderMessages(messagesEl, settings) {
+    messagesEl.innerHTML = "";
+
+    const welcome = document.createElement("div");
+    welcome.className = "cb-msg cb-msg-assistant";
+    welcome.textContent = settings.welcome;
+    messagesEl.appendChild(welcome);
+
+    const user = document.createElement("div");
+    user.className = "cb-msg cb-msg-user";
+    user.textContent = "¿Cuáles son vuestros horarios?";
+    messagesEl.appendChild(user);
+
+    const reply = document.createElement("div");
+    reply.className = "cb-msg cb-msg-assistant";
+    reply.textContent = "Atendemos de lunes a viernes, de 9:00 a 18:00.";
+    messagesEl.appendChild(reply);
+  }
+
+  function applyPreview(settings, refs) {
+    const { wrap, launcher, panel } = refs;
+    const side = launcherSide(settings.position);
+
+    PRESETS.forEach(function (p) {
+      wrap.classList.remove("cb-preset-" + p);
+    });
+    wrap.classList.add("cb-preset-" + settings.preset);
+
+    POSITIONS.forEach(function (p) {
+      panel.classList.remove("cb-position-" + p);
+    });
+    panel.classList.add("cb-position-" + settings.position);
+
+    ["left", "right", "center"].forEach(function (s) {
+      launcher.classList.remove("cb-launcher-" + s);
+    });
+    launcher.classList.add("cb-launcher-" + side);
+
+    const labelEl = launcher.querySelector(".cb-launcher-text");
+    if (labelEl) {
+      labelEl.textContent = settings.launcherLabel ? settings.title : "";
+      labelEl.hidden = !settings.launcherLabel;
+    }
+
+    panel.querySelector(".cb-header-title").textContent = settings.title;
+    panel.querySelector(".cb-header-sub").textContent = settings.subtitle;
+
+    applyStyleVars(wrap, settings);
+    renderMessages(panel.querySelector(".cb-messages"), settings);
+
+    updatePresetCards(settings.preset);
+    updatePositionButtons(settings.position);
+  }
+
+  function syncPresetInput(preset) {
+    const el = field("style_preset");
+    if (el) el.value = preset;
+  }
+
+  function syncPositionInput(position) {
+    const el = field("style_position");
+    if (el) el.value = position;
+  }
+
+  function bindEvents(refs) {
+    const inputs = document.querySelectorAll(
+      '[name^="' + optionKey + '[style_"]'
+    );
+
+    inputs.forEach(function (input) {
+      const evt = input.type === "checkbox" || input.tagName === "SELECT" ? "change" : "input";
+      input.addEventListener(evt, function () {
+        applyPreview(readSettings(), refs);
+      });
+    });
+
+    document.querySelectorAll(".chatbot-preset-card").forEach(function (card) {
+      card.addEventListener("click", function () {
+        const preset = card.dataset.preset;
+        syncPresetInput(preset);
+        applyPreview(readSettings(), refs);
+      });
+    });
+
+    document.querySelectorAll(".chatbot-position-btn").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        const position = btn.dataset.position;
+        syncPositionInput(position);
+        applyPreview(readSettings(), refs);
+      });
+    });
+  }
+
+  function initColorPickers(onChange) {
+    if (typeof jQuery === "undefined" || !jQuery.fn.wpColorPicker) return;
+
+    jQuery(".chatbot-color-picker").each(function () {
+      const $input = jQuery(this);
+      if ($input.hasClass("wp-color-picker")) return;
+
+      $input.wpColorPicker({
+        change: function () {
+          setTimeout(onChange, 10);
+        },
+        clear: function () {
+          setTimeout(onChange, 10);
+        },
+      });
+    });
+  }
+
+  function boot() {
+    const viewport = document.getElementById("chatbot-preview-viewport");
+    if (!viewport) return;
+
+    const refs = buildPreviewDOM(viewport);
+    applyPreview(readSettings(), refs);
+    bindEvents(refs);
+
+    initColorPickers(function () {
+      applyPreview(readSettings(), refs);
+    });
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", boot);
+  } else {
+    boot();
+  }
+})();

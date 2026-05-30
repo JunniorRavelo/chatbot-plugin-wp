@@ -92,6 +92,9 @@ class Chatbot_Enqueue {
 			$style_vars['radius'] = (string) $settings['style_radius'];
 		}
 
+		$style_offset = trim( (string) ( $settings['style_offset'] ?? '1rem' ) );
+		$style_width  = trim( (string) ( $settings['style_panel_width'] ?? '' ) );
+
 		wp_localize_script(
 			'chatbot-plugin',
 			'chatbotPluginConfig',
@@ -104,9 +107,12 @@ class Chatbot_Enqueue {
 				'widgetTitle'    => (string) ( $settings['widget_title'] ?? 'Agente IA' ),
 				'widgetSubtitle' => (string) ( $settings['widget_subtitle'] ?? '' ),
 				'style'          => array(
-					'preset'   => (string) ( $settings['style_preset'] ?? 'default' ),
-					'position' => (string) ( $settings['style_position'] ?? 'center-right' ),
-					'vars'     => $style_vars,
+					'preset'        => (string) ( $settings['style_preset'] ?? 'default' ),
+					'position'      => (string) ( $settings['style_position'] ?? 'bottom-right' ),
+					'offset'        => $style_offset ?: '1rem',
+					'panelWidth'    => $style_width,
+					'launcherLabel' => ! empty( $settings['style_launcher_label'] ),
+					'vars'          => $style_vars,
 				),
 				'mode'           => $mode,
 				'i18n'           => array(
