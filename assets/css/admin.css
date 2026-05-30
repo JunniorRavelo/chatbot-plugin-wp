@@ -142,6 +142,12 @@
 }
 
 /* Layout */
+.chatbot-admin-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
 .chatbot-admin-body {
   display: flex;
   flex-direction: column;

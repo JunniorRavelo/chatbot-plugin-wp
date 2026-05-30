@@ -353,13 +353,6 @@ class Chatbot_Admin_Settings {
 					</select>
 				</td>
 			</tr>
-			<tr class="chatbot-field-api-key">
-				<th scope="row"><?php esc_html_e( 'API Key', 'chatbot-plugin-wp' ); ?></th>
-				<td>
-					<input type="password" class="regular-text" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[api_key]" value="" placeholder="<?php echo ! empty( $settings['api_key'] ) ? '••••••••' : ''; ?>" autocomplete="new-password" />
-					<p class="description"><?php esc_html_e( 'Deja vacío para mantener la clave actual. En producción puedes definir CHATBOT_GEMINI_API_KEY o CHATBOT_OPENAI_API_KEY en wp-config.php.', 'chatbot-plugin-wp' ); ?></p>
-				</td>
-			</tr>
 			<tr>
 				<th scope="row"><?php esc_html_e( 'Modelo', 'chatbot-plugin-wp' ); ?></th>
 				<td>
@@ -368,10 +361,10 @@ class Chatbot_Admin_Settings {
 				</td>
 			</tr>
 			<tr class="chatbot-field-gemini">
-				<th scope="row"><?php esc_html_e( 'Modelos de respaldo (Gemini)', 'chatbot-plugin-wp' ); ?></th>
+				<th scope="row"><?php esc_html_e( 'Modelo de respaldo', 'chatbot-plugin-wp' ); ?></th>
 				<td>
 					<input type="text" class="large-text" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[model_candidates]" value="<?php echo esc_attr( (string) $settings['model_candidates'] ); ?>" />
-					<p class="description"><?php esc_html_e( 'Separados por coma.', 'chatbot-plugin-wp' ); ?></p>
+					<p class="description"><?php esc_html_e( 'Solo Gemini. Modelos alternativos separados por coma.', 'chatbot-plugin-wp' ); ?></p>
 				</td>
 			</tr>
 			<tr class="chatbot-field-ollama">
@@ -390,6 +383,13 @@ class Chatbot_Admin_Settings {
 				<th scope="row"><?php esc_html_e( 'Timeout (segundos)', 'chatbot-plugin-wp' ); ?></th>
 				<td>
 					<input type="number" min="5" max="120" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[request_timeout]" value="<?php echo esc_attr( (string) $settings['request_timeout'] ); ?>" />
+				</td>
+			</tr>
+			<tr class="chatbot-field-api-key">
+				<th scope="row"><?php esc_html_e( 'API Key', 'chatbot-plugin-wp' ); ?></th>
+				<td>
+					<input type="password" class="regular-text" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[api_key]" value="" placeholder="<?php echo ! empty( $settings['api_key'] ) ? '••••••••' : ''; ?>" autocomplete="new-password" />
+					<p class="description"><?php esc_html_e( 'Deja vacío para mantener la clave actual. En producción puedes definir CHATBOT_GEMINI_API_KEY o CHATBOT_OPENAI_API_KEY en wp-config.php.', 'chatbot-plugin-wp' ); ?></p>
 				</td>
 			</tr>
 		</table>
