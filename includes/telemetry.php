@@ -11,6 +11,13 @@ class Chatbot_Telemetry {
 
 	const DB_VERSION = '1.1';
 
+	/**
+	 * @return list<string>
+	 */
+	public static function failure_statuses(): array {
+		return array( 'error', 'rate_limited', 'config_error', 'invalid_request' );
+	}
+
 	public static function table_name(): string {
 		global $wpdb;
 		return $wpdb->prefix . 'chatbot_events';
@@ -52,6 +59,56 @@ class Chatbot_Telemetry {
 	}
 
 	/**
+	 * @param array<string, mixed> $args
+	 * @return array{where: list<string>, params: list<mixed>}
+	 */
+	private static function query_filters( array $args ): array {
+		$where  = array( '1=1' );
+		$params = array();
+
+		$days = isset( $args['days'] ) ? (int) $args['days'] : 30;
+		if ( $days > 0 ) {
+			$where[]  = 'created_at >= %s';
+			$params[] = gmdate( 'Y-m-d H:i:s', strtotime( "-{$days} days" ) );
+		}
+
+		$provider = isset( $args['provider'] ) ? sanitize_key( (string) $args['provider'] ) : '';
+		if ( '' !== $provider && 'all' !== $provider ) {
+			$where[]  = 'provider = %s';
+			$params[] = $provider;
+		}
+
+		$status = isset( $args['status'] ) ? sanitize_key( (string) $args['status'] ) : '';
+		if ( '' !== $status && 'all' !== $status ) {
+			$where[]  = 'status = %s';
+			$params[] = $status;
+		}
+
+		$model = isset( $args['model'] ) ? sanitize_text_field( (string) $args['model'] ) : '';
+		if ( '' !== $model && 'all' !== $model ) {
+			$where[]  = 'model = %s';
+			$params[] = $model;
+		}
+
+		$error_code = isset( $args['error_code'] ) ? sanitize_text_field( (string) $args['error_code'] ) : '';
+		if ( '' !== $error_code && 'all' !== $error_code ) {
+			$where[]  = 'error_code = %s';
+			$params[] = $error_code;
+		}
+
+		$conversation_id = isset( $args['conversation_id'] ) ? (int) $args['conversation_id'] : 0;
+		if ( $conversation_id > 0 ) {
+			$where[]  = 'conversation_id = %d';
+			$params[] = $conversation_id;
+		}
+
+		return array(
+			'where'  => $where,
+			'params' => $params,
+		);
+	}
+
+	/**
 	 * @param array<string, mixed> $event
 	 */
 	public static function record( array $event ): void {
@@ -90,14 +147,14 @@ class Chatbot_Telemetry {
 
 		$line = wp_json_encode(
 			array(
-				'ts'           => gmdate( 'c' ),
-				'session_hash' => $row['session_hash'] ?? '',
-				'provider'     => $row['provider'] ?? '',
-				'model'        => $row['model'] ?? '',
-				'status'       => $row['status'] ?? '',
-				'latency_ms'   => $row['latency_ms'] ?? 0,
-				'error_code'       => $row['error_code'] ?? '',
-				'conversation_id'  => $row['conversation_id'] ?? 0,
+				'ts'              => gmdate( 'c' ),
+				'session_hash'    => $row['session_hash'] ?? '',
+				'provider'        => $row['provider'] ?? '',
+				'model'           => $row['model'] ?? '',
+				'status'          => $row['status'] ?? '',
+				'latency_ms'      => $row['latency_ms'] ?? 0,
+				'error_code'      => $row['error_code'] ?? '',
+				'conversation_id' => $row['conversation_id'] ?? 0,
 			)
 		);
 
@@ -118,115 +175,255 @@ class Chatbot_Telemetry {
 	}
 
 	/**
+	 * @param array<string, mixed> $args
 	 * @return array<string, mixed>
 	 */
-	public static function get_summary( int $days = 30 ): array {
+	public static function get_summary( array $args = array() ): array {
 		global $wpdb;
 
-		$table = self::table_name();
-		$since = gmdate( 'Y-m-d H:i:s', strtotime( "-{$days} days" ) );
+		$table   = self::table_name();
+		$filters = self::query_filters( $args );
+		$where   = implode( ' AND ', $filters['where'] );
+		$fail    = self::failure_statuses();
+		$fail_in = "'" . implode( "','", array_map( 'esc_sql', $fail ) ) . "'";
 
-		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-		$totals = $wpdb->get_row(
-			$wpdb->prepare(
-				"SELECT
-					COUNT(*) AS total_requests,
-					SUM(CASE WHEN status = 'success' THEN 1 ELSE 0 END) AS success_count,
-					SUM(CASE WHEN status != 'success' THEN 1 ELSE 0 END) AS error_count,
-					AVG(latency_ms) AS avg_latency_ms
-				FROM {$table}
-				WHERE created_at >= %s",
-				$since
-			),
-			ARRAY_A
+		$sql_totals = "SELECT
+			COUNT(*) AS total_requests,
+			SUM(CASE WHEN status = 'success' THEN 1 ELSE 0 END) AS success_count,
+			SUM(CASE WHEN status = 'cached' THEN 1 ELSE 0 END) AS cached_count,
+			SUM(CASE WHEN status IN ({$fail_in}) THEN 1 ELSE 0 END) AS error_count,
+			AVG(latency_ms) AS avg_latency_ms,
+			MIN(latency_ms) AS min_latency_ms,
+			MAX(latency_ms) AS max_latency_ms
+			FROM {$table} WHERE {$where}";
+
+		if ( empty( $filters['params'] ) ) {
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+			$totals = $wpdb->get_row( $sql_totals, ARRAY_A );
+		} else {
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+			$totals = $wpdb->get_row( $wpdb->prepare( $sql_totals, $filters['params'] ), ARRAY_A );
+		}
+
+		$totals = $totals ?: array();
+		$total  = (int) ( $totals['total_requests'] ?? 0 );
+		$totals['success_rate'] = $total > 0
+			? round( ( (int) ( $totals['success_count'] ?? 0 ) / $total ) * 100, 1 )
+			: 0.0;
+		$totals['p95_latency_ms'] = self::get_p95_latency( $args );
+
+		$aggregates = array(
+			'by_status'   => "SELECT status, COUNT(*) AS count FROM {$table} WHERE {$where} GROUP BY status ORDER BY count DESC",
+			'by_provider' => "SELECT provider, COUNT(*) AS count FROM {$table} WHERE {$where} GROUP BY provider ORDER BY count DESC",
+			'by_model'    => "SELECT model, COUNT(*) AS count, AVG(latency_ms) AS avg_latency_ms FROM {$table} WHERE {$where} AND model != '' GROUP BY model ORDER BY count DESC LIMIT 20",
+			'by_error'    => "SELECT error_code, COUNT(*) AS count FROM {$table} WHERE {$where} AND error_code IS NOT NULL AND error_code != '' GROUP BY error_code ORDER BY count DESC LIMIT 20",
 		);
 
-		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-		$by_status = $wpdb->get_results(
-			$wpdb->prepare(
-				"SELECT status, COUNT(*) AS count FROM {$table} WHERE created_at >= %s GROUP BY status ORDER BY count DESC",
-				$since
-			),
-			ARRAY_A
+		$result = array(
+			'days'        => (int) ( $args['days'] ?? 30 ),
+			'totals'      => $totals,
+			'by_status'   => array(),
+			'by_provider' => array(),
+			'by_model'    => array(),
+			'by_error'    => array(),
 		);
 
-		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-		$by_provider = $wpdb->get_results(
-			$wpdb->prepare(
-				"SELECT provider, COUNT(*) AS count FROM {$table} WHERE created_at >= %s GROUP BY provider ORDER BY count DESC",
-				$since
-			),
-			ARRAY_A
-		);
+		foreach ( $aggregates as $key => $sql ) {
+			if ( empty( $filters['params'] ) ) {
+				// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+				$result[ $key ] = $wpdb->get_results( $sql, ARRAY_A ) ?: array();
+			} else {
+				// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+				$result[ $key ] = $wpdb->get_results( $wpdb->prepare( $sql, $filters['params'] ), ARRAY_A ) ?: array();
+			}
+		}
 
-		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-		$by_model = $wpdb->get_results(
-			$wpdb->prepare(
-				"SELECT model, COUNT(*) AS count FROM {$table} WHERE created_at >= %s GROUP BY model ORDER BY count DESC LIMIT 20",
-				$since
-			),
-			ARRAY_A
-		);
-
-		return array(
-			'days'         => $days,
-			'totals'       => $totals ?: array(),
-			'by_status'    => $by_status ?: array(),
-			'by_provider'  => $by_provider ?: array(),
-			'by_model'     => $by_model ?: array(),
-		);
+		return $result;
 	}
 
 	/**
-	 * @return array<int, array<string, mixed>>
+	 * @param array<string, mixed> $args
 	 */
-	public static function get_recent_events( int $limit = 50, int $offset = 0 ): array {
+	private static function get_p95_latency( array $args ): int {
 		global $wpdb;
 
-		$table = self::table_name();
-		$limit = max( 1, min( 200, $limit ) );
-		$offset = max( 0, $offset );
+		$table   = self::table_name();
+		$filters = self::query_filters( $args );
+		$where   = implode( ' AND ', $filters['where'] );
 
-		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-		$rows = $wpdb->get_results(
-			$wpdb->prepare(
-				"SELECT * FROM {$table} ORDER BY created_at DESC LIMIT %d OFFSET %d",
-				$limit,
-				$offset
-			),
-			ARRAY_A
-		);
+		$count_sql = "SELECT COUNT(*) FROM {$table} WHERE {$where}";
+		if ( empty( $filters['params'] ) ) {
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+			$count = (int) $wpdb->get_var( $count_sql );
+		} else {
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+			$count = (int) $wpdb->get_var( $wpdb->prepare( $count_sql, $filters['params'] ) );
+		}
+
+		if ( $count <= 0 ) {
+			return 0;
+		}
+
+		$offset = max( 0, (int) floor( $count * 0.95 ) - 1 );
+		$sql    = "SELECT latency_ms FROM {$table} WHERE {$where} ORDER BY latency_ms ASC LIMIT 1 OFFSET %d";
+		$params = array_merge( $filters['params'], array( $offset ) );
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		return (int) $wpdb->get_var( $wpdb->prepare( $sql, $params ) );
+	}
+
+	/**
+	 * @param array<string, mixed> $args
+	 * @return array<int, array<string, mixed>>
+	 */
+	public static function get_daily_series( array $args = array() ): array {
+		global $wpdb;
+
+		$table   = self::table_name();
+		$filters = self::query_filters( $args );
+		$where   = implode( ' AND ', $filters['where'] );
+		$fail    = self::failure_statuses();
+		$fail_in = "'" . implode( "','", array_map( 'esc_sql', $fail ) ) . "'";
+
+		$sql = "SELECT
+			DATE(created_at) AS day,
+			COUNT(*) AS total,
+			SUM(CASE WHEN status = 'success' THEN 1 ELSE 0 END) AS success_count,
+			SUM(CASE WHEN status IN ({$fail_in}) THEN 1 ELSE 0 END) AS error_count
+			FROM {$table}
+			WHERE {$where}
+			GROUP BY DATE(created_at)
+			ORDER BY day DESC
+			LIMIT 30";
+
+		if ( empty( $filters['params'] ) ) {
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+			$rows = $wpdb->get_results( $sql, ARRAY_A );
+		} else {
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+			$rows = $wpdb->get_results( $wpdb->prepare( $sql, $filters['params'] ), ARRAY_A );
+		}
 
 		return $rows ?: array();
 	}
 
-	public static function count_events(): int {
+	/**
+	 * @param array<string, mixed> $args
+	 * @return array<int, array<string, mixed>>
+	 */
+	public static function list_events( array $args = array() ): array {
 		global $wpdb;
-		$table = self::table_name();
-		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-		return (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$table}" );
+
+		$table   = self::table_name();
+		$filters = self::query_filters( $args );
+		$where   = implode( ' AND ', $filters['where'] );
+		$per     = max( 1, min( 200, (int) ( $args['per_page'] ?? 25 ) ) );
+		$offset  = max( 0, (int) ( $args['offset'] ?? 0 ) );
+
+		$sql = "SELECT * FROM {$table} WHERE {$where} ORDER BY created_at DESC LIMIT %d OFFSET %d";
+		$params = array_merge( $filters['params'], array( $per, $offset ) );
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		$rows = $wpdb->get_results( $wpdb->prepare( $sql, $params ), ARRAY_A );
+
+		return $rows ?: array();
 	}
 
 	/**
-	 * @return string CSV content.
+	 * @param array<string, mixed> $args
 	 */
-	public static function export_csv( int $days = 30 ): string {
+	public static function count_events( array $args = array() ): int {
 		global $wpdb;
 
-		$table = self::table_name();
-		$since = gmdate( 'Y-m-d H:i:s', strtotime( "-{$days} days" ) );
+		$table   = self::table_name();
+		$filters = self::query_filters( $args );
+		$sql     = 'SELECT COUNT(*) FROM ' . $table . ' WHERE ' . implode( ' AND ', $filters['where'] );
 
-		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-		$rows = $wpdb->get_results(
-			$wpdb->prepare(
-				"SELECT created_at, session_hash, provider, model, status, latency_ms, error_code FROM {$table} WHERE created_at >= %s ORDER BY created_at DESC",
-				$since
-			),
-			ARRAY_A
+		if ( empty( $filters['params'] ) ) {
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+			return (int) $wpdb->get_var( $sql );
+		}
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		return (int) $wpdb->get_var( $wpdb->prepare( $sql, $filters['params'] ) );
+	}
+
+	/**
+	 * @param array<string, mixed> $args
+	 * @return list<string>
+	 */
+	public static function get_distinct_models( array $args = array() ): array {
+		global $wpdb;
+
+		$table   = self::table_name();
+		$filters = self::query_filters( array_merge( $args, array( 'model' => 'all' ) ) );
+		$sql     = 'SELECT DISTINCT model FROM ' . $table . ' WHERE ' . implode( ' AND ', $filters['where'] ) . " AND model != '' ORDER BY model ASC LIMIT 50";
+
+		if ( empty( $filters['params'] ) ) {
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+			$rows = $wpdb->get_col( $sql );
+		} else {
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+			$rows = $wpdb->get_col( $wpdb->prepare( $sql, $filters['params'] ) );
+		}
+
+		return array_values( array_filter( array_map( 'strval', $rows ?: array() ) ) );
+	}
+
+	/**
+	 * @param array<string, mixed> $args
+	 * @return list<string>
+	 */
+	public static function get_distinct_error_codes( array $args = array() ): array {
+		global $wpdb;
+
+		$table   = self::table_name();
+		$filters = self::query_filters( array_merge( $args, array( 'error_code' => 'all' ) ) );
+		$sql     = 'SELECT DISTINCT error_code FROM ' . $table . ' WHERE ' . implode( ' AND ', $filters['where'] ) . " AND error_code IS NOT NULL AND error_code != '' ORDER BY error_code ASC LIMIT 50";
+
+		if ( empty( $filters['params'] ) ) {
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+			$rows = $wpdb->get_col( $sql );
+		} else {
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+			$rows = $wpdb->get_col( $wpdb->prepare( $sql, $filters['params'] ) );
+		}
+
+		return array_values( array_filter( array_map( 'strval', $rows ?: array() ) ) );
+	}
+
+	/**
+	 * Backward-compatible wrapper.
+	 *
+	 * @return array<int, array<string, mixed>>
+	 */
+	public static function get_recent_events( int $limit = 50, int $offset = 0, array $args = array() ): array {
+		return self::list_events(
+			array_merge(
+				$args,
+				array(
+					'per_page' => $limit,
+					'offset'   => $offset,
+				)
+			)
+		);
+	}
+
+	/**
+	 * @param array<string, mixed> $args
+	 */
+	public static function export_csv( array $args = array() ): string {
+		$rows = self::list_events(
+			array_merge(
+				$args,
+				array(
+					'per_page' => 10000,
+					'offset'   => 0,
+				)
+			)
 		);
 
-		$lines   = array( 'created_at,session_hash,provider,model,status,latency_ms,error_code' );
-		$rows    = $rows ?: array();
+		$lines = array( 'created_at,session_hash,provider,model,status,latency_ms,error_code,conversation_id' );
 
 		foreach ( $rows as $row ) {
 			$lines[] = implode(
@@ -247,6 +444,7 @@ class Chatbot_Telemetry {
 						$row['status'] ?? '',
 						(string) ( $row['latency_ms'] ?? 0 ),
 						$row['error_code'] ?? '',
+						(string) ( $row['conversation_id'] ?? '' ),
 					)
 				)
 			);
@@ -263,21 +461,46 @@ class Chatbot_Telemetry {
 			return array();
 		}
 
+		return self::list_events(
+			array(
+				'days'            => 0,
+				'conversation_id' => $conversation_id,
+				'per_page'        => $limit,
+				'offset'          => 0,
+			)
+		);
+	}
+
+	/**
+	 * @return array{deleted_events: int}
+	 */
+	public static function purge_older_than_days( int $days ): array {
+		if ( $days <= 0 ) {
+			return array( 'deleted_events' => 0 );
+		}
+
 		global $wpdb;
 
-		$table = self::table_name();
-		$limit = max( 1, min( 200, $limit ) );
+		$table  = self::table_name();
+		$cutoff = gmdate( 'Y-m-d H:i:s', strtotime( "-{$days} days" ) );
 
 		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-		$rows = $wpdb->get_results(
+		$deleted = (int) $wpdb->query(
 			$wpdb->prepare(
-				"SELECT * FROM {$table} WHERE conversation_id = %d ORDER BY created_at DESC LIMIT %d",
-				$conversation_id,
-				$limit
-			),
-			ARRAY_A
+				"DELETE FROM {$table} WHERE created_at < %s",
+				$cutoff
+			)
 		);
 
-		return $rows ?: array();
+		return array( 'deleted_events' => $deleted );
+	}
+
+	public static function run_retention_purge(): void {
+		$settings = Chatbot_Plugin::get_settings();
+		$days     = isset( $settings['telemetry_retention_days'] ) ? (int) $settings['telemetry_retention_days'] : 0;
+		if ( $days <= 0 ) {
+			return;
+		}
+		self::purge_older_than_days( $days );
 	}
 }

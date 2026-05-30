@@ -19,3 +19,5 @@ Chatbot_Chat_History::drop_tables();
 
 delete_option( 'chatbot_plugin_settings' );
 delete_option( 'chatbot_plugin_db_version' );
+delete_option( 'chatbot_plugin_telemetry_db_version' );
+delete_option( 'chatbot_plugin_history_db_version' );

@@ -32,9 +32,14 @@ class Chatbot_Plugin {
 		Chatbot_Telemetry::maybe_upgrade();
 		Chatbot_Admin_Settings::maybe_merge_settings();
 		add_action( 'chatbot_purge_history', array( 'Chatbot_Chat_History', 'run_retention_purge' ) );
+		add_action( 'chatbot_purge_telemetry', array( 'Chatbot_Telemetry', 'run_retention_purge' ) );
 
 		if ( ! wp_next_scheduled( 'chatbot_purge_history' ) ) {
 			wp_schedule_event( time(), 'daily', 'chatbot_purge_history' );
+		}
+
+		if ( ! wp_next_scheduled( 'chatbot_purge_telemetry' ) ) {
+			wp_schedule_event( time(), 'daily', 'chatbot_purge_telemetry' );
 		}
 	}
 
@@ -61,12 +66,17 @@ class Chatbot_Plugin {
 			wp_schedule_event( time(), 'daily', 'chatbot_purge_history' );
 		}
 
+		if ( ! wp_next_scheduled( 'chatbot_purge_telemetry' ) ) {
+			wp_schedule_event( time(), 'daily', 'chatbot_purge_telemetry' );
+		}
+
 		Chatbot_Rest_Api::register_stream_rewrite();
 		flush_rewrite_rules();
 	}
 
 	public static function deactivate(): void {
 		wp_clear_scheduled_hook( 'chatbot_purge_history' );
+		wp_clear_scheduled_hook( 'chatbot_purge_telemetry' );
 		flush_rewrite_rules();
 	}
 

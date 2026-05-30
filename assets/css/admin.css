@@ -874,16 +874,127 @@
 .chatbot-admin-stats-toolbar {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 1rem;
   margin-bottom: 1.25rem;
 }
 
-.chatbot-admin-stats-toolbar p {
+.chatbot-admin-stats-toolbar__intro {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.chatbot-admin-stats-toolbar__intro p {
   margin: 0;
   font-size: 0.875rem;
   color: var(--cb-admin-muted);
+}
+
+.chatbot-admin-stats-toolbar__link {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.chatbot-admin-stats-toolbar__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.chatbot-admin-kpi-grid--stats {
+  margin-bottom: 1.25rem;
+}
+
+.chatbot-admin-kpi small {
+  font-size: 0.55em;
+  font-weight: 600;
+  color: var(--cb-admin-muted);
+}
+
+.chatbot-admin-stats-grid--wide {
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+}
+
+.chatbot-admin-stats-series {
+  margin-bottom: 1.25rem;
+}
+
+.chatbot-admin-stats-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.35rem;
+  min-height: 120px;
+  overflow-x: auto;
+  padding-bottom: 0.25rem;
+}
+
+.chatbot-admin-stats-bar {
+  flex: 1 1 0;
+  min-width: 2rem;
+  max-width: 3rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.chatbot-admin-stats-bar__fill {
+  width: 100%;
+  min-height: 4px;
+  border-radius: 4px 4px 0 0;
+  background: linear-gradient(180deg, var(--cb-admin-primary), #93c5fd);
+}
+
+.chatbot-admin-stats-bar__label {
+  font-size: 0.625rem;
+  color: var(--cb-admin-muted);
+  white-space: nowrap;
+}
+
+.chatbot-admin-stats-filters-wrap {
+  padding-top: 0;
+  border-bottom: 1px solid var(--cb-admin-border);
+}
+
+.chatbot-admin-stats-filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 0.75rem 1rem;
+  padding: 0 1rem 1rem;
+}
+
+.chatbot-admin-stats-filters__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.chatbot-admin-stats-filters__field label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--cb-admin-muted);
+}
+
+.chatbot-admin-stats-filters__field select,
+.chatbot-admin-stats-filters__field input {
+  max-width: 100%;
+}
+
+.chatbot-admin-stats-filters__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.5rem;
+}
+
+.chatbot-admin-tablenav--stats {
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem 0.75rem;
 }
 
 .chatbot-admin-pills {

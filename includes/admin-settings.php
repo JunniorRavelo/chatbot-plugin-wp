@@ -18,6 +18,7 @@ class Chatbot_Admin_Settings {
 		add_action( 'admin_post_chatbot_export_csv', array( __CLASS__, 'export_csv' ) );
 		add_action( 'admin_post_chatbot_export_history_csv', array( __CLASS__, 'export_history_csv' ) );
 		add_action( 'admin_post_chatbot_purge_history', array( __CLASS__, 'purge_history' ) );
+		add_action( 'admin_post_chatbot_purge_telemetry', array( __CLASS__, 'purge_telemetry' ) );
 		add_action( 'wp_ajax_chatbot_history_detail', array( __CLASS__, 'ajax_history_detail' ) );
 		add_action( 'wp_ajax_chatbot_delete_conversation', array( __CLASS__, 'ajax_delete_conversation' ) );
 		add_filter( 'wp_redirect', array( __CLASS__, 'preserve_tab_on_settings_redirect' ), 10, 2 );
@@ -62,6 +63,7 @@ class Chatbot_Admin_Settings {
 			'widget_title'          => 'Agente IA',
 			'widget_subtitle'       => 'Sistema en línea',
 			'history_retention_days' => 0,
+			'telemetry_retention_days' => 0,
 		);
 	}
 
@@ -232,6 +234,7 @@ class Chatbot_Admin_Settings {
 		$out['ip_suspend_seconds']          = max( 60, min( 86400, (int) ( $input['ip_suspend_seconds'] ?? $current['ip_suspend_seconds'] ?? $defaults['ip_suspend_seconds'] ) ) );
 		$out['internal_chat_base_url']      = esc_url_raw( (string) ( $input['internal_chat_base_url'] ?? $current['internal_chat_base_url'] ?? $defaults['internal_chat_base_url'] ) );
 		$out['history_retention_days']      = max( 0, min( 3650, (int) ( $input['history_retention_days'] ?? $current['history_retention_days'] ?? $defaults['history_retention_days'] ) ) );
+		$out['telemetry_retention_days']    = max( 0, min( 3650, (int) ( $input['telemetry_retention_days'] ?? $current['telemetry_retention_days'] ?? $defaults['telemetry_retention_days'] ) ) );
 	}
 
 	/**
@@ -416,6 +419,21 @@ class Chatbot_Admin_Settings {
 			);
 		}
 
+		if ( 'stats' === $tab ) {
+			$admin_stats_js_path = CHATBOT_PLUGIN_PATH . 'assets/js/admin-stats.js';
+			$admin_stats_js_ver  = file_exists( $admin_stats_js_path )
+				? (string) filemtime( $admin_stats_js_path )
+				: CHATBOT_PLUGIN_VERSION;
+
+			wp_enqueue_script(
+				'chatbot-plugin-admin-stats',
+				CHATBOT_PLUGIN_URL . 'assets/js/admin-stats.js',
+				array(),
+				$admin_stats_js_ver,
+				true
+			);
+		}
+
 		if ( 'history' === $tab ) {
 			$admin_history_js_path = CHATBOT_PLUGIN_PATH . 'assets/js/admin-history.js';
 			$admin_history_js_ver  = file_exists( $admin_history_js_path )
@@ -597,8 +615,9 @@ class Chatbot_Admin_Settings {
 		}
 		check_admin_referer( 'chatbot_export_csv' );
 
-		$days = isset( $_GET['days'] ) ? max( 1, min( 365, (int) $_GET['days'] ) ) : 30;
-		$csv  = Chatbot_Telemetry::export_csv( $days );
+		$filters = self::get_stats_filters_from_request();
+		unset( $filters['offset'], $filters['per_page'] );
+		$csv = Chatbot_Telemetry::export_csv( $filters );
 
 		header( 'Content-Type: text/csv; charset=utf-8' );
 		header( 'Content-Disposition: attachment; filename=chatbot-telemetry-' . gmdate( 'Y-m-d' ) . '.csv' );
@@ -674,6 +693,44 @@ class Chatbot_Admin_Settings {
 		}
 
 		wp_send_json_success();
+	}
+
+	public static function purge_telemetry(): void {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( 'Sin permisos.', 'chatbot-plugin-wp' ) );
+		}
+		check_admin_referer( 'chatbot_purge_telemetry' );
+
+		$settings = Chatbot_Plugin::get_settings();
+		$days     = isset( $settings['telemetry_retention_days'] ) ? (int) $settings['telemetry_retention_days'] : 0;
+		if ( $days <= 0 ) {
+			wp_safe_redirect(
+				add_query_arg(
+					array(
+						'page'              => 'chatbot-plugin',
+						'tab'               => 'stats',
+						'chatbot_purge'     => 'disabled',
+					),
+					admin_url( 'admin.php' )
+				)
+			);
+			exit;
+		}
+
+		$result = Chatbot_Telemetry::purge_older_than_days( $days );
+
+		wp_safe_redirect(
+			add_query_arg(
+				array(
+					'page'           => 'chatbot-plugin',
+					'tab'            => 'stats',
+					'chatbot_purged' => 1,
+					'purged_events'  => (int) ( $result['deleted_events'] ?? 0 ),
+				),
+				admin_url( 'admin.php' )
+			)
+		);
+		exit;
 	}
 
 	public static function render_page(): void {
@@ -1010,6 +1067,13 @@ class Chatbot_Admin_Settings {
 				<td>
 					<input type="number" min="0" max="3650" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[history_retention_days]" value="<?php echo esc_attr( (string) ( $settings['history_retention_days'] ?? 0 ) ); ?>" class="small-text" />
 					<p class="description"><?php esc_html_e( '0 = conservar indefinidamente. Las conversaciones más antiguas se purgan automáticamente cada día.', 'chatbot-plugin-wp' ); ?></p>
+				</td>
+			</tr>
+			<tr>
+				<th scope="row"><?php esc_html_e( 'Retención de telemetría (días)', 'chatbot-plugin-wp' ); ?></th>
+				<td>
+					<input type="number" min="0" max="3650" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[telemetry_retention_days]" value="<?php echo esc_attr( (string) ( $settings['telemetry_retention_days'] ?? 0 ) ); ?>" class="small-text" />
+					<p class="description"><?php esc_html_e( '0 = conservar indefinidamente. Los eventos de estadísticas antiguos se purgan automáticamente cada día.', 'chatbot-plugin-wp' ); ?></p>
 				</td>
 			</tr>
 		</table>
@@ -1376,38 +1440,264 @@ class Chatbot_Admin_Settings {
 	}
 
 
+	private static function get_stats_filters_from_request(): array {
+		$days = array_key_exists( 'days', $_GET )
+			? max( 0, min( 365, (int) $_GET['days'] ) )
+			: 30;
+
+		return array(
+			'days'            => $days > 0 ? $days : 0,
+			'provider'        => isset( $_GET['provider'] ) ? sanitize_key( wp_unslash( (string) $_GET['provider'] ) ) : 'all',
+			'status'          => isset( $_GET['status'] ) ? sanitize_key( wp_unslash( (string) $_GET['status'] ) ) : 'all',
+			'model'           => isset( $_GET['model'] ) ? sanitize_text_field( wp_unslash( (string) $_GET['model'] ) ) : 'all',
+			'error_code'      => isset( $_GET['error_code'] ) ? sanitize_text_field( wp_unslash( (string) $_GET['error_code'] ) ) : 'all',
+			'conversation_id' => isset( $_GET['conversation_id'] ) ? max( 0, (int) $_GET['conversation_id'] ) : 0,
+		);
+	}
+
+	/**
+	 * @param array<string, mixed> $query_args
+	 */
+	private static function build_stats_url( array $query_args ): string {
+		$args = array_merge(
+			array(
+				'page' => 'chatbot-plugin',
+				'tab'  => 'stats',
+			),
+			$query_args
+		);
+
+		return add_query_arg( $args, admin_url( 'admin.php' ) );
+	}
+
+	/**
+	 * @param array<string, mixed> $filters
+	 */
+	private static function stats_has_active_filters( array $filters ): bool {
+		return 'all' !== (string) ( $filters['provider'] ?? 'all' )
+			|| 'all' !== (string) ( $filters['status'] ?? 'all' )
+			|| 'all' !== (string) ( $filters['model'] ?? 'all' )
+			|| 'all' !== (string) ( $filters['error_code'] ?? 'all' )
+			|| (int) ( $filters['conversation_id'] ?? 0 ) > 0;
+	}
+
+	/**
+	 * @param array<string, mixed> $base_args
+	 */
+	private static function render_stats_pagination( int $page, int $pages, array $base_args ): void {
+		if ( $pages <= 1 ) {
+			return;
+		}
+
+		echo '<nav class="chatbot-admin-tablenav chatbot-admin-tablenav--stats" aria-label="' . esc_attr__( 'Paginación', 'chatbot-plugin-wp' ) . '">';
+
+		if ( $page > 1 ) {
+			$prev_args          = $base_args;
+			$prev_args['paged'] = $page - 1;
+			echo '<a class="chatbot-admin-tablenav__prev" href="' . esc_url( self::build_stats_url( $prev_args ) ) . '">' . esc_html__( 'Anterior', 'chatbot-plugin-wp' ) . '</a>';
+		}
+
+		echo '<span class="chatbot-admin-tablenav__status">';
+		echo esc_html(
+			sprintf(
+				/* translators: 1: current page, 2: total pages */
+				__( 'Página %1$d de %2$d', 'chatbot-plugin-wp' ),
+				$page,
+				$pages
+			)
+		);
+		echo '</span>';
+
+		$window = 5;
+		$start  = max( 1, $page - $window );
+		$end    = min( $pages, $page + $window );
+
+		echo '<span class="chatbot-admin-tablenav__pages">';
+		for ( $i = $start; $i <= $end; $i++ ) {
+			$page_args          = $base_args;
+			$page_args['paged'] = $i;
+			$class              = $page === $i ? ' class="is-active"' : '';
+			echo '<a href="' . esc_url( self::build_stats_url( $page_args ) ) . '"' . $class . '>' . esc_html( (string) $i ) . '</a>';
+		}
+		echo '</span>';
+
+		if ( $page < $pages ) {
+			$next_args          = $base_args;
+			$next_args['paged'] = $page + 1;
+			echo '<a class="chatbot-admin-tablenav__next" href="' . esc_url( self::build_stats_url( $next_args ) ) . '">' . esc_html__( 'Siguiente', 'chatbot-plugin-wp' ) . '</a>';
+		}
+
+		echo '</nav>';
+	}
+
+	private static function format_telemetry_status_label( string $status ): string {
+		$labels = array(
+			'success'         => __( 'Éxito', 'chatbot-plugin-wp' ),
+			'cached'          => __( 'En caché', 'chatbot-plugin-wp' ),
+			'error'           => __( 'Error', 'chatbot-plugin-wp' ),
+			'rate_limited'    => __( 'Límite de tasa', 'chatbot-plugin-wp' ),
+			'config_error'    => __( 'Error de configuración', 'chatbot-plugin-wp' ),
+			'invalid_request' => __( 'Petición inválida', 'chatbot-plugin-wp' ),
+			'ok'              => __( 'OK', 'chatbot-plugin-wp' ),
+		);
+
+		return $labels[ $status ] ?? $status;
+	}
+
+	private static function format_telemetry_status_class( string $status ): string {
+		if ( in_array( $status, array( 'success', 'ok', 'cached' ), true ) ) {
+			return 'cached' === $status ? 'chatbot-admin-status--cached' : 'chatbot-admin-status--ok';
+		}
+		return 'chatbot-admin-status--err';
+	}
+
+	private static function format_error_code_label( string $code ): string {
+		$labels = array(
+			'RATE_LIMIT_GENERAL'   => __( 'Límite general', 'chatbot-plugin-wp' ),
+			'RATE_LIMIT_MODEL'     => __( 'Límite del modelo', 'chatbot-plugin-wp' ),
+			'INVALID_REQUEST'      => __( 'Petición inválida', 'chatbot-plugin-wp' ),
+			'CONFIGURATION_ERROR'  => __( 'Error de configuración', 'chatbot-plugin-wp' ),
+			'SERVER_ERROR'         => __( 'Error del servidor', 'chatbot-plugin-wp' ),
+		);
+
+		return $labels[ $code ] ?? $code;
+	}
+
+	/**
+	 * @param array<int, array<string, mixed>> $events
+	 * @return array<int, string>
+	 */
+	private static function map_conversation_public_ids( array $events ): array {
+		$ids = array();
+		foreach ( $events as $event ) {
+			$id = (int) ( $event['conversation_id'] ?? 0 );
+			if ( $id > 0 ) {
+				$ids[] = $id;
+			}
+		}
+		$ids = array_values( array_unique( $ids ) );
+		if ( empty( $ids ) ) {
+			return array();
+		}
+
+		global $wpdb;
+		$table        = Chatbot_Chat_History::conversations_table();
+		$placeholders = implode( ',', array_fill( 0, count( $ids ), '%d' ) );
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
+		$rows = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT id, public_id FROM {$table} WHERE id IN ({$placeholders})",
+				...$ids
+			),
+			ARRAY_A
+		);
+
+		$map = array();
+		foreach ( $rows ?: array() as $row ) {
+			$map[ (int) ( $row['id'] ?? 0 ) ] = (string) ( $row['public_id'] ?? '' );
+		}
+		return $map;
+	}
+
 	private static function render_stats_tab(): void {
-		$days    = isset( $_GET['days'] ) ? max( 7, min( 90, (int) $_GET['days'] ) ) : 30;
-		$summary = Chatbot_Telemetry::get_summary( $days );
 		$page    = isset( $_GET['paged'] ) ? max( 1, (int) $_GET['paged'] ) : 1;
 		$per     = 25;
-		$events  = Chatbot_Telemetry::get_recent_events( $per, ( $page - 1 ) * $per );
-		$total   = Chatbot_Telemetry::count_events();
+		$filters = self::get_stats_filters_from_request();
+		$days    = (int) $filters['days'];
 
-		$totals = $summary['totals'] ?? array();
+		$query_args = array_merge(
+			$filters,
+			array(
+				'per_page' => $per,
+				'offset'   => ( $page - 1 ) * $per,
+			)
+		);
+
+		$summary      = Chatbot_Telemetry::get_summary( $filters );
+		$daily_series = Chatbot_Telemetry::get_daily_series( $filters );
+		$events       = Chatbot_Telemetry::list_events( $query_args );
+		$total        = Chatbot_Telemetry::count_events( $filters );
+		$pages        = (int) ceil( $total / $per );
+		$models       = Chatbot_Telemetry::get_distinct_models( $filters );
+		$error_codes  = Chatbot_Telemetry::get_distinct_error_codes( $filters );
+		$conv_map     = self::map_conversation_public_ids( $events );
+
+		$settings  = Chatbot_Plugin::get_settings();
+		$retention = (int) ( $settings['telemetry_retention_days'] ?? 0 );
+		$has_filters = self::stats_has_active_filters( $filters );
+		$totals    = $summary['totals'] ?? array();
+
+		$periods = array(
+			0   => __( 'Todo', 'chatbot-plugin-wp' ),
+			7   => __( '7 días', 'chatbot-plugin-wp' ),
+			30  => __( '30 días', 'chatbot-plugin-wp' ),
+			90  => __( '90 días', 'chatbot-plugin-wp' ),
+			365 => __( '365 días', 'chatbot-plugin-wp' ),
+		);
+
 		$export_url = wp_nonce_url(
-			admin_url( 'admin-post.php?action=chatbot_export_csv&days=' . $days ),
+			add_query_arg(
+				array_merge(
+					array( 'action' => 'chatbot_export_csv' ),
+					$filters
+				),
+				admin_url( 'admin-post.php' )
+			),
 			'chatbot_export_csv'
 		);
 
-		$periods = array( 7, 30, 90 );
+		$purge_url = '';
+		if ( $retention > 0 ) {
+			$purge_url = wp_nonce_url(
+				add_query_arg( 'action', 'chatbot_purge_telemetry', admin_url( 'admin-post.php' ) ),
+				'chatbot_purge_telemetry'
+			);
+		}
+
+		$max_daily = 0;
+		foreach ( $daily_series as $row ) {
+			$max_daily = max( $max_daily, (int) ( $row['total'] ?? 0 ) );
+		}
+
+		if ( isset( $_GET['chatbot_purged'] ) ) {
+			$purged = isset( $_GET['purged_events'] ) ? (int) $_GET['purged_events'] : 0;
+			echo '<div class="notice notice-success is-dismissible"><p>';
+			echo esc_html(
+				sprintf(
+					/* translators: %d: number of deleted events */
+					__( 'Purga completada: %d eventos eliminados.', 'chatbot-plugin-wp' ),
+					$purged
+				)
+			);
+			echo '</p></div>';
+		}
 		?>
 		<div class="chatbot-admin-stats-toolbar">
-			<p><?php esc_html_e( 'Telemetría de uso del chatbot en tu sitio.', 'chatbot-plugin-wp' ); ?></p>
-			<div style="display:flex;flex-wrap:wrap;align-items:center;gap:0.75rem;">
+			<div class="chatbot-admin-stats-toolbar__intro">
+				<p><?php esc_html_e( 'Telemetría de uso del chatbot en tu sitio.', 'chatbot-plugin-wp' ); ?></p>
+				<a class="chatbot-admin-stats-toolbar__link" href="<?php echo esc_url( self::build_history_url( array( 'days' => $days ) ) ); ?>">
+					<?php esc_html_e( 'Ver conversaciones del periodo', 'chatbot-plugin-wp' ); ?>
+				</a>
+			</div>
+			<div class="chatbot-admin-stats-toolbar__actions">
 				<div class="chatbot-admin-pills" role="group" aria-label="<?php esc_attr_e( 'Periodo', 'chatbot-plugin-wp' ); ?>">
-					<?php foreach ( $periods as $p ) : ?>
-						<a href="<?php echo esc_url( admin_url( 'admin.php?page=chatbot-plugin&tab=stats&days=' . $p ) ); ?>"
-							class="<?php echo (int) $days === $p ? 'is-active' : ''; ?>">
-							<?php echo esc_html( sprintf( /* translators: %d: number of days */ __( '%dd', 'chatbot-plugin-wp' ), $p ) ); ?>
+					<?php foreach ( $periods as $p => $label ) : ?>
+						<a href="<?php echo esc_url( self::build_stats_url( array_merge( $filters, array( 'days' => $p, 'paged' => 1 ) ) ) ); ?>"
+							class="<?php echo (int) $days === (int) $p ? 'is-active' : ''; ?>">
+							<?php echo esc_html( $label ); ?>
 						</a>
 					<?php endforeach; ?>
 				</div>
 				<a class="button chatbot-admin-export" href="<?php echo esc_url( $export_url ); ?>"><?php esc_html_e( 'Exportar CSV', 'chatbot-plugin-wp' ); ?></a>
+				<?php if ( '' !== $purge_url ) : ?>
+					<a class="button button-secondary chatbot-admin-stats-purge" href="<?php echo esc_url( $purge_url ); ?>" data-confirm="<?php esc_attr_e( '¿Purgar eventos anteriores al periodo de retención configurado?', 'chatbot-plugin-wp' ); ?>">
+						<?php esc_html_e( 'Purgar antiguos', 'chatbot-plugin-wp' ); ?>
+					</a>
+				<?php endif; ?>
 			</div>
 		</div>
 
-		<div class="chatbot-admin-kpi-grid">
+		<div class="chatbot-admin-kpi-grid chatbot-admin-kpi-grid--stats">
 			<div class="chatbot-admin-kpi">
 				<span class="chatbot-admin-kpi__label"><?php esc_html_e( 'Total peticiones', 'chatbot-plugin-wp' ); ?></span>
 				<span class="chatbot-admin-kpi__value"><?php echo esc_html( number_format_i18n( (int) ( $totals['total_requests'] ?? 0 ) ) ); ?></span>
@@ -1416,21 +1706,53 @@ class Chatbot_Admin_Settings {
 				<span class="chatbot-admin-kpi__label"><?php esc_html_e( 'Éxitos', 'chatbot-plugin-wp' ); ?></span>
 				<span class="chatbot-admin-kpi__value"><?php echo esc_html( number_format_i18n( (int) ( $totals['success_count'] ?? 0 ) ) ); ?></span>
 			</div>
+			<div class="chatbot-admin-kpi">
+				<span class="chatbot-admin-kpi__label"><?php esc_html_e( 'En caché', 'chatbot-plugin-wp' ); ?></span>
+				<span class="chatbot-admin-kpi__value"><?php echo esc_html( number_format_i18n( (int) ( $totals['cached_count'] ?? 0 ) ) ); ?></span>
+			</div>
 			<div class="chatbot-admin-kpi chatbot-admin-kpi--error">
 				<span class="chatbot-admin-kpi__label"><?php esc_html_e( 'Errores', 'chatbot-plugin-wp' ); ?></span>
 				<span class="chatbot-admin-kpi__value"><?php echo esc_html( number_format_i18n( (int) ( $totals['error_count'] ?? 0 ) ) ); ?></span>
 			</div>
 			<div class="chatbot-admin-kpi">
+				<span class="chatbot-admin-kpi__label"><?php esc_html_e( 'Tasa de éxito', 'chatbot-plugin-wp' ); ?></span>
+				<span class="chatbot-admin-kpi__value"><?php echo esc_html( number_format_i18n( (float) ( $totals['success_rate'] ?? 0 ), 1 ) ); ?>%</span>
+			</div>
+			<div class="chatbot-admin-kpi">
 				<span class="chatbot-admin-kpi__label"><?php esc_html_e( 'Latencia media', 'chatbot-plugin-wp' ); ?></span>
-				<span class="chatbot-admin-kpi__value"><?php echo esc_html( number_format_i18n( (float) ( $totals['avg_latency_ms'] ?? 0 ), 0 ) ); ?> <small style="font-size:0.55em;font-weight:600;color:var(--cb-admin-muted);">ms</small></span>
+				<span class="chatbot-admin-kpi__value"><?php echo esc_html( number_format_i18n( (float) ( $totals['avg_latency_ms'] ?? 0 ), 0 ) ); ?> <small>ms</small></span>
+			</div>
+			<div class="chatbot-admin-kpi">
+				<span class="chatbot-admin-kpi__label"><?php esc_html_e( 'Latencia P95', 'chatbot-plugin-wp' ); ?></span>
+				<span class="chatbot-admin-kpi__value"><?php echo esc_html( number_format_i18n( (int) ( $totals['p95_latency_ms'] ?? 0 ) ) ); ?> <small>ms</small></span>
 			</div>
 		</div>
 
-		<div class="chatbot-admin-stats-grid">
-			<div class="chatbot-admin-card">
+		<?php if ( ! empty( $daily_series ) && $max_daily > 0 ) : ?>
+			<div class="chatbot-admin-card chatbot-admin-stats-series">
 				<div class="chatbot-admin-card__head">
-					<h2><?php esc_html_e( 'Por estado', 'chatbot-plugin-wp' ); ?></h2>
+					<h2><?php esc_html_e( 'Actividad diaria', 'chatbot-plugin-wp' ); ?></h2>
 				</div>
+				<div class="chatbot-admin-card__body">
+					<div class="chatbot-admin-stats-bars">
+						<?php foreach ( array_reverse( $daily_series ) as $row ) : ?>
+							<?php
+							$day_total = (int) ( $row['total'] ?? 0 );
+							$height    = $max_daily > 0 ? max( 4, (int) round( ( $day_total / $max_daily ) * 100 ) ) : 0;
+							?>
+							<div class="chatbot-admin-stats-bar" title="<?php echo esc_attr( sprintf( '%s: %d', (string) ( $row['day'] ?? '' ), $day_total ) ); ?>">
+								<div class="chatbot-admin-stats-bar__fill" style="height: <?php echo esc_attr( (string) $height ); ?>%;"></div>
+								<span class="chatbot-admin-stats-bar__label"><?php echo esc_html( wp_date( 'd/m', strtotime( (string) ( $row['day'] ?? '' ) . ' UTC' ) ) ); ?></span>
+							</div>
+						<?php endforeach; ?>
+					</div>
+				</div>
+			</div>
+		<?php endif; ?>
+
+		<div class="chatbot-admin-stats-grid chatbot-admin-stats-grid--wide">
+			<div class="chatbot-admin-card">
+				<div class="chatbot-admin-card__head"><h2><?php esc_html_e( 'Por estado', 'chatbot-plugin-wp' ); ?></h2></div>
 				<div class="chatbot-admin-card__body">
 					<table class="widefat striped">
 						<thead><tr><th><?php esc_html_e( 'Estado', 'chatbot-plugin-wp' ); ?></th><th><?php esc_html_e( 'Cantidad', 'chatbot-plugin-wp' ); ?></th></tr></thead>
@@ -1442,7 +1764,15 @@ class Chatbot_Admin_Settings {
 								<tr><td colspan="2"><?php esc_html_e( 'Sin datos en este periodo.', 'chatbot-plugin-wp' ); ?></td></tr>
 							<?php else : ?>
 								<?php foreach ( $by_status as $row ) : ?>
-									<tr><td><?php echo esc_html( (string) ( $row['status'] ?? '' ) ); ?></td><td><?php echo esc_html( number_format_i18n( (int) ( $row['count'] ?? 0 ) ) ); ?></td></tr>
+									<?php $st = (string) ( $row['status'] ?? '' ); ?>
+									<tr>
+										<td>
+											<a href="<?php echo esc_url( self::build_stats_url( array_merge( $filters, array( 'status' => $st, 'paged' => 1 ) ) ) ); ?>">
+												<?php echo esc_html( self::format_telemetry_status_label( $st ) ); ?>
+											</a>
+										</td>
+										<td><?php echo esc_html( number_format_i18n( (int) ( $row['count'] ?? 0 ) ) ); ?></td>
+									</tr>
 								<?php endforeach; ?>
 							<?php endif; ?>
 						</tbody>
@@ -1450,9 +1780,7 @@ class Chatbot_Admin_Settings {
 				</div>
 			</div>
 			<div class="chatbot-admin-card">
-				<div class="chatbot-admin-card__head">
-					<h2><?php esc_html_e( 'Por proveedor', 'chatbot-plugin-wp' ); ?></h2>
-				</div>
+				<div class="chatbot-admin-card__head"><h2><?php esc_html_e( 'Por proveedor', 'chatbot-plugin-wp' ); ?></h2></div>
 				<div class="chatbot-admin-card__body">
 					<table class="widefat striped">
 						<thead><tr><th><?php esc_html_e( 'Proveedor', 'chatbot-plugin-wp' ); ?></th><th><?php esc_html_e( 'Cantidad', 'chatbot-plugin-wp' ); ?></th></tr></thead>
@@ -1464,7 +1792,78 @@ class Chatbot_Admin_Settings {
 								<tr><td colspan="2"><?php esc_html_e( 'Sin datos en este periodo.', 'chatbot-plugin-wp' ); ?></td></tr>
 							<?php else : ?>
 								<?php foreach ( $by_provider as $row ) : ?>
-									<tr><td><?php echo esc_html( (string) ( $row['provider'] ?? '' ) ); ?></td><td><?php echo esc_html( number_format_i18n( (int) ( $row['count'] ?? 0 ) ) ); ?></td></tr>
+									<?php $pv = (string) ( $row['provider'] ?? '' ); ?>
+									<tr>
+										<td>
+											<a href="<?php echo esc_url( self::build_stats_url( array_merge( $filters, array( 'provider' => $pv, 'paged' => 1 ) ) ) ); ?>">
+												<?php echo esc_html( $pv ); ?>
+											</a>
+										</td>
+										<td><?php echo esc_html( number_format_i18n( (int) ( $row['count'] ?? 0 ) ) ); ?></td>
+									</tr>
+								<?php endforeach; ?>
+							<?php endif; ?>
+						</tbody>
+					</table>
+				</div>
+			</div>
+			<div class="chatbot-admin-card">
+				<div class="chatbot-admin-card__head"><h2><?php esc_html_e( 'Por modelo', 'chatbot-plugin-wp' ); ?></h2></div>
+				<div class="chatbot-admin-card__body">
+					<table class="widefat striped">
+						<thead>
+							<tr>
+								<th><?php esc_html_e( 'Modelo', 'chatbot-plugin-wp' ); ?></th>
+								<th><?php esc_html_e( 'Cantidad', 'chatbot-plugin-wp' ); ?></th>
+								<th><?php esc_html_e( 'Lat. media', 'chatbot-plugin-wp' ); ?></th>
+							</tr>
+						</thead>
+						<tbody>
+							<?php
+							$by_model = (array) ( $summary['by_model'] ?? array() );
+							if ( empty( $by_model ) ) :
+								?>
+								<tr><td colspan="3"><?php esc_html_e( 'Sin datos en este periodo.', 'chatbot-plugin-wp' ); ?></td></tr>
+							<?php else : ?>
+								<?php foreach ( $by_model as $row ) : ?>
+									<?php $md = (string) ( $row['model'] ?? '' ); ?>
+									<tr>
+										<td>
+											<a href="<?php echo esc_url( self::build_stats_url( array_merge( $filters, array( 'model' => $md, 'paged' => 1 ) ) ) ); ?>">
+												<?php echo esc_html( $md ); ?>
+											</a>
+										</td>
+										<td><?php echo esc_html( number_format_i18n( (int) ( $row['count'] ?? 0 ) ) ); ?></td>
+										<td><?php echo esc_html( number_format_i18n( (float) ( $row['avg_latency_ms'] ?? 0 ), 0 ) ); ?> ms</td>
+									</tr>
+								<?php endforeach; ?>
+							<?php endif; ?>
+						</tbody>
+					</table>
+				</div>
+			</div>
+			<div class="chatbot-admin-card">
+				<div class="chatbot-admin-card__head"><h2><?php esc_html_e( 'Por código de error', 'chatbot-plugin-wp' ); ?></h2></div>
+				<div class="chatbot-admin-card__body">
+					<table class="widefat striped">
+						<thead><tr><th><?php esc_html_e( 'Código', 'chatbot-plugin-wp' ); ?></th><th><?php esc_html_e( 'Cantidad', 'chatbot-plugin-wp' ); ?></th></tr></thead>
+						<tbody>
+							<?php
+							$by_error = (array) ( $summary['by_error'] ?? array() );
+							if ( empty( $by_error ) ) :
+								?>
+								<tr><td colspan="2"><?php esc_html_e( 'Sin errores en este periodo.', 'chatbot-plugin-wp' ); ?></td></tr>
+							<?php else : ?>
+								<?php foreach ( $by_error as $row ) : ?>
+									<?php $ec = (string) ( $row['error_code'] ?? '' ); ?>
+									<tr>
+										<td>
+											<a href="<?php echo esc_url( self::build_stats_url( array_merge( $filters, array( 'error_code' => $ec, 'paged' => 1 ) ) ) ); ?>">
+												<?php echo esc_html( self::format_error_code_label( $ec ) ); ?>
+											</a>
+										</td>
+										<td><?php echo esc_html( number_format_i18n( (int) ( $row['count'] ?? 0 ) ) ); ?></td>
+									</tr>
 								<?php endforeach; ?>
 							<?php endif; ?>
 						</tbody>
@@ -1475,8 +1874,75 @@ class Chatbot_Admin_Settings {
 
 		<div class="chatbot-admin-card chatbot-admin-events">
 			<div class="chatbot-admin-card__head">
-				<h2><?php esc_html_e( 'Últimos eventos', 'chatbot-plugin-wp' ); ?></h2>
-				<p><?php esc_html_e( 'Registro detallado de las peticiones más recientes.', 'chatbot-plugin-wp' ); ?></p>
+				<h2><?php esc_html_e( 'Eventos', 'chatbot-plugin-wp' ); ?></h2>
+				<p>
+					<?php
+					echo esc_html(
+						sprintf(
+							/* translators: %s: number of events */
+							_n( '%s evento en el periodo', '%s eventos en el periodo', $total, 'chatbot-plugin-wp' ),
+							number_format_i18n( $total )
+						)
+					);
+					?>
+				</p>
+			</div>
+			<div class="chatbot-admin-card__body chatbot-admin-stats-filters-wrap">
+				<form method="get" action="<?php echo esc_url( admin_url( 'admin.php' ) ); ?>" class="chatbot-admin-stats-filters">
+					<input type="hidden" name="page" value="chatbot-plugin" />
+					<input type="hidden" name="tab" value="stats" />
+					<input type="hidden" name="days" value="<?php echo esc_attr( (string) $days ); ?>" />
+					<div class="chatbot-admin-stats-filters__field">
+						<label for="chatbot-stats-provider"><?php esc_html_e( 'Proveedor', 'chatbot-plugin-wp' ); ?></label>
+						<select id="chatbot-stats-provider" name="provider">
+							<option value="all"<?php selected( $filters['provider'], 'all' ); ?>><?php esc_html_e( 'Todos', 'chatbot-plugin-wp' ); ?></option>
+							<option value="gemini"<?php selected( $filters['provider'], 'gemini' ); ?>>Gemini</option>
+							<option value="deepseek"<?php selected( $filters['provider'], 'deepseek' ); ?>>DeepSeek</option>
+							<option value="ollama"<?php selected( $filters['provider'], 'ollama' ); ?>>Ollama</option>
+							<option value="openai_compatible"<?php selected( $filters['provider'], 'openai_compatible' ); ?>>OpenAI-compatible</option>
+						</select>
+					</div>
+					<div class="chatbot-admin-stats-filters__field">
+						<label for="chatbot-stats-status"><?php esc_html_e( 'Estado', 'chatbot-plugin-wp' ); ?></label>
+						<select id="chatbot-stats-status" name="status">
+							<option value="all"<?php selected( $filters['status'], 'all' ); ?>><?php esc_html_e( 'Todos', 'chatbot-plugin-wp' ); ?></option>
+							<option value="success"<?php selected( $filters['status'], 'success' ); ?>><?php esc_html_e( 'Éxito', 'chatbot-plugin-wp' ); ?></option>
+							<option value="cached"<?php selected( $filters['status'], 'cached' ); ?>><?php esc_html_e( 'En caché', 'chatbot-plugin-wp' ); ?></option>
+							<option value="error"<?php selected( $filters['status'], 'error' ); ?>><?php esc_html_e( 'Error', 'chatbot-plugin-wp' ); ?></option>
+							<option value="rate_limited"<?php selected( $filters['status'], 'rate_limited' ); ?>><?php esc_html_e( 'Límite de tasa', 'chatbot-plugin-wp' ); ?></option>
+							<option value="config_error"<?php selected( $filters['status'], 'config_error' ); ?>><?php esc_html_e( 'Error de configuración', 'chatbot-plugin-wp' ); ?></option>
+							<option value="invalid_request"<?php selected( $filters['status'], 'invalid_request' ); ?>><?php esc_html_e( 'Petición inválida', 'chatbot-plugin-wp' ); ?></option>
+						</select>
+					</div>
+					<div class="chatbot-admin-stats-filters__field">
+						<label for="chatbot-stats-model"><?php esc_html_e( 'Modelo', 'chatbot-plugin-wp' ); ?></label>
+						<select id="chatbot-stats-model" name="model">
+							<option value="all"<?php selected( $filters['model'], 'all' ); ?>><?php esc_html_e( 'Todos', 'chatbot-plugin-wp' ); ?></option>
+							<?php foreach ( $models as $model ) : ?>
+								<option value="<?php echo esc_attr( $model ); ?>"<?php selected( $filters['model'], $model ); ?>><?php echo esc_html( $model ); ?></option>
+							<?php endforeach; ?>
+						</select>
+					</div>
+					<div class="chatbot-admin-stats-filters__field">
+						<label for="chatbot-stats-error"><?php esc_html_e( 'Código de error', 'chatbot-plugin-wp' ); ?></label>
+						<select id="chatbot-stats-error" name="error_code">
+							<option value="all"<?php selected( $filters['error_code'], 'all' ); ?>><?php esc_html_e( 'Todos', 'chatbot-plugin-wp' ); ?></option>
+							<?php foreach ( $error_codes as $code ) : ?>
+								<option value="<?php echo esc_attr( $code ); ?>"<?php selected( $filters['error_code'], $code ); ?>><?php echo esc_html( self::format_error_code_label( $code ) ); ?></option>
+							<?php endforeach; ?>
+						</select>
+					</div>
+					<div class="chatbot-admin-stats-filters__field">
+						<label for="chatbot-stats-conversation"><?php esc_html_e( 'Conversación (ID)', 'chatbot-plugin-wp' ); ?></label>
+						<input type="number" min="0" id="chatbot-stats-conversation" name="conversation_id" value="<?php echo esc_attr( (string) (int) $filters['conversation_id'] ); ?>" class="small-text" />
+					</div>
+					<div class="chatbot-admin-stats-filters__actions">
+						<button type="submit" class="button button-primary"><?php esc_html_e( 'Filtrar', 'chatbot-plugin-wp' ); ?></button>
+						<?php if ( $has_filters ) : ?>
+							<a class="button" href="<?php echo esc_url( self::build_stats_url( array( 'days' => $days ) ) ); ?>"><?php esc_html_e( 'Limpiar filtros', 'chatbot-plugin-wp' ); ?></a>
+						<?php endif; ?>
+					</div>
+				</form>
 			</div>
 			<table class="widefat striped">
 				<thead>
@@ -1492,29 +1958,40 @@ class Chatbot_Admin_Settings {
 				</thead>
 				<tbody>
 					<?php if ( empty( $events ) ) : ?>
-						<tr><td colspan="7"><?php esc_html_e( 'Sin eventos aún.', 'chatbot-plugin-wp' ); ?></td></tr>
+						<tr>
+							<td colspan="7">
+								<?php if ( $has_filters ) : ?>
+									<?php esc_html_e( 'Ningún resultado con estos filtros.', 'chatbot-plugin-wp' ); ?>
+								<?php else : ?>
+									<?php esc_html_e( 'Sin eventos en este periodo.', 'chatbot-plugin-wp' ); ?>
+								<?php endif; ?>
+							</td>
+						</tr>
 					<?php else : ?>
 						<?php foreach ( $events as $event ) : ?>
 							<?php
-							$status = (string) ( $event['status'] ?? '' );
-							$is_ok  = in_array( $status, array( 'ok', 'success', 'cached' ), true );
+							$status  = (string) ( $event['status'] ?? '' );
 							$conv_id = (int) ( $event['conversation_id'] ?? 0 );
+							$err     = (string) ( $event['error_code'] ?? '' );
 							?>
 							<tr>
-								<td><?php echo esc_html( (string) ( $event['created_at'] ?? '' ) ); ?></td>
+								<td><?php echo esc_html( Chatbot_Chat_History::format_datetime_local( (string) ( $event['created_at'] ?? '' ) ) ); ?></td>
 								<td><?php echo esc_html( (string) ( $event['provider'] ?? '' ) ); ?></td>
 								<td><?php echo esc_html( (string) ( $event['model'] ?? '' ) ); ?></td>
 								<td>
-									<span class="chatbot-admin-status <?php echo $is_ok ? 'chatbot-admin-status--ok' : 'chatbot-admin-status--err'; ?>">
-										<?php echo esc_html( $status ); ?>
+									<span class="chatbot-admin-status <?php echo esc_attr( self::format_telemetry_status_class( $status ) ); ?>">
+										<?php echo esc_html( self::format_telemetry_status_label( $status ) ); ?>
 									</span>
 								</td>
 								<td><?php echo esc_html( number_format_i18n( (int) ( $event['latency_ms'] ?? 0 ) ) ); ?> ms</td>
-								<td><?php echo esc_html( (string) ( $event['error_code'] ?? '—' ) ); ?></td>
+								<td><?php echo '' !== $err ? esc_html( self::format_error_code_label( $err ) ) : '—'; ?></td>
 								<td>
 									<?php if ( $conv_id > 0 ) : ?>
 										<a href="<?php echo esc_url( self::build_history_url( array( 'conversation' => $conv_id, 'days' => 0 ) ) ); ?>">
-											<?php echo esc_html( sprintf( '#%d', $conv_id ) ); ?>
+											<?php
+											$public_id = (string) ( $conv_map[ $conv_id ] ?? '' );
+											echo esc_html( '' !== $public_id ? $public_id : '#' . $conv_id );
+											?>
 										</a>
 									<?php else : ?>
 										—
@@ -1525,18 +2002,7 @@ class Chatbot_Admin_Settings {
 					<?php endif; ?>
 				</tbody>
 			</table>
-		<?php
-		$pages = (int) ceil( $total / $per );
-		if ( $pages > 1 ) {
-			echo '<nav class="chatbot-admin-tablenav" aria-label="' . esc_attr__( 'Paginación', 'chatbot-plugin-wp' ) . '">';
-			for ( $i = 1; $i <= min( $pages, 10 ); $i++ ) {
-				$url = admin_url( 'admin.php?page=chatbot-plugin&tab=stats&days=' . $days . '&paged=' . $i );
-				$class = $page === $i ? ' style="color:var(--cb-admin-primary);border-color:var(--cb-admin-primary);"' : '';
-				echo '<a href="' . esc_url( $url ) . '"' . $class . '>' . esc_html( (string) $i ) . '</a>';
-			}
-			echo '</nav>';
-		}
-		?>
+			<?php self::render_stats_pagination( $page, $pages, array_merge( $filters, array( 'paged' => $page ) ) ); ?>
 		</div>
 		<?php
 	}
