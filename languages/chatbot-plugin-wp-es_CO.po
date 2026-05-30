@@ -3,7 +3,7 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: MultiAI Chatbot for WordPress 1.0.0\n"
+"Project-Id-Version: MultiAI ChatBot 1.0.0\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/chatbot-plugin-wp\n"
 "POT-Creation-Date: 2026-05-30T19:05:17+00:00\n"
 "PO-Revision-Date: 2026-05-30 12:00+0000\n"
@@ -19,8 +19,8 @@ msgstr ""
 
 #. Plugin Name of the plugin
 #: chatbot-plugin-wp.php
-msgid "MultiAI Chatbot for WordPress"
-msgstr "MultiAI Chatbot for WordPress"
+msgid "MultiAI ChatBot"
+msgstr "MultiAI ChatBot"
 
 #. Plugin URI of the plugin
 #: chatbot-plugin-wp.php
@@ -45,8 +45,8 @@ msgstr "https://www.linkedin.com/in/jsravelo/"
 
 #: includes/admin-settings.php:72
 #: includes/admin-settings.php:73
-msgid "Chatbot"
-msgstr "Chatbot"
+msgid "MultiAI ChatBot"
+msgstr "MultiAI ChatBot"
 
 #: includes/admin-settings.php:136
 #: includes/admin-settings.php:837
@@ -249,8 +249,8 @@ msgid "History"
 msgstr "Historial"
 
 #: includes/admin-settings.php:762
-msgid "MultiAI Chatbot for WordPress"
-msgstr "MultiAI Chatbot for WordPress"
+msgid "MultiAI ChatBot"
+msgstr "MultiAI ChatBot"
 
 #: includes/admin-settings.php:767
 msgid "Enabled"

@@ -171,7 +171,7 @@
 
     const panel = document.createElement("section");
     panel.className = "cb-panel cb-position-" + settings.position;
-    panel.setAttribute("aria-label", "Chatbot");
+    panel.setAttribute("aria-label", settings.title || "MultiAI ChatBot");
 
     panel.innerHTML =
       '<header class="cb-header">' +

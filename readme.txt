@@ -1,4 +1,4 @@
-=== MultiAI Chatbot for WordPress ===
+=== MultiAI ChatBot ===
 Contributors: jsravelo
 Donate link: https://github.com/JunniorRavelo/multiai-chatbot-for-wordpress
 Tags: chatbot, ai, gemini, live chat, customer support
@@ -13,7 +13,7 @@ AI chat widget for WordPress. Supports Gemini, DeepSeek, Ollama, and OpenAI-comp
 
 == Description ==
 
-**MultiAI Chatbot for WordPress** adds an AI assistant to your WordPress site with a floating or embedded widget, a full admin panel, and usage analytics.
+**MultiAI ChatBot** adds an AI assistant to your WordPress site with a floating or embedded widget, a full admin panel, and usage analytics.
 
 Connect the chat to your preferred AI provider, customize appearance without code, and review conversations and statistics from the WordPress dashboard.
 
@@ -70,7 +70,7 @@ The API key is always handled on the server; the frontend only uses the WordPres
 
 1. Upload the `chatbot-plugin-wp` folder to `/wp-content/plugins/` or install the ZIP from **Plugins → Add New → Upload Plugin**.
 2. Activate the plugin from **Plugins**.
-3. Go to **Chatbot** in the admin menu.
+3. Go to **MultiAI ChatBot** in the admin menu.
 4. Under **AI Model**, choose a provider and enter your API key (except for Ollama).
 5. Under **General**, enable the widget and adjust the welcome message.
 6. Save changes. The chat will appear on the frontend when the widget is enabled.
@@ -137,7 +137,7 @@ No. This plugin does not send site data, chat content, or telemetry to the plugi
 
 = Personal data =
 
-Chat history uses anonymous session identifiers and is not linked to visitor email addresses or WordPress user accounts by default. Administrators can review, export, or delete conversations from the Chatbot admin screens.
+Chat history uses anonymous session identifiers and is not linked to visitor email addresses or WordPress user accounts by default. Administrators can review, export, or delete conversations from the MultiAI ChatBot admin screens.
 
 == Screenshots ==
 

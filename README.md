@@ -1,4 +1,4 @@
-# MultiAI Chatbot for WordPress
+# MultiAI ChatBot
 
 Plugin de WordPress que añade un widget de chat con IA (Gemini, DeepSeek, Ollama u OpenAI-compatible), panel de administración y telemetría de uso.
 
@@ -23,7 +23,7 @@ Eso crea `chatbot-plugin-wp.zip` listo para **Plugins → Añadir nuevo → Subi
 
 1. Copia la carpeta `chatbot-plugin-wp` a `wp-content/plugins/` (o usa el ZIP anterior).
 2. Activa el plugin en **Plugins**.
-3. Ve a **Chatbot** en el menú de administración.
+3. Ve a **MultiAI ChatBot** en el menú de administración.
 4. Configura el proveedor, API key y estilos.
 5. Tras activar, las reglas de reescritura del streaming se registran automáticamente. Si el stream no responde, visita **Ajustes → Enlaces permanentes** y guarda de nuevo.
 

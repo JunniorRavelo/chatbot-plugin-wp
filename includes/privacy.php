@@ -21,7 +21,7 @@ class Chatbot_Privacy {
 		$content = self::get_policy_content();
 
 		wp_add_privacy_policy_content(
-			'MultiAI Chatbot for WordPress',
+			'MultiAI ChatBot',
 			wp_kses_post( $content )
 		);
 	}
