@@ -202,8 +202,10 @@ class Chatbot_Admin_Settings {
 					'widgetSubtitle'  => (string) ( $settings['widget_subtitle'] ?? '' ),
 					'welcomeMessage'  => (string) ( $settings['welcome_message'] ?? '' ),
 					'i18n'            => array(
-						'openPanel'  => __( 'Abrir panel', 'chatbot-plugin-wp' ),
-						'closePanel' => __( 'Cerrar panel', 'chatbot-plugin-wp' ),
+						'openPanel'   => __( 'Abrir panel', 'chatbot-plugin-wp' ),
+						'closePanel'  => __( 'Cerrar panel', 'chatbot-plugin-wp' ),
+						'placeholder' => __( 'Escribe tu mensaje…', 'chatbot-plugin-wp' ),
+						'send'        => __( 'Enviar', 'chatbot-plugin-wp' ),
 					),
 					'positionLabels'  => self::style_position_labels(),
 				)

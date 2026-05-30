@@ -31,6 +31,25 @@
     );
   }
 
+  function buildComposerHtml() {
+    const placeholder = previewI18n("placeholder", "Escribe tu mensaje…");
+    const sendLabel = previewI18n("send", "Enviar");
+    return (
+      '<div class="cb-composer-inner">' +
+      '<textarea class="cb-input" rows="1" placeholder="' +
+      placeholder +
+      '" maxlength="700" readonly aria-label="' +
+      placeholder +
+      '"></textarea>' +
+      '<button type="submit" class="cb-send" aria-label="' +
+      sendLabel +
+      '">' +
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+      '<path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/>' +
+      "</svg></button></div>"
+    );
+  }
+
   function buildHeaderHtml() {
     return (
       '<div class="cb-header-brand">' +
@@ -159,13 +178,9 @@
       buildHeaderHtml() +
       "</header>" +
       '<div class="cb-messages" role="log"></div>' +
+      '<div class="cb-error" hidden></div>' +
       '<form class="cb-composer">' +
-      '<div class="cb-composer-inner">' +
-      '<textarea class="cb-input" rows="1" placeholder="Escribe tu mensaje…" readonly aria-label="Escribe tu mensaje…"></textarea>' +
-      '<button type="submit" class="cb-send" aria-label="Enviar">' +
-      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
-      '<path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/>' +
-      "</svg></button></div>" +
+      buildComposerHtml() +
       "</form>";
 
     wrap.appendChild(launcher);
