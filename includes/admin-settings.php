@@ -1574,28 +1574,8 @@ class Chatbot_Admin_Settings {
 				$ids[] = $id;
 			}
 		}
-		$ids = array_values( array_unique( $ids ) );
-		if ( empty( $ids ) ) {
-			return array();
-		}
 
-		global $wpdb;
-		$table        = Chatbot_Chat_History::conversations_table();
-		$placeholders = implode( ',', array_fill( 0, count( $ids ), '%d' ) );
-		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
-		$rows = $wpdb->get_results(
-			$wpdb->prepare(
-				"SELECT id, public_id FROM {$table} WHERE id IN ({$placeholders})",
-				...$ids
-			),
-			ARRAY_A
-		);
-
-		$map = array();
-		foreach ( $rows ?: array() as $row ) {
-			$map[ (int) ( $row['id'] ?? 0 ) ] = (string) ( $row['public_id'] ?? '' );
-		}
-		return $map;
+		return Chatbot_Chat_History::get_public_ids_by_conversation_ids( $ids );
 	}
 
 	private static function render_stats_tab(): void {

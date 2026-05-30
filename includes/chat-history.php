@@ -832,6 +832,38 @@ class Chatbot_Chat_History {
 		return substr( $path, 0, 255 );
 	}
 
+	/**
+	 * @param list<int> $conversation_ids
+	 * @return array<int, string>
+	 */
+	public static function get_public_ids_by_conversation_ids( array $conversation_ids ): array {
+		$conversation_ids = array_values( array_unique( array_filter( array_map( 'intval', $conversation_ids ) ) ) );
+		if ( empty( $conversation_ids ) ) {
+			return array();
+		}
+
+		global $wpdb;
+
+		$table        = self::conversations_table();
+		$placeholders = implode( ',', array_fill( 0, count( $conversation_ids ), '%d' ) );
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- Custom table lookup; no WP API for plugin conversation metadata.
+		$rows = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT id, public_id FROM {$table} WHERE id IN ({$placeholders})",
+				...$conversation_ids
+			),
+			ARRAY_A
+		);
+
+		$map = array();
+		foreach ( $rows ?: array() as $row ) {
+			$map[ (int) ( $row['id'] ?? 0 ) ] = (string) ( $row['public_id'] ?? '' );
+		}
+
+		return $map;
+	}
+
 	public static function drop_tables(): void {
 		global $wpdb;
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Required on uninstall; WordPress has no API to drop custom tables.
