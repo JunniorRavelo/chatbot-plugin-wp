@@ -4,7 +4,7 @@ WordPress plugin that adds an AI chat widget (Gemini, DeepSeek, Ollama, or OpenA
 
 ## Naming conventions (namespace)
 
-The public widget uses the `maicb-*` class prefix and the `#chatbot-plugin-root` container with `data-maicb-root`. See [docs/NAMING.md](docs/NAMING.md). Before publishing, run `./scripts/check-namespace.sh`.
+The public widget uses the `maicb-*` class prefix and the `#chatbot-plugin-root` container with `data-maicb-root`. See [docs/NAMING.md](docs/NAMING.md). Before publishing, run `./scripts/check-namespace`.
 
 ## Requirements
 
@@ -20,10 +20,10 @@ The public widget uses the `maicb-*` class prefix and the `#chatbot-plugin-root`
 WordPress **does not allow** uploading a ZIP that includes the `.git` folder. Generate the package from the repository:
 
 ```bash
-./scripts/package-plugin.sh
+./scripts/package-plugin
 ```
 
-This creates `multiai-chatbot.zip`, ready for **Plugins → Add New → Upload Plugin**. The ZIP **does not include** `scripts/` (development tools). For production, always use that ZIP or exclude `scripts/` if you deploy via Git (e.g. WP Pusher). Translation compilation (`./scripts/compile-languages.sh`) is for local development only.
+This creates `multiai-chatbot.zip`, ready for **Plugins → Add New → Upload Plugin**. The ZIP **does not include** `scripts/` (development tools). For production, always use that ZIP or exclude `scripts/` if you deploy via Git (e.g. WP Pusher). Translation compilation (`./scripts/compile-languages`) is for local development only.
 
 1. Copy the `multiai-chatbot` folder to `wp-content/plugins/` (or use the ZIP above).
 2. Activate the plugin under **Plugins**.
@@ -134,7 +134,7 @@ Export/import theme JSON from the admin (Chat Style tab).
 
 - **Source language:** English in PHP/JS code (`__()`, `esc_html_e()`).
 - **Spanish:** [`languages/multiai-chatbot-es_ES.po`](languages/multiai-chatbot-es_ES.po) and [`languages/multiai-chatbot-es_CO.po`](languages/multiai-chatbot-es_CO.po).
-- After editing `.po` files, compile `.mo`: `./scripts/compile-languages.sh` (or `php scripts/compile-languages.php`).
+- After editing `.po` files, compile `.mo`: `./scripts/compile-languages` (or `php scripts/compile-languages.php`).
 
 ## REST API
 

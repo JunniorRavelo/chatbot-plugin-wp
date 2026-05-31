@@ -13,7 +13,7 @@
 ### Added
 
 - [docs/NAMING.md](docs/NAMING.md) naming conventions.
-- `scripts/check-namespace.sh` audit script.
+- `scripts/check-namespace` audit script.
 - WordPress filters: `chatbot_plugin_root_id`, `chatbot_widget_class_prefix`.
 
 ### Removed

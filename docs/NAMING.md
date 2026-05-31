@@ -60,5 +60,5 @@ apply_filters( 'chatbot_style_config', $style_config, $settings );
 Ejecutar antes de empaquetar o publicar el plugin:
 
 ```bash
-./scripts/check-namespace.sh
+./scripts/check-namespace
 ```

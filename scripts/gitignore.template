@@ -1,6 +1,6 @@
 # No crear .gitignore en la raíz del plugin (Plugin Check lo rechaza).
 # Las exclusiones locales viven en .git/info/exclude. Instálalas con:
-#   ./scripts/setup-dev-excludes.sh
+#   ./scripts/setup-dev-excludes
 .env
 .git/
 *.log
