@@ -1,6 +1,6 @@
 <?php
 /**
- * Footer de donación del panel de administración.
+ * Admin panel donation footer.
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
