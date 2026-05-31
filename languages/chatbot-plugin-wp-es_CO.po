@@ -1574,23 +1574,18 @@ msgstr[1] "%d h"
 msgid "Title"
 msgstr "Título"
 
-#. translators: %s: platform name
-#: includes/donation-footer.php:83
-#, php-format
-msgid "%s — add the URL in donation-footer.php"
-msgstr "%s — añada la URL en donation-footer.php"
-
-#: includes/donation-footer.php:128
+#: includes/donation-footer.php:25
 msgid "Support the plugin"
 msgstr "Apoye el plugin"
 
-#: includes/donation-footer.php:132
-msgid "Like this plugin? You can support development by donating on:"
-msgstr "¿Le gusta este plugin? Puede apoyar el desarrollo donando en:"
+#: includes/donation-footer.php:29
+msgid "Like this plugin? You can support development on GitHub Sponsors:"
+msgstr "¿Le gusta este plugin? Puede apoyar el desarrollo en GitHub Sponsors:"
 
-#: includes/donation-footer.php:134
-msgid "Donation platforms"
-msgstr "Plataformas de donación"
+#: includes/donation-footer.php:36
+#: includes/donation-footer.php:40
+msgid "GitHub Sponsors"
+msgstr "GitHub Sponsors"
 
 #: includes/enqueue.php:125
 msgid "Open chat"
