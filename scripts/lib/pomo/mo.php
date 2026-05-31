@@ -63,12 +63,12 @@ if ( ! class_exists( 'MO', false ) ) :
 		 * @return bool
 		 */
 		public function export_to_file( $filename ) {
-			$fh = fopen( $filename, 'wb' );
+			$fh = fopen( $filename, 'wb' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen -- Vendored pomo library requires binary stream I/O for MO/PO parsing.
 			if ( ! $fh ) {
 				return false;
 			}
 			$res = $this->export_to_file_handle( $fh );
-			fclose( $fh );
+			fclose( $fh ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose -- Vendored pomo library requires binary stream I/O for MO/PO parsing.
 			return $res;
 		}
 
@@ -76,7 +76,7 @@ if ( ! class_exists( 'MO', false ) ) :
 		 * @return string|false
 		 */
 		public function export() {
-			$tmp_fh = fopen( 'php://temp', 'r+' );
+			$tmp_fh = fopen( 'php://temp', 'r+' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen -- php://temp is the standard in-memory stream for MO export.
 			if ( ! $tmp_fh ) {
 				return false;
 			}
@@ -116,6 +116,7 @@ if ( ! class_exists( 'MO', false ) ) :
 			$size_of_hash              = 0;
 			$hash_addr                 = $translations_lengths_addr + 8 * $total;
 			$current_addr              = $hash_addr;
+			// phpcs:disable WordPress.WP.AlternativeFunctions.file_system_operations_fwrite -- Vendored pomo library requires binary stream I/O for MO/PO parsing.
 			fwrite(
 				$fh,
 				pack(
@@ -159,6 +160,7 @@ if ( ! class_exists( 'MO', false ) ) :
 
 			fwrite( $fh, $originals_table );
 			fwrite( $fh, $translations_table );
+			// phpcs:enable WordPress.WP.AlternativeFunctions.file_system_operations_fwrite
 			return true;
 		}
 
