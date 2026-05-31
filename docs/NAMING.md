@@ -57,7 +57,7 @@ apply_filters( 'chatbot_style_config', $style_config, $settings );
 
 ## Auditoría
 
-Ejecutar antes de cada release:
+Ejecutar antes de empaquetar o publicar el plugin:
 
 ```bash
 ./scripts/check-namespace.sh

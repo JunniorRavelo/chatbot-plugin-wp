@@ -728,7 +728,7 @@ class Chatbot_Chat_History {
 		$ids          = array_map( 'intval', $ids );
 		$placeholders = implode( ',', array_fill( 0, count( $ids ), '%d' ) );
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table purge; table name via %i placeholder.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Custom table purge; table name via %i placeholder; IN list built from intval IDs.
 		$deleted_messages = (int) $wpdb->query(
 			$wpdb->prepare(
 				'DELETE FROM %i WHERE conversation_id IN (' . $placeholders . ')',
@@ -737,7 +737,7 @@ class Chatbot_Chat_History {
 			)
 		);
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table purge; table name via %i placeholder.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Custom table purge; table name via %i placeholder; IN list built from intval IDs.
 		$deleted_conversations = (int) $wpdb->query(
 			$wpdb->prepare(
 				'DELETE FROM %i WHERE id IN (' . $placeholders . ')',
@@ -785,7 +785,7 @@ class Chatbot_Chat_History {
 		$msg_table    = self::messages_table();
 		$placeholders = implode( ',', array_fill( 0, count( $conversation_ids ), '%d' ) );
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table lookup; table names via %i placeholders.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Custom table lookup; table names via %i placeholders; IN list built from intval IDs.
 		$sql = "SELECT m.conversation_id, m.content
 			FROM %i m
 			INNER JOIN (
@@ -795,6 +795,7 @@ class Chatbot_Chat_History {
 				GROUP BY conversation_id
 			) first_msg ON m.id = first_msg.min_id";
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Prepared dynamic IN query; IDs sanitized via intval.
 		$rows = $wpdb->get_results(
 			$wpdb->prepare( $sql, $msg_table, $msg_table, ...$conversation_ids ),
 			ARRAY_A
@@ -862,7 +863,7 @@ class Chatbot_Chat_History {
 
 		$placeholders = implode( ',', array_fill( 0, count( $conversation_ids ), '%d' ) );
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table lookup; table name via %i placeholder.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Custom table lookup; table name via %i placeholder; IN list built from intval IDs.
 		$rows = $wpdb->get_results(
 			$wpdb->prepare(
 				'SELECT id, public_id FROM %i WHERE id IN (' . $placeholders . ')',

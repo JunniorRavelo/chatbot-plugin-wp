@@ -19,20 +19,15 @@ mkdir -p "${DEST}"
 rsync -a \
 	--exclude='.git' \
 	--exclude='.git/' \
-	--exclude='.github' \
-	--exclude='.github/' \
-	--exclude='.env' \
-	--exclude='.env.example' \
-	--exclude='.distignore' \
-	--exclude='.gitignore' \
+	--exclude='.*' \
 	--exclude='node_modules' \
 	--exclude='*.zip' \
 	--exclude='*.csv' \
-	--exclude='.DS_Store' \
 	--exclude='scripts' \
 	--exclude='docs' \
 	--exclude='CHANGELOG.md' \
 	--exclude='README.md' \
+	--exclude-from="${ROOT}/.distignore" \
 	"${ROOT}/" "${DEST}/"
 
 (
