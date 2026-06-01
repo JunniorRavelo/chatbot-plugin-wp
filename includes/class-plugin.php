@@ -131,6 +131,15 @@ class Multch_Plugin {
 	}
 
 	/**
+	 * Whether usage statistics and conversation history are collected (admin opt-in).
+	 */
+	public static function is_stats_history_enabled(): bool {
+		$settings = self::get_settings();
+
+		return ! empty( $settings['stats_history_enabled'] );
+	}
+
+	/**
 	 * Permite sobrescribir opciones sensibles desde wp-config.php (equivalente a .env).
 	 *
 	 * @param array<string, mixed> $settings

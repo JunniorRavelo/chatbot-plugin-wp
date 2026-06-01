@@ -31,6 +31,7 @@ class Multch_Admin_Settings {
 	public static function default_settings(): array {
 		return array(
 			'widget_enabled'                 => true,
+			'stats_history_enabled'          => false,
 			'welcome_message'                => "Hello. I'm an AI agent. I may make mistakes; please verify important information before making decisions.\n\nHow can I help you?",
 			'system_prompt'                  => 'You are a helpful website assistant. Respond clearly, briefly, and kindly. If you don\'t know something, say so honestly.',
 			'streaming_enabled'              => true,
@@ -420,6 +421,7 @@ class Multch_Admin_Settings {
 		$limits = self::general_field_limits();
 
 		$out['widget_enabled'] = self::sanitize_checkbox( $input, $current, 'widget_enabled', (bool) $defaults['widget_enabled'] );
+		$out['stats_history_enabled'] = self::sanitize_checkbox( $input, $current, 'stats_history_enabled', (bool) $defaults['stats_history_enabled'] );
 		$out['streaming_enabled'] = self::sanitize_checkbox( $input, $current, 'streaming_enabled', (bool) $defaults['streaming_enabled'] );
 
 		$out['welcome_message'] = self::truncate_setting_string(
@@ -1136,12 +1138,20 @@ class Multch_Admin_Settings {
 	}
 
 	/**
-	 * Preserva checkboxes al guardar desde pestañas que no incluyen el campo.
-	 * En la pestaña que sí lo incluye, usa input hidden con value="0" antes del checkbox.
-	 *
-	 * @param array<string, mixed> $input
-	 * @param array<string, mixed> $current
+	 * Blocks admin actions that require statistics/history when the opt-in is off.
 	 */
+	private static function require_stats_history_enabled_or_die(): void {
+		if ( Multch_Plugin::is_stats_history_enabled() ) {
+			return;
+		}
+
+		wp_die(
+			esc_html__( 'Statistics and conversation history are disabled. Enable them under General first.', 'multiai-chatbot' ),
+			esc_html__( 'Statistics and history disabled', 'multiai-chatbot' ),
+			array( 'response' => 403 )
+		);
+	}
+
 	private static function sanitize_checkbox( array $input, array $current, string $key, bool $default ): bool {
 		if ( ! array_key_exists( $key, $input ) ) {
 			return ! empty( $current[ $key ] ?? $default );
@@ -1182,6 +1192,7 @@ class Multch_Admin_Settings {
 		if ( ! current_user_can( 'manage_options' ) ) {
 			wp_die( esc_html__( 'Insufficient permissions.', 'multiai-chatbot' ) );
 		}
+		self::require_stats_history_enabled_or_die();
 		check_admin_referer( 'multch_export_csv' );
 
 		$filters = self::get_stats_filters_from_request();
@@ -1198,6 +1209,7 @@ class Multch_Admin_Settings {
 		if ( ! current_user_can( 'manage_options' ) ) {
 			wp_die( esc_html__( 'Insufficient permissions.', 'multiai-chatbot' ) );
 		}
+		self::require_stats_history_enabled_or_die();
 		check_admin_referer( 'multch_export_history_csv' );
 
 		$filters = self::get_history_filters_from_request();
@@ -1210,6 +1222,7 @@ class Multch_Admin_Settings {
 		if ( ! current_user_can( 'manage_options' ) ) {
 			wp_die( esc_html__( 'Insufficient permissions.', 'multiai-chatbot' ) );
 		}
+		self::require_stats_history_enabled_or_die();
 		check_admin_referer( 'multch_purge_history' );
 
 		$settings = Multch_Plugin::get_settings();
@@ -1252,6 +1265,10 @@ class Multch_Admin_Settings {
 			wp_send_json_error( array( 'message' => __( 'Insufficient permissions.', 'multiai-chatbot' ) ), 403 );
 		}
 
+		if ( ! Multch_Plugin::is_stats_history_enabled() ) {
+			wp_send_json_error( array( 'message' => __( 'Statistics and history are disabled.', 'multiai-chatbot' ) ), 403 );
+		}
+
 		$conversation_id = isset( $_POST['id'] ) ? (int) $_POST['id'] : 0;
 		if ( $conversation_id <= 0 ) {
 			wp_send_json_error( array( 'message' => __( 'Invalid conversation.', 'multiai-chatbot' ) ), 400 );
@@ -1268,6 +1285,7 @@ class Multch_Admin_Settings {
 		if ( ! current_user_can( 'manage_options' ) ) {
 			wp_die( esc_html__( 'Insufficient permissions.', 'multiai-chatbot' ) );
 		}
+		self::require_stats_history_enabled_or_die();
 		check_admin_referer( 'multch_purge_telemetry' );
 
 		$settings = Multch_Plugin::get_settings();
@@ -1308,16 +1326,32 @@ class Multch_Admin_Settings {
 		}
 
 		// phpcs:disable WordPress.Security.NonceVerification.Recommended -- Admin list/filter GET params; screen requires manage_options.
-		$tab      = isset( $_GET['tab'] ) ? sanitize_key( wp_unslash( (string) $_GET['tab'] ) ) : 'general';
-		$settings = Multch_Plugin::get_settings();
-		$tabs     = array(
+		$tab               = isset( $_GET['tab'] ) ? sanitize_key( wp_unslash( (string) $_GET['tab'] ) ) : 'general';
+		$settings          = Multch_Plugin::get_settings();
+		$stats_history_on  = Multch_Plugin::is_stats_history_enabled();
+		$tabs              = array(
 			'general'  => __( 'General', 'multiai-chatbot' ),
 			'model'    => __( 'AI Model', 'multiai-chatbot' ),
 			'security' => __( 'Security', 'multiai-chatbot' ),
 			'style'    => __( 'Chat style', 'multiai-chatbot' ),
-			'stats'    => __( 'Statistics', 'multiai-chatbot' ),
-			'history'  => __( 'History', 'multiai-chatbot' ),
 		);
+
+		if ( $stats_history_on ) {
+			$tabs['stats']   = __( 'Statistics', 'multiai-chatbot' );
+			$tabs['history'] = __( 'History', 'multiai-chatbot' );
+		} elseif ( in_array( $tab, array( 'stats', 'history' ), true ) ) {
+			wp_safe_redirect(
+				add_query_arg(
+					array(
+						'page'                  => 'multch-plugin',
+						'tab'                   => 'general',
+						'multch_stats_history' => 'disabled',
+					),
+					admin_url( 'admin.php' )
+				)
+			);
+			exit;
+		}
 
 		if ( ! isset( $tabs[ $tab ] ) ) {
 			$tab = 'general';
@@ -1401,6 +1435,14 @@ class Multch_Admin_Settings {
 	}
 
 	private static function render_save_notices(): void {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin redirect notice only.
+		if ( isset( $_GET['multch_stats_history'] ) && 'disabled' === sanitize_key( wp_unslash( (string) $_GET['multch_stats_history'] ) ) ) {
+			self::render_admin_notice(
+				__( 'Statistics and conversation history are disabled. Enable them under General to access those screens.', 'multiai-chatbot' ),
+				'warning'
+			);
+		}
+
 		$errors = self::consume_settings_errors( 'multch_plugin_group' );
 
 		// phpcs:disable WordPress.Security.NonceVerification.Recommended -- settings-updated is set by options.php after verified save.
@@ -1702,6 +1744,29 @@ class Multch_Admin_Settings {
 		self::card_close();
 
 		self::card_open(
+			__( 'Statistics and history', 'multiai-chatbot' ),
+			__( 'Optional local storage of chat usage and conversations on your server.', 'multiai-chatbot' )
+		);
+		?>
+		<table class="form-table" role="presentation">
+			<tr>
+				<th scope="row"><?php esc_html_e( 'Store statistics and history', 'multiai-chatbot' ); ?></th>
+				<td>
+					<label class="multch-admin-toggle">
+						<input type="hidden" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[stats_history_enabled]" value="0" />
+						<input type="checkbox" id="multch-stats-history-enabled" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[stats_history_enabled]" value="1" <?php checked( ! empty( $settings['stats_history_enabled'] ) ); ?> />
+						<span><?php esc_html_e( 'Enable usage statistics and conversation history', 'multiai-chatbot' ); ?></span>
+					</label>
+					<p class="description">
+						<?php esc_html_e( 'When enabled, the plugin records anonymous usage statistics (provider, model, latency, errors) and saves chat conversations in your site database. The Statistics and History admin tabs appear. Disabled by default; nothing is stored until you turn this on. Disabling stops new collection; existing records remain until you delete them or uninstall the plugin.', 'multiai-chatbot' ); ?>
+					</p>
+				</td>
+			</tr>
+		</table>
+		<?php
+		self::card_close();
+
+		self::card_open(
 			__( 'Response delivery', 'multiai-chatbot' ),
 			__( 'How assistant replies appear while the model is generating.', 'multiai-chatbot' )
 		);
@@ -1809,21 +1874,21 @@ class Multch_Admin_Settings {
 						?>
 					</p>
 					<?php endif; ?>
-					<p class="description"><?php esc_html_e( 'Events are always stored in the database. Enable this only if you need a JSONL file for external tools. Can be forced via MULTCH_TELEMETRY_FILE_LOG in wp-config.php.', 'multiai-chatbot' ); ?></p>
+					<p class="description"><?php esc_html_e( 'Applies only when statistics and history are enabled under General. Database events use the same opt-in. Enable this additionally if you need a JSONL file for external tools. Can be forced via MULTCH_TELEMETRY_FILE_LOG in wp-config.php.', 'multiai-chatbot' ); ?></p>
 				</td>
 			</tr>
 			<tr>
 				<th scope="row"><?php esc_html_e( 'History retention (days)', 'multiai-chatbot' ); ?></th>
 				<td>
 					<input type="number" min="0" max="3650" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[history_retention_days]" value="<?php echo esc_attr( (string) ( $settings['history_retention_days'] ?? 0 ) ); ?>" class="small-text" />
-					<p class="description"><?php esc_html_e( '0 = keep indefinitely. Older conversations are purged automatically each day.', 'multiai-chatbot' ); ?></p>
+					<p class="description"><?php esc_html_e( 'Applies when statistics and history are enabled under General. 0 = keep indefinitely. Older conversations are purged automatically each day.', 'multiai-chatbot' ); ?></p>
 				</td>
 			</tr>
 			<tr>
 				<th scope="row"><?php esc_html_e( 'Telemetry retention (days)', 'multiai-chatbot' ); ?></th>
 				<td>
 					<input type="number" min="0" max="3650" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[telemetry_retention_days]" value="<?php echo esc_attr( (string) ( $settings['telemetry_retention_days'] ?? 0 ) ); ?>" class="small-text" />
-					<p class="description"><?php esc_html_e( '0 = keep indefinitely. Older statistics events are purged automatically each day.', 'multiai-chatbot' ); ?></p>
+					<p class="description"><?php esc_html_e( 'Applies when statistics and history are enabled under General. 0 = keep indefinitely. Older statistics events are purged automatically each day.', 'multiai-chatbot' ); ?></p>
 				</td>
 			</tr>
 		</table>
@@ -3360,6 +3425,10 @@ class Multch_Admin_Settings {
 
 		if ( ! current_user_can( 'manage_options' ) ) {
 			wp_send_json_error( array( 'message' => __( 'Insufficient permissions.', 'multiai-chatbot' ) ), 403 );
+		}
+
+		if ( ! Multch_Plugin::is_stats_history_enabled() ) {
+			wp_send_json_error( array( 'message' => __( 'Statistics and history are disabled.', 'multiai-chatbot' ) ), 403 );
 		}
 
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Verified via check_ajax_referer above.

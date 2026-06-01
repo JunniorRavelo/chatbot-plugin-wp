@@ -135,6 +135,10 @@ class Multch_Telemetry {
 	 * @param array<string, mixed> $event
 	 */
 	public static function record( array $event ): void {
+		if ( ! Multch_Plugin::is_stats_history_enabled() ) {
+			return;
+		}
+
 		global $wpdb;
 
 		$row = array(
@@ -165,6 +169,10 @@ class Multch_Telemetry {
 	 * Whether optional JSONL file logging is enabled (settings or wp-config constant).
 	 */
 	public static function is_file_log_enabled(): bool {
+		if ( ! Multch_Plugin::is_stats_history_enabled() ) {
+			return false;
+		}
+
 		$settings = Multch_Plugin::get_settings();
 		return ! empty( $settings['telemetry_file_log'] );
 	}

@@ -47,9 +47,12 @@ class Multch_Privacy {
 			)
 			: __( 'Telemetry events are kept until manually purged or until the plugin is uninstalled.', 'multiai-chatbot' );
 
+		$stats_enabled = Multch_Plugin::is_stats_history_enabled();
+
 		$sections = array(
 			'<h2>' . esc_html__( 'What data this plugin collects', 'multiai-chatbot' ) . '</h2>',
-			'<p>' . esc_html__( 'When visitors use the chat widget, the plugin may store and process the following data:', 'multiai-chatbot' ) . '</p>',
+			'<p>' . esc_html__( 'When visitors use the chat widget, the plugin processes messages to generate AI replies. Conversation history and usage telemetry are stored on your server only if you enable “Store statistics and history” under MultiAI ChatBot → General (disabled by default).', 'multiai-chatbot' ) . '</p>',
+			'<p>' . esc_html__( 'When that option is enabled, the plugin may also store:', 'multiai-chatbot' ) . '</p>',
 			'<ul>',
 			'<li>' . esc_html__( 'Chat messages sent by visitors and AI assistant replies.', 'multiai-chatbot' ) . '</li>',
 			'<li>' . esc_html__( 'An anonymous session identifier (hashed; not linked to WordPress user accounts by default).', 'multiai-chatbot' ) . '</li>',
@@ -70,14 +73,25 @@ class Multch_Privacy {
 			'<p>' . esc_html__( 'This plugin does not send site data, chat content, or telemetry to the plugin author. Data is processed on your server and only forwarded to AI providers you configure.', 'multiai-chatbot' ) . '</p>',
 
 			'<h2>' . esc_html__( 'Retention', 'multiai-chatbot' ) . '</h2>',
-			'<p>' . esc_html( $history_retention ) . '</p>',
-			'<p>' . esc_html( $telemetry_retention ) . '</p>',
+		);
+
+		if ( $stats_enabled ) {
+			$sections[] = '<p>' . esc_html( $history_retention ) . '</p>';
+			$sections[] = '<p>' . esc_html( $telemetry_retention ) . '</p>';
+		} else {
+			$sections[] = '<p>' . esc_html__( 'Statistics and conversation history are not collected while the opt-in under General remains disabled.', 'multiai-chatbot' ) . '</p>';
+		}
+
+		$sections = array_merge(
+			$sections,
+			array(
 
 			'<h2>' . esc_html__( 'Uninstall', 'multiai-chatbot' ) . '</h2>',
 			'<p>' . esc_html__( 'When the plugin is deleted via the WordPress admin, database tables, plugin settings, scheduled tasks, plugin transients, and any optional telemetry log file under wp-content/uploads/multiai-chatbot/ are removed.', 'multiai-chatbot' ) . '</p>',
 
 			'<h2>' . esc_html__( 'Personal data requests', 'multiai-chatbot' ) . '</h2>',
-			'<p>' . esc_html__( 'Chat history is stored with anonymous session identifiers and is not linked to visitor email addresses or WordPress user accounts by default. Site administrators can review, export, or delete conversations from the Chatbot admin screens.', 'multiai-chatbot' ) . '</p>',
+			'<p>' . esc_html__( 'When enabled, chat history is stored with anonymous session identifiers and is not linked to visitor email addresses or WordPress user accounts by default. Site administrators can review, export, or delete conversations from the Chatbot admin screens.', 'multiai-chatbot' ) . '</p>',
+			)
 		);
 
 		return implode( "\n", $sections );

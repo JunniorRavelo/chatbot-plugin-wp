@@ -27,13 +27,13 @@ Connect the chat to AI models configured site-wide under **Settings → Connecto
 * **8 visual themes:** Sapphire, Midnight, Monochrome, Aqua, Ember, Emerald, Amethyst, and Plum.
 * **Customization:** Colors, border radius, widget position (5 locations), and panel width.
 * **Live preview:** Preview theme, position, and styles from the admin panel.
-* **Conversation history:** Browse messages, status, provider, and source page.
-* **Telemetry and CSV export:** Latency, errors, models used, and period summaries.
+* **Conversation history (opt-in):** Enable under General to browse messages, status, provider, and source page locally.
+* **Telemetry and CSV export (opt-in):** Latency, errors, models used, and period summaries when statistics and history are enabled.
 * **Security:** IP rate limiting; provider credentials stay in WordPress Connectors (never in the browser).
 
 = Admin panel =
 
-* **General** — Enable widget, welcome message, system prompt, streaming, and usage limits.
+* **General** — Enable widget, welcome message, system prompt, streaming, and optional statistics/history collection (off by default).
 * **AI Model** — Provider (WordPress AI or Ollama), preferred model, and fallback model preferences.
 * **Security** — Allowed origins, cache, telemetry, and abuse suspension.
 * **Chat Style** — Presets, colors, position, and interactive preview.

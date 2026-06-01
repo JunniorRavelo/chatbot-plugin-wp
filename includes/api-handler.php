@@ -534,6 +534,10 @@ class Multch_Api_Handler {
 	 * @return array{id: int, public_id: string}|null
 	 */
 	private static function resolve_history_conversation( string $session_hash, array $parsed, string $provider_id ): ?array {
+		if ( ! Multch_Plugin::is_stats_history_enabled() ) {
+			return null;
+		}
+
 		$conv = Multch_Chat_History::resolve_conversation(
 			$session_hash,
 			$parsed['conversation_id'] ?? '',
@@ -562,6 +566,10 @@ class Multch_Api_Handler {
 		int $latency_ms,
 		array $parsed
 	): void {
+		if ( ! Multch_Plugin::is_stats_history_enabled() ) {
+			return;
+		}
+
 		if ( null === $conversation || $conversation['id'] <= 0 ) {
 			return;
 		}
@@ -785,6 +793,10 @@ class Multch_Api_Handler {
 	 * @param array{id: int, public_id: string}|null $conversation
 	 */
 	private static function record_event( string $session_hash, array $settings, string $model, string $status, int $latency_ms, string $error_code = '', ?array $conversation = null ): void {
+		if ( ! Multch_Plugin::is_stats_history_enabled() ) {
+			return;
+		}
+
 		Multch_Telemetry::record(
 			array(
 				'session_hash'    => $session_hash,
