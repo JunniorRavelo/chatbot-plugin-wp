@@ -30,7 +30,7 @@ class Multch_Admin_Settings {
 	 */
 	public static function default_settings(): array {
 		return array(
-			'widget_enabled'                 => true,
+			'widget_enabled'                 => false,
 			'stats_history_enabled'          => false,
 			'welcome_message'                => "Hello. I'm an AI agent. I may make mistakes; please verify important information before making decisions.\n\nHow can I help you?",
 			'system_prompt'                  => 'You are a helpful website assistant. Respond clearly, briefly, and kindly. If you don\'t know something, say so honestly.',
