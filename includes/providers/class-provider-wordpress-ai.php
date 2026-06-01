@@ -40,6 +40,9 @@ class Multch_Provider_WordPress_AI implements Multch_AI_Provider {
 			);
 		}
 
+		$preferences    = multch_ai_client_model_preferences( $settings );
+		$fallback_model = ! empty( $preferences[0] ) ? (string) $preferences[0] : 'wordpress-ai';
+
 		$builder = wp_ai_client_prompt( $split['latest'] )
 			->using_system_instruction( $system )
 			->using_temperature( 0.2 )
@@ -49,39 +52,39 @@ class Multch_Provider_WordPress_AI implements Multch_AI_Provider {
 			$builder = $builder->with_history( ...$split['history'] );
 		}
 
-		$preferences = multch_ai_client_model_preferences( $settings );
-		if ( ! empty( $preferences ) ) {
-			$builder = $builder->using_model_preference( ...$preferences );
-		}
+		$result = multch_ai_client_generate_from_builder( $builder, $preferences, $fallback_model );
 
-		if ( method_exists( $builder, 'is_supported_for_text_generation' ) && ! $builder->is_supported_for_text_generation() ) {
-			return new WP_Error(
-				'configuration_error',
-				__( 'No AI model is available. Open Settings → Connectors and connect a provider.', 'multiai-chatbot' ),
-				array( 'status' => 503, 'error_code' => 'CONFIGURATION_ERROR' )
-			);
-		}
-
-		$result = $builder->generate_text_result();
 		if ( is_wp_error( $result ) ) {
-			return multch_ai_client_map_error( $result );
+			return $result;
 		}
 
-		$fallback_model = ! empty( $preferences[0] ) ? (string) $preferences[0] : 'wordpress-ai';
-		$text           = multch_ai_client_extract_text( $result );
-		$model          = multch_ai_client_extract_model( $result, $fallback_model );
-
-		if ( '' === $text ) {
-			return new WP_Error(
-				'model_temp_unavailable',
-				__( 'The model did not return a valid response.', 'multiai-chatbot' ),
-				array( 'status' => 503, 'error_code' => 'MODEL_TEMP_UNAVAILABLE' )
-			);
+		if ( '' !== $result['text'] ) {
+			return $result;
 		}
 
-		return array(
-			'text'  => $text,
-			'model' => $model,
+		// Retry without model preferences (e.g. invalid model id or unavailable fallback).
+		$retry_builder = wp_ai_client_prompt( $split['latest'] )
+			->using_system_instruction( $system )
+			->using_temperature( 0.2 )
+			->using_max_tokens( 600 );
+
+		if ( ! empty( $split['history'] ) ) {
+			$retry_builder = $retry_builder->with_history( ...$split['history'] );
+		}
+
+		$retry = multch_ai_client_generate_from_builder( $retry_builder, array(), $fallback_model );
+		if ( is_wp_error( $retry ) ) {
+			return $retry;
+		}
+
+		if ( '' !== $retry['text'] ) {
+			return $retry;
+		}
+
+		return new WP_Error(
+			'model_temp_unavailable',
+			__( 'The model did not return a valid response. Check Settings → Connectors and the model ID in AI Model.', 'multiai-chatbot' ),
+			array( 'status' => 503, 'error_code' => 'MODEL_TEMP_UNAVAILABLE' )
 		);
 	}
 }

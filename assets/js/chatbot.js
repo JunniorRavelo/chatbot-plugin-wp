@@ -216,7 +216,7 @@
       RATE_LIMIT_MODEL_MINUTE: "The model per-minute limit was reached. Try again shortly.",
       RATE_LIMIT_MODEL_DAILY: "The model daily limit was reached. Try again later.",
       MODEL_ALL_EXHAUSTED: "All models are temporarily saturated.",
-      MODEL_TEMP_UNAVAILABLE: "Models are not available at this time.",
+      MODEL_TEMP_UNAVAILABLE: "The model did not return a valid response. Check Connectors and the model in AI Model settings.",
       PROVIDER_TIMEOUT: "The provider took too long to respond.",
       PROVIDER_UPSTREAM: "AI provider error.",
       ORIGIN_FORBIDDEN: "Unauthorized request.",

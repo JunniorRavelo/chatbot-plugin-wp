@@ -1919,6 +1919,10 @@ msgstr "La IA en la nube requiere WordPress %s o superior con el cliente de IA i
 msgid "WordPress AI Client is not available. Use WordPress 7.0 or newer, or choose Ollama for a local model."
 msgstr "El cliente de IA de WordPress no está disponible. Use WordPress 7.0 o superior, o elija Ollama para un modelo local."
 
+#: includes/providers/class-provider-wordpress-ai.php:88
+msgid "The model did not return a valid response. Check Settings → Connectors and the model ID in AI Model."
+msgstr "El modelo no devolvió una respuesta válida. Revise Ajustes → Conectores y el ID de modelo en Modelo IA."
+
 #: includes/providers/class-provider-wordpress-ai.php:29
 msgid "WordPress AI Client libraries are not loaded."
 msgstr "Las bibliotecas del cliente de IA de WordPress no están cargadas."

@@ -378,7 +378,22 @@ function multch_ai_client_extract_text( $result ): string {
 		return trim( $result );
 	}
 
-	if ( ! is_object( $result ) || ! method_exists( $result, 'toMessage' ) ) {
+	if ( ! is_object( $result ) ) {
+		return '';
+	}
+
+	if ( method_exists( $result, 'toText' ) ) {
+		try {
+			$text = trim( (string) $result->toText() );
+			if ( '' !== $text ) {
+				return $text;
+			}
+		} catch ( Exception $e ) { // phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedCatch
+			// Try legacy extraction below.
+		}
+	}
+
+	if ( ! method_exists( $result, 'toMessage' ) ) {
 		return '';
 	}
 
@@ -389,9 +404,23 @@ function multch_ai_client_extract_text( $result ): string {
 
 	$text = '';
 	foreach ( $message->getParts() as $part ) {
-		if ( is_object( $part ) && method_exists( $part, 'isText' ) && $part->isText() && method_exists( $part, 'getText' ) ) {
-			$text .= (string) $part->getText();
+		if ( ! is_object( $part ) || ! method_exists( $part, 'getText' ) ) {
+			continue;
 		}
+
+		$part_text = $part->getText();
+		if ( null === $part_text || '' === trim( (string) $part_text ) ) {
+			continue;
+		}
+
+		if ( method_exists( $part, 'getChannel' ) ) {
+			$channel = $part->getChannel();
+			if ( is_object( $channel ) && method_exists( $channel, 'isContent' ) && ! $channel->isContent() ) {
+				continue;
+			}
+		}
+
+		$text .= (string) $part_text;
 	}
 
 	return trim( $text );
@@ -407,13 +436,60 @@ function multch_ai_client_extract_model( $result, string $fallback ): string {
 	}
 
 	$meta = $result->getModelMetadata();
-	if ( ! is_object( $meta ) || ! method_exists( $meta, 'getName' ) ) {
+	if ( ! is_object( $meta ) ) {
 		return $fallback;
 	}
 
-	$name = trim( (string) $meta->getName() );
+	if ( method_exists( $meta, 'getId' ) ) {
+		$id = trim( (string) $meta->getId() );
+		if ( '' !== $id ) {
+			return $id;
+		}
+	}
 
-	return '' !== $name ? $name : $fallback;
+	if ( method_exists( $meta, 'getName' ) ) {
+		$name = trim( (string) $meta->getName() );
+		if ( '' !== $name ) {
+			return $name;
+		}
+	}
+
+	return $fallback;
+}
+
+/**
+ * Runs a configured prompt builder and returns text plus model id.
+ *
+ * @param object               $builder     WP_AI_Client_Prompt_Builder instance.
+ * @param list<string>         $preferences Model preference list (may be empty).
+ * @param string               $fallback_model
+ * @return array{text: string, model: string}|WP_Error
+ */
+function multch_ai_client_generate_from_builder( $builder, array $preferences, string $fallback_model ) {
+	if ( ! empty( $preferences ) && method_exists( $builder, 'using_model_preference' ) ) {
+		$builder = $builder->using_model_preference( ...$preferences );
+	}
+
+	if ( method_exists( $builder, 'is_supported_for_text_generation' ) && ! $builder->is_supported_for_text_generation() ) {
+		return new WP_Error(
+			'configuration_error',
+			__( 'No AI model is available. Open Settings → Connectors and connect a provider.', 'multiai-chatbot' ),
+			array( 'status' => 503, 'error_code' => 'CONFIGURATION_ERROR' )
+		);
+	}
+
+	$result = $builder->generate_text_result();
+	if ( is_wp_error( $result ) ) {
+		return multch_ai_client_map_error( $result );
+	}
+
+	$text  = multch_ai_client_extract_text( $result );
+	$model = multch_ai_client_extract_model( $result, $fallback_model );
+
+	return array(
+		'text'  => $text,
+		'model' => $model,
+	);
 }
 
 /**
