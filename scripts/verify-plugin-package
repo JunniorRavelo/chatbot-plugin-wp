@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+# Build the production ZIP and verify it excludes dev-only paths.
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+SLUG="multiai-chatbot"
+CHECK_ROOT="$(mktemp -d)"
+ZIP="${ROOT}/${SLUG}.zip"
+
+cleanup() {
+	rm -rf "${CHECK_ROOT}"
+}
+trap cleanup EXIT
+
+cd "${ROOT}"
+./scripts/package-plugin
+
+if [[ ! -f "${ZIP}" ]]; then
+	echo "error: missing ${ZIP}" >&2
+	exit 1
+fi
+
+unzip -q "${ZIP}" -d "${CHECK_ROOT}"
+PLUGIN_DIR="${CHECK_ROOT}/${SLUG}"
+
+if [[ ! -d "${PLUGIN_DIR}" ]]; then
+	echo "error: expected ${SLUG}/ inside ZIP" >&2
+	exit 1
+fi
+
+fail=0
+for forbidden in scripts .github .git .env; do
+	if [[ -e "${PLUGIN_DIR}/${forbidden}" ]]; then
+		echo "error: production ZIP must not contain: ${forbidden}" >&2
+		fail=1
+	fi
+done
+
+if [[ "${fail}" -ne 0 ]]; then
+	exit 1
+fi
+
+if command -v wp >/dev/null 2>&1; then
+	echo "Running: wp plugin check ${PLUGIN_DIR}"
+	if ! wp plugin check "${PLUGIN_DIR}" --ignore-warnings 2>&1; then
+		echo "error: wp plugin check reported issues" >&2
+		exit 1
+	fi
+else
+	echo "skip: wp CLI not found (install WP-CLI to run plugin check here)"
+fi
+
+echo "OK: ${ZIP} is ready for upload (no forbidden dev paths)."

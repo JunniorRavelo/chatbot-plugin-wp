@@ -25,6 +25,18 @@ WordPress **does not allow** uploading a ZIP that includes the `.git` folder. Ge
 
 This creates `multiai-chatbot.zip`, ready for **Plugins → Add New → Upload Plugin**. The ZIP **does not include** `scripts/` (development tools). For production, always use that ZIP or exclude `scripts/` if you deploy via Git (e.g. WP Pusher). Translation compilation (`./scripts/compile-languages`) is for local development only.
 
+### Publishing and Plugin Check
+
+Before submitting to WordPress.org, build and verify the production package:
+
+```bash
+./scripts/verify-plugin-package
+```
+
+This runs `./scripts/package-plugin`, confirms the ZIP excludes `scripts/`, `.github/`, `.git`, and `.env`, and runs `wp plugin check` when WP-CLI is available.
+
+**Important:** Run [Plugin Check](https://wordpress.org/plugins/plugin-check/) (or `wp plugin check`) on the **unzipped contents of `multiai-chatbot.zip`**, not on the full Git repository. Scanning the repo includes development-only files (`scripts/`, `.github/`) that are not shipped in the ZIP and will produce false positives.
+
 1. Copy the `multiai-chatbot` folder to `wp-content/plugins/` (or use the ZIP above).
 2. Activate the plugin under **Plugins**.
 3. Go to **MultiAI ChatBot** in the admin menu.
