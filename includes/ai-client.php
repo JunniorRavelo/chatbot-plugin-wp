@@ -27,8 +27,7 @@ function multch_wp_ai_client_prompt( string $prompt ) {
 		return null;
 	}
 
-	// phpcs:ignore wp_function_not_compatible_with_requires_wp -- Optional WP 7 API; guarded by function_exists() above.
-	return wp_ai_client_prompt( $prompt );
+	return call_user_func( 'wp_ai_client_prompt', $prompt );
 }
 
 /**
@@ -55,8 +54,9 @@ function multch_wp_get_connectors(): array {
 		return array();
 	}
 
-	// phpcs:ignore wp_function_not_compatible_with_requires_wp -- Optional WP 7 API; guarded by function_exists() above.
-	return wp_get_connectors();
+	$connectors = call_user_func( 'wp_get_connectors' );
+
+	return is_array( $connectors ) ? $connectors : array();
 }
 
 /**
