@@ -32,6 +32,7 @@ class Multch_Migration {
 		self::migrate_tables();
 		self::migrate_cron();
 		self::migrate_ai_providers();
+		self::migrate_telemetry_file_log();
 		self::delete_legacy_transients();
 
 		update_option( 'multch_legacy_migration_done', '1', false );
@@ -105,6 +106,35 @@ class Multch_Migration {
 
 		update_option( Multch_Admin_Settings::OPTION_KEY, wp_parse_args( $stored, Multch_Admin_Settings::default_settings() ), false );
 		update_option( 'multch_ai_client_migration_done', '1', false );
+	}
+
+	/**
+	 * Replace legacy arbitrary telemetry_log_path with uploads-only file log flag.
+	 */
+	private static function migrate_telemetry_file_log(): void {
+		if ( '1' === get_option( 'multch_telemetry_file_log_migration_done', '' ) ) {
+			return;
+		}
+
+		$stored = get_option( Multch_Admin_Settings::OPTION_KEY, array() );
+		if ( ! is_array( $stored ) ) {
+			update_option( 'multch_telemetry_file_log_migration_done', '1', false );
+			return;
+		}
+
+		if ( array_key_exists( 'telemetry_log_path', $stored ) ) {
+			if ( ! empty( $stored['telemetry_log_path'] ) ) {
+				$stored['telemetry_file_log'] = true;
+			}
+			unset( $stored['telemetry_log_path'] );
+			update_option(
+				Multch_Admin_Settings::OPTION_KEY,
+				wp_parse_args( $stored, Multch_Admin_Settings::default_settings() ),
+				false
+			);
+		}
+
+		update_option( 'multch_telemetry_file_log_migration_done', '1', false );
 	}
 
 	private static function migrate_cron(): void {

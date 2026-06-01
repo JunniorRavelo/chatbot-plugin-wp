@@ -36,7 +36,7 @@ class Multch_Admin_Settings {
 			'streaming_enabled'              => true,
 			'allowed_origins'                => '',
 			'cache_ttl_seconds'              => 1800,
-			'telemetry_log_path'             => '',
+			'telemetry_file_log'           => false,
 			'rate_limit_per_minute'          => 10,
 			'rate_limit_per_day'             => 30,
 			'rate_limit_model_per_minute'    => 6,
@@ -483,7 +483,7 @@ class Multch_Admin_Settings {
 	private static function sanitize_security_settings( array $input, array $current, array $defaults, array &$out ): void {
 		$out['allowed_origins']             = self::sanitize_origins_list( (string) ( $input['allowed_origins'] ?? $current['allowed_origins'] ?? $defaults['allowed_origins'] ) );
 		$out['cache_ttl_seconds']           = max( 0, min( 86400, (int) ( $input['cache_ttl_seconds'] ?? $current['cache_ttl_seconds'] ?? $defaults['cache_ttl_seconds'] ) ) );
-		$out['telemetry_log_path']          = sanitize_text_field( (string) ( $input['telemetry_log_path'] ?? $current['telemetry_log_path'] ?? $defaults['telemetry_log_path'] ) );
+		$out['telemetry_file_log'] = self::sanitize_checkbox( $input, $current, 'telemetry_file_log', (bool) $defaults['telemetry_file_log'] );
 		$out['rate_limit_per_minute']       = max( 1, min( 120, (int) ( $input['rate_limit_per_minute'] ?? $current['rate_limit_per_minute'] ?? $defaults['rate_limit_per_minute'] ) ) );
 		$out['rate_limit_per_day']          = max( 1, min( 1000, (int) ( $input['rate_limit_per_day'] ?? $current['rate_limit_per_day'] ?? $defaults['rate_limit_per_day'] ) ) );
 		$out['rate_limit_model_per_minute'] = max( 1, min( 120, (int) ( $input['rate_limit_model_per_minute'] ?? $current['rate_limit_model_per_minute'] ?? $defaults['rate_limit_model_per_minute'] ) ) );
@@ -1788,10 +1788,28 @@ class Multch_Admin_Settings {
 				</td>
 			</tr>
 			<tr>
-				<th scope="row"><?php esc_html_e( 'Telemetry log path', 'multiai-chatbot' ); ?></th>
+				<th scope="row"><?php esc_html_e( 'Telemetry file log', 'multiai-chatbot' ); ?></th>
 				<td>
-					<input type="text" class="large-text code" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[telemetry_log_path]" value="<?php echo esc_attr( (string) ( $settings['telemetry_log_path'] ?? '' ) ); ?>" placeholder="<?php echo esc_attr( WP_CONTENT_DIR . '/multch-telemetry.log' ); ?>" />
-					<p class="description"><?php esc_html_e( 'Optional. In addition to the database, write events to this file. Equivalent to CHAT_TELEMETRY_LOG_PATH.', 'multiai-chatbot' ); ?></p>
+					<input type="hidden" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[telemetry_file_log]" value="0" />
+					<label>
+						<input type="checkbox" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[telemetry_file_log]" value="1" <?php checked( ! empty( $settings['telemetry_file_log'] ) ); ?> />
+						<?php esc_html_e( 'Also append events to a log file in the uploads folder', 'multiai-chatbot' ); ?>
+					</label>
+					<?php
+					$log_path = Multch_Telemetry::get_file_log_path();
+					if ( '' !== $log_path ) :
+						?>
+					<p class="description">
+						<?php
+						printf(
+							/* translators: %s: absolute path inside wp-content/uploads */
+							esc_html__( 'File location: %s', 'multiai-chatbot' ),
+							'<code>' . esc_html( $log_path ) . '</code>'
+						);
+						?>
+					</p>
+					<?php endif; ?>
+					<p class="description"><?php esc_html_e( 'Events are always stored in the database. Enable this only if you need a JSONL file for external tools. Can be forced via MULTCH_TELEMETRY_FILE_LOG in wp-config.php.', 'multiai-chatbot' ); ?></p>
 				</td>
 			</tr>
 			<tr>

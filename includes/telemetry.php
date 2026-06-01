@@ -11,6 +11,11 @@ class Multch_Telemetry {
 
 	const DB_VERSION = '1.1';
 
+	/** @var string Uploads subdirectory for optional file logs (not the plugin folder). */
+	const UPLOADS_SUBDIR = 'multiai-chatbot';
+
+	const LOG_FILENAME = 'telemetry.log';
+
 	/**
 	 * @return list<string>
 	 */
@@ -156,10 +161,101 @@ class Multch_Telemetry {
 	/**
 	 * @param array<string, mixed> $row
 	 */
-	private static function maybe_append_file_log( array $row ): void {
+	/**
+	 * Whether optional JSONL file logging is enabled (settings or wp-config constant).
+	 */
+	public static function is_file_log_enabled(): bool {
 		$settings = Multch_Plugin::get_settings();
-		$path     = ! empty( $settings['telemetry_log_path'] ) ? (string) $settings['telemetry_log_path'] : '';
+		return ! empty( $settings['telemetry_file_log'] );
+	}
 
+	/**
+	 * Absolute path to the optional telemetry log inside wp-content/uploads.
+	 */
+	public static function get_file_log_path(): string {
+		$upload = wp_upload_dir();
+		if ( ! empty( $upload['error'] ) ) {
+			return '';
+		}
+
+		return trailingslashit( $upload['basedir'] ) . self::UPLOADS_SUBDIR . '/' . self::LOG_FILENAME;
+	}
+
+	/**
+	 * Ensure uploads/multiai-chatbot exists with basic hardening (index.php, .htaccess).
+	 */
+	public static function ensure_upload_log_directory(): bool {
+		$upload = wp_upload_dir();
+		if ( ! empty( $upload['error'] ) ) {
+			return false;
+		}
+
+		$dir = trailingslashit( $upload['basedir'] ) . self::UPLOADS_SUBDIR;
+		if ( ! wp_mkdir_p( $dir ) ) {
+			return false;
+		}
+
+		$index = $dir . '/index.php';
+		if ( ! is_file( $index ) ) {
+			// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents
+			file_put_contents( $index, "<?php\n// Silence is golden.\n" );
+		}
+
+		$htaccess = $dir . '/.htaccess';
+		if ( ! is_file( $htaccess ) ) {
+			// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents
+			file_put_contents( $htaccess, "deny from all\n" );
+		}
+
+		return true;
+	}
+
+	/**
+	 * Remove optional log files created under uploads on uninstall.
+	 */
+	public static function delete_upload_log_files(): void {
+		$path = self::get_file_log_path();
+		if ( '' !== $path && is_file( $path ) ) {
+			wp_delete_file( $path );
+		}
+
+		$upload = wp_upload_dir();
+		if ( ! empty( $upload['error'] ) ) {
+			return;
+		}
+
+		$dir = trailingslashit( $upload['basedir'] ) . self::UPLOADS_SUBDIR;
+		if ( ! is_dir( $dir ) ) {
+			return;
+		}
+
+		$index = $dir . '/index.php';
+		if ( is_file( $index ) ) {
+			wp_delete_file( $index );
+		}
+
+		$htaccess = $dir . '/.htaccess';
+		if ( is_file( $htaccess ) ) {
+			wp_delete_file( $htaccess );
+		}
+
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_rmdir
+		@rmdir( $dir );
+	}
+
+	/**
+	 * @param array<string, mixed> $row
+	 */
+	private static function maybe_append_file_log( array $row ): void {
+		if ( ! self::is_file_log_enabled() ) {
+			return;
+		}
+
+		if ( ! self::ensure_upload_log_directory() ) {
+			return;
+		}
+
+		$path = self::get_file_log_path();
 		if ( '' === $path ) {
 			return;
 		}
@@ -182,7 +278,7 @@ class Multch_Telemetry {
 		}
 
 		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents
-		@file_put_contents( $path, $line . "\n", FILE_APPEND | LOCK_EX ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+		file_put_contents( $path, $line . "\n", FILE_APPEND | LOCK_EX );
 	}
 
 	public static function hash_session( string $session_id ): string {

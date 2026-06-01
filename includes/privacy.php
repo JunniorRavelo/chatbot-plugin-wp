@@ -74,7 +74,7 @@ class Multch_Privacy {
 			'<p>' . esc_html( $telemetry_retention ) . '</p>',
 
 			'<h2>' . esc_html__( 'Uninstall', 'multiai-chatbot' ) . '</h2>',
-			'<p>' . esc_html__( 'When the plugin is deleted via the WordPress admin, database tables, plugin settings, scheduled tasks, and plugin transients are removed. External log files configured via telemetry_log_path are not deleted automatically.', 'multiai-chatbot' ) . '</p>',
+			'<p>' . esc_html__( 'When the plugin is deleted via the WordPress admin, database tables, plugin settings, scheduled tasks, plugin transients, and any optional telemetry log file under wp-content/uploads/multiai-chatbot/ are removed.', 'multiai-chatbot' ) . '</p>',
 
 			'<h2>' . esc_html__( 'Personal data requests', 'multiai-chatbot' ) . '</h2>',
 			'<p>' . esc_html__( 'Chat history is stored with anonymous session identifiers and is not linked to visitor email addresses or WordPress user accounts by default. Site administrators can review, export, or delete conversations from the Chatbot admin screens.', 'multiai-chatbot' ) . '</p>',

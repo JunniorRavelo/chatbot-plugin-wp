@@ -105,7 +105,7 @@ The `uninstall.php` routine removes:
 * Scheduled cron jobs: `multch_purge_history`, `multch_purge_telemetry`.
 * Plugin transients: response cache, rate limits, violations, and suspension flags.
 
-External log files configured via `telemetry_log_path` pointing outside the plugin directory are **not** deleted automatically.
+Optional telemetry log files under `wp-content/uploads/multiai-chatbot/` are removed on uninstall.
 
 == External services ==
 
@@ -187,6 +187,7 @@ Chat history uses anonymous session identifiers and is not linked to visitor ema
 == Changelog ==
 
 = 1.0.3 =
+* Optional telemetry file log is limited to `wp-content/uploads/multiai-chatbot/` (replaces arbitrary `telemetry_log_path`).
 * Migrate cloud AI to the WordPress 7.0 AI Client (`wp_ai_client_prompt`) and **Settings → Connectors** instead of direct HTTP calls to third-party APIs.
 * Remove in-plugin API key and base URL fields for Gemini, DeepSeek, and OpenAI-compatible providers.
 * Keep Ollama for optional local/self-hosted models.

@@ -19,6 +19,7 @@ wp_clear_scheduled_hook( 'chatbot_purge_telemetry' );
 Multch_Telemetry::drop_table();
 Multch_Chat_History::drop_tables();
 Multch_Telemetry::delete_plugin_transients();
+Multch_Telemetry::delete_upload_log_files();
 
 $options = array(
 	'multch_plugin_settings',

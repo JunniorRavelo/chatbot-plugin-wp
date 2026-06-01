@@ -134,7 +134,6 @@ class Multch_Plugin {
 		$string_map = array(
 			'allowed_origins'             => 'MULTCH_ALLOWED_ORIGINS',
 			'cache_ttl_seconds'           => 'MULTCH_CACHE_TTL_SECONDS',
-			'telemetry_log_path'          => 'MULTCH_TELEMETRY_LOG_PATH',
 			'rate_limit_per_minute'       => 'MULTCH_RATE_LIMIT_PER_MINUTE',
 			'rate_limit_per_day'          => 'MULTCH_RATE_LIMIT_PER_DAY',
 			'rate_limit_model_per_minute' => 'MULTCH_RATE_LIMIT_MODEL_PER_MINUTE',
@@ -155,7 +154,6 @@ class Multch_Plugin {
 		$legacy_map = array(
 			'allowed_origins'             => 'CHATBOT_ALLOWED_ORIGINS',
 			'cache_ttl_seconds'           => 'CHATBOT_CACHE_TTL_SECONDS',
-			'telemetry_log_path'          => 'CHATBOT_TELEMETRY_LOG_PATH',
 			'rate_limit_per_minute'       => 'CHATBOT_RATE_LIMIT_PER_MINUTE',
 			'rate_limit_per_day'          => 'CHATBOT_RATE_LIMIT_PER_DAY',
 			'rate_limit_model_per_minute' => 'CHATBOT_RATE_LIMIT_MODEL_PER_MINUTE',
@@ -191,6 +189,10 @@ class Multch_Plugin {
 
 		if ( defined( 'MULTCH_STREAMING_ENABLED' ) || defined( 'CHATBOT_STREAMING_ENABLED' ) ) {
 			$settings['streaming_enabled'] = multch_constant_is_true( 'MULTCH_STREAMING_ENABLED', 'CHATBOT_STREAMING_ENABLED' );
+		}
+
+		if ( defined( 'MULTCH_TELEMETRY_FILE_LOG' ) || defined( 'CHATBOT_TELEMETRY_FILE_LOG' ) ) {
+			$settings['telemetry_file_log'] = multch_constant_is_true( 'MULTCH_TELEMETRY_FILE_LOG', 'CHATBOT_TELEMETRY_FILE_LOG' );
 		}
 
 		return $settings;
