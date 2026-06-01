@@ -177,7 +177,7 @@ uninstall.php
 
 ## Conversation history
 
-Each user/assistant exchange is stored in `{prefix}multch_conversations` and `{prefix}multch_messages`.
+When **Store statistics and history** is enabled under General (disabled by default), each user/assistant exchange is stored in `{prefix}multch_conversations` and `{prefix}multch_messages`.
 
 - **Public ID:** `CB-2026-05-29-14-35-42` (date and time in the site timezone)
 - **Internal ID:** auto-increment number for administration
@@ -186,7 +186,7 @@ Each user/assistant exchange is stored in `{prefix}multch_conversations` and `{p
 
 ## Telemetry
 
-Each chat request logs an event in the `{prefix}multch_events` table:
+When statistics and history are enabled, each chat request logs an event in the `{prefix}multch_events` table:
 
 - Provider, model, status, latency, error code
 - Session hash (no plain IP address)

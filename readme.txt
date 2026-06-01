@@ -94,7 +94,9 @@ Disable the global widget under **General** and insert the shortcode `[multch_wi
 
 = Are conversations stored? =
 
-Yes. Each exchange is stored in the database with a public ID (format `CB-AAAA-MM-DD-HH-MM-SS`) and can be reviewed under **History**.
+Only if you enable **Store statistics and history** under **General** (off by default). When enabled, each exchange is saved in the database with a public ID (format `CB-AAAA-MM-DD-HH-MM-SS`) and can be reviewed under **History**.
+
+When that option is off, conversations are not saved on the server. Messages are still sent to your configured AI provider when visitors use the chat, and the browser may keep recent messages in localStorage for continuity (they expire after 24 hours).
 
 = What happens when I uninstall the plugin? =
 
