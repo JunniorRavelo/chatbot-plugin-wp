@@ -15,23 +15,11 @@
   function toggle() {
     var v = sel.value;
 
-    document.querySelectorAll(".multch-field-api-key").forEach(function (el) {
-      el.style.display = v === "ollama" ? "none" : "";
-    });
-    document.querySelectorAll(".multch-field-gemini").forEach(function (el) {
-      el.style.display = v === "gemini" ? "" : "none";
-    });
-    document.querySelectorAll(".multch-field-deepseek").forEach(function (el) {
-      el.style.display = v === "deepseek" ? "" : "none";
+    document.querySelectorAll(".multch-field-wordpress-ai").forEach(function (el) {
+      el.style.display = v === "wordpress_ai" ? "" : "none";
     });
     document.querySelectorAll(".multch-field-ollama").forEach(function (el) {
       el.style.display = v === "ollama" ? "" : "none";
-    });
-    document.querySelectorAll(".multch-field-openai").forEach(function (el) {
-      el.style.display = v === "openai_compatible" ? "" : "none";
-    });
-    document.querySelectorAll(".multch-field-deepseek-url").forEach(function (el) {
-      el.style.display = v === "deepseek" ? "" : "none";
     });
 
     if (modelDesc && descriptions[v]) {

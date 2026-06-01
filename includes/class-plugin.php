@@ -182,15 +182,11 @@ class Multch_Plugin {
 		}
 
 		if ( '' !== multch_resolve_constant( 'MULTCH_GEMINI_MODEL', 'CHATBOT_GEMINI_MODEL' ) && '' === multch_resolve_constant( 'MULTCH_MODEL', 'CHATBOT_MODEL' ) ) {
-			if ( ( $settings['provider'] ?? '' ) === 'gemini' ) {
-				$settings['model'] = multch_resolve_constant( 'MULTCH_GEMINI_MODEL', 'CHATBOT_GEMINI_MODEL' );
-			}
+			$settings['model'] = multch_resolve_constant( 'MULTCH_GEMINI_MODEL', 'CHATBOT_GEMINI_MODEL' );
 		}
 
 		if ( '' !== multch_resolve_constant( 'MULTCH_GEMINI_MODEL_CANDIDATES', 'CHATBOT_GEMINI_MODEL_CANDIDATES' ) && '' === multch_resolve_constant( 'MULTCH_MODEL_CANDIDATES', 'CHATBOT_MODEL_CANDIDATES' ) ) {
-			if ( ( $settings['provider'] ?? '' ) === 'gemini' ) {
-				$settings['model_candidates'] = multch_resolve_constant( 'MULTCH_GEMINI_MODEL_CANDIDATES', 'CHATBOT_GEMINI_MODEL_CANDIDATES' );
-			}
+			$settings['model_candidates'] = multch_resolve_constant( 'MULTCH_GEMINI_MODEL_CANDIDATES', 'CHATBOT_GEMINI_MODEL_CANDIDATES' );
 		}
 
 		if ( defined( 'MULTCH_STREAMING_ENABLED' ) || defined( 'CHATBOT_STREAMING_ENABLED' ) ) {

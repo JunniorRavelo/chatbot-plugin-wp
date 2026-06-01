@@ -5,21 +5,22 @@ Tags: chatbot, ai, gemini, live chat, customer support
 Requires at least: 6.2
 Tested up to: 7.0
 Requires PHP: 8.0
-Stable tag: 1.0.2
+Stable tag: 1.0.3
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-AI chat widget for WordPress. Supports Gemini, DeepSeek, Ollama, and OpenAI-compatible APIs. Styles, history, and telemetry.
+AI chat widget for WordPress using the WordPress AI Client (Connectors) and optional local Ollama. Styles, history, and telemetry.
 
 == Description ==
 
 **MultiAI ChatBot** adds an AI assistant to your WordPress site with a floating or embedded widget, a full admin panel, and usage analytics.
 
-Connect the chat to your preferred AI provider, customize appearance without code, and review conversations and statistics from the WordPress dashboard.
+Connect the chat to AI models configured site-wide under **Settings → Connectors**, customize appearance without code, and review conversations and statistics from the WordPress dashboard.
 
 = Key features =
 
-* **Multiple AI providers:** Google Gemini, DeepSeek, Ollama (local), and any OpenAI-compatible API.
+* **WordPress AI Client:** Uses WordPress 7.0+ Connectors (OpenAI, Google, Anthropic, and other registered providers) with credentials managed by core—not in this plugin.
+* **Ollama (optional):** Local models on your own server without cloud API keys in the plugin.
 * **Global widget or shortcode:** Show the chat site-wide or only where you insert `[multch_widget]`.
 * **Floating and inline modes:** Floating button with slide-out panel or embedded chat in page content.
 * **Streaming responses:** Progressive replies for a more natural experience (optional).
@@ -28,12 +29,12 @@ Connect the chat to your preferred AI provider, customize appearance without cod
 * **Live preview:** Preview theme, position, and styles from the admin panel.
 * **Conversation history:** Browse messages, status, provider, and source page.
 * **Telemetry and CSV export:** Latency, errors, models used, and period summaries.
-* **Security:** IP rate limiting, API keys on the server (never exposed to the browser), and wp-config.php constant support.
+* **Security:** IP rate limiting; provider credentials stay in WordPress Connectors (never in the browser).
 
 = Admin panel =
 
 * **General** — Enable widget, welcome message, system prompt, streaming, and usage limits.
-* **AI Model** — Provider, API key, primary model, and fallback models.
+* **AI Model** — Provider (WordPress AI or Ollama), preferred model, and fallback model preferences.
 * **Security** — Allowed origins, cache, telemetry, and abuse suspension.
 * **Chat Style** — Presets, colors, position, and interactive preview.
 * **Statistics** — Totals, provider breakdown, and CSV export.
@@ -41,10 +42,8 @@ Connect the chat to your preferred AI provider, customize appearance without cod
 
 = Supported providers =
 
-* **Google Gemini** — Flash models with automatic fallback on errors.
-* **DeepSeek** — Official API with fallback model rotation.
-* **Ollama** — Local models without an API key (ideal for self-hosted setups).
-* **OpenAI-compatible** — OpenAI, Azure OpenAI, or other compatible endpoints.
+* **WordPress AI (recommended)** — Any model available through **Settings → Connectors** on WordPress 7.0+ (e.g. OpenAI, Google Gemini, Anthropic Claude). Configure API keys once for all compatible plugins.
+* **Ollama** — Local models on your infrastructure (no Connectors key required).
 
 = Shortcodes =
 
@@ -59,13 +58,13 @@ Optional style attributes (override global settings): `preset`, `position`, `pri
 * `POST /wp-json/multch/v1/chat` — JSON response.
 * `POST /multch/v1/chat/stream` — Text streaming.
 
-The API key is always handled on the server; the frontend only uses the WordPress nonce.
+Provider credentials are never sent to the browser; the frontend only uses the WordPress nonce.
 
 = Requirements =
 
-* WordPress 6.2 or higher
+* WordPress 6.2 or higher (WordPress **7.0+** recommended for cloud AI via Connectors)
 * PHP 8.0 or higher
-* For Gemini, DeepSeek, or OpenAI: a valid API key
+* For WordPress AI: at least one provider connected under **Settings → Connectors**
 * For Ollama: a server reachable from the WordPress host
 
 == Installation ==
@@ -73,7 +72,7 @@ The API key is always handled on the server; the frontend only uses the WordPres
 1. Upload the `multiai-chatbot` folder to `/wp-content/plugins/` or install the ZIP from **Plugins → Add New → Upload Plugin**.
 2. Activate the plugin from **Plugins**.
 3. Go to **MultiAI ChatBot** in the admin menu.
-4. Under **AI Model**, choose a provider and enter your API key (except for Ollama).
+4. Under **AI Model**, choose **WordPress AI** or **Ollama**. For cloud AI, connect providers under **Settings → Connectors** first.
 5. Under **General**, enable the widget and adjust the welcome message.
 6. Save changes. The chat will appear on the frontend when the widget is enabled.
 
@@ -81,17 +80,13 @@ The API key is always handled on the server; the frontend only uses the WordPres
 
 == Frequently Asked Questions ==
 
-= Do I need an API key? =
+= Do I need an API key in this plugin? =
 
-Yes, for Gemini, DeepSeek, and OpenAI-compatible providers. Ollama does not require a key, but your WordPress host must be able to reach the Ollama server.
+No. Cloud provider API keys are configured under **Settings → Connectors** in WordPress 7.0+. Ollama does not require a key, but your WordPress host must reach the Ollama server.
 
-= Is the API key visible in the browser? =
+= Are provider credentials visible in the browser? =
 
 No. All model requests go through the WordPress backend. The frontend only sends messages to the REST endpoint with the WordPress nonce.
-
-= Can I define the API key in wp-config.php? =
-
-Yes. You can use constants such as `MULTCH_GEMINI_API_KEY`, `MULTCH_DEEPSEEK_API_KEY`, or `MULTCH_OPENAI_API_KEY` for better security in production.
 
 = How do I show the chat on only one page? =
 
@@ -130,33 +125,14 @@ The plugin also stores conversations and technical telemetry **on your WordPress
 
 = Administrator consent =
 
-By installing the plugin, entering an API key (where required), and selecting a provider, the site administrator authorizes the plugin to forward visitor messages to that provider's API. Visitors should be informed through your site's privacy policy; the plugin adds suggested privacy policy text under **Settings → Privacy**.
+By installing the plugin, connecting AI providers under **Settings → Connectors** (or configuring Ollama), and enabling the widget, the site administrator authorizes the plugin to forward visitor messages to generate replies. Visitors should be informed through your site's privacy policy; the plugin adds suggested privacy policy text under **Settings → Privacy**.
 
-= Google Gemini (optional) =
+= WordPress AI Client (optional) =
 
-* **Service:** Google Gemini API (`generativelanguage.googleapis.com`).
-* **Used for:** Generating AI chat replies when Gemini is selected in plugin settings.
-* **Data sent:** Chat messages, conversation context, and system prompt, as described above, when a visitor sends a message.
-* **Terms of service:** https://ai.google.dev/gemini-api/terms
-* **Privacy policy:** https://policies.google.com/privacy
-* **Related:** https://developers.google.com/terms (Google APIs Terms of Service)
-
-= DeepSeek (optional) =
-
-* **Service:** DeepSeek API (`api.deepseek.com` by default; configurable base URL).
-* **Used for:** Generating AI chat replies when DeepSeek is selected in plugin settings.
-* **Data sent:** Chat messages, conversation context, and system prompt when a visitor sends a message.
-* **Terms of service:** https://cdn.deepseek.com/policies/en-US/deepseek-open-platform-terms-of-service.html
-* **Privacy policy:** https://cdn.deepseek.com/policies/en-US/deepseek-privacy-policy.html
-
-= OpenAI-compatible APIs (optional) =
-
-* **Service:** Any HTTP API compatible with the OpenAI Chat Completions format (default: `api.openai.com`, including OpenAI, Azure OpenAI, or other hosts you configure).
-* **Used for:** Generating AI chat replies when an OpenAI-compatible provider is selected in plugin settings.
-* **Data sent:** Chat messages, conversation context, and system prompt when a visitor sends a message.
-* **OpenAI terms of service:** https://openai.com/api/policies/service-terms
-* **OpenAI privacy policy:** https://openai.com/policies/privacy-policy
-* **Note:** If you use a non-OpenAI host (for example Azure or a private gateway), that operator's terms and privacy policy apply to data sent to that endpoint.
+* **Service:** AI models from providers you connect under **Settings → Connectors** in WordPress 7.0+ (for example OpenAI, Google, or Anthropic, depending on which connector plugins you install).
+* **Used for:** Generating chat replies when **WordPress AI** is selected in plugin settings.
+* **Data sent:** Chat messages, conversation context, and system prompt when a visitor sends a message. Routing and credentials are handled by WordPress core, not stored in this plugin.
+* **Terms and privacy:** Apply the terms and privacy policies of whichever provider and model you configure in Connectors.
 
 = Ollama (optional) =
 
@@ -182,7 +158,7 @@ This plugin does **not** contact the plugin author's servers for analytics, lice
 
 = What data is sent to third parties? =
 
-When a visitor sends a chat message, the plugin forwards content to the AI provider configured by the site administrator (Google Gemini, DeepSeek, Ollama, or an OpenAI-compatible API). This typically includes the visitor message, recent conversation context, and the system prompt from plugin settings. See == External services == for each provider, timing of transmission, and links to terms and privacy policies.
+When a visitor sends a chat message, the plugin forwards content through the WordPress AI Client (Connectors) or to your configured Ollama server. This typically includes the visitor message, recent conversation context, and the system prompt from plugin settings. See == External services == for details, timing of transmission, and links to terms and privacy policies where applicable.
 
 = Who is responsible for compliance? =
 
@@ -203,12 +179,21 @@ Chat history uses anonymous session identifiers and is not linked to visitor ema
 == Screenshots ==
 
 1. Admin panel — General tab with widget enabled.
-2. AI model settings — provider, API key, and fallback models.
+2. AI model settings — provider, model preferences, and Connectors link.
 3. Chat style — visual themes, colors, and interactive preview.
 4. Floating widget on the frontend with Sapphire theme.
 5. Conversation history with filters and message detail.
 
 == Changelog ==
+
+= 1.0.3 =
+* Migrate cloud AI to the WordPress 7.0 AI Client (`wp_ai_client_prompt`) and **Settings → Connectors** instead of direct HTTP calls to third-party APIs.
+* Remove in-plugin API key and base URL fields for Gemini, DeepSeek, and OpenAI-compatible providers.
+* Keep Ollama for optional local/self-hosted models.
+* Automatic migration of legacy provider settings to `wordpress_ai`.
+
+= 1.0.2 =
+* Prefix and migration updates (see repository changelog).
 
 = 1.0.1 =
 * Document external AI services in readme (purpose, data sent, when sent, terms and privacy links per provider).
@@ -225,6 +210,9 @@ Chat history uses anonymous session identifiers and is not linked to visitor ema
 * REST API for JSON chat and streaming.
 
 == Upgrade Notice ==
+
+= 1.0.3 =
+Cloud AI now uses WordPress Connectors. Configure providers under **Settings → Connectors** and choose **WordPress AI** under **MultiAI ChatBot → AI Model**. Previous API keys saved in this plugin are no longer used.
 
 = 1.0.1 =
 Readme update: third-party AI service documentation for WordPress.org compliance. No code changes required for existing installations.

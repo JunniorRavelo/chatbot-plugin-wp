@@ -14,6 +14,7 @@ class Multch_Admin_Settings {
 	public static function init(): void {
 		add_action( 'admin_menu', array( __CLASS__, 'register_menu' ) );
 		add_action( 'admin_init', array( __CLASS__, 'register_settings' ) );
+		add_action( 'admin_notices', array( __CLASS__, 'maybe_ai_client_notice' ) );
 		add_action( 'admin_enqueue_scripts', array( __CLASS__, 'enqueue_admin_assets' ) );
 		add_action( 'admin_post_multch_export_csv', array( __CLASS__, 'export_csv' ) );
 		add_action( 'admin_post_multch_export_history_csv', array( __CLASS__, 'export_history_csv' ) );
@@ -44,13 +45,10 @@ class Multch_Admin_Settings {
 			'ip_suspend_after_violations'    => 3,
 			'ip_suspend_seconds'             => 900,
 			'internal_chat_base_url'         => '',
-			'provider'                       => 'gemini',
-			'api_key'                        => '',
-			'model'                          => 'gemini-3.1-flash-lite',
-			'model_candidates'               => 'gemini-3-flash,gemini-3.1-flash-lite,gemini-2.5-flash,gemini-2.5-flash-lite,gemini-3.1-flash-tts,gemini-2.5-flash-tts',
-			'ollama_base_url'       => 'http://127.0.0.1:11434',
-			'openai_base_url'       => 'https://api.openai.com/v1',
-			'deepseek_base_url'     => 'https://api.deepseek.com/v1',
+			'provider'                       => 'wordpress_ai',
+			'model'                          => 'gemini-2.5-flash',
+			'model_candidates'               => 'gemini-2.5-flash-lite,gpt-4o-mini,claude-sonnet-4-6',
+			'ollama_base_url'                => 'http://127.0.0.1:11434',
 			'request_timeout'       => 22,
 			'style_preset'          => 'default',
 			'style_primary'         => '',
@@ -283,22 +281,43 @@ class Multch_Admin_Settings {
 	 */
 	private static function admin_model_provider_descriptions(): array {
 		return array(
-			'gemini'            => array(
-				'model'      => __( 'E.g.: gemini-3.1-flash-lite, gemini-2.5-flash. Equivalent to GEMINI_MODEL.', 'multiai-chatbot' ),
-				'candidates' => __( 'Comma-separated rotation pool (429/404/400 tries the next). Equivalent to GEMINI_MODEL_CANDIDATES.', 'multiai-chatbot' ),
+			'wordpress_ai' => array(
+				'model'      => __( 'Preferred model ID (e.g. gemini-2.5-flash, gpt-4o-mini, claude-sonnet-4-6). WordPress picks the first available from your Connectors.', 'multiai-chatbot' ),
+				'candidates' => __( 'Comma-separated fallback model preferences if the primary model is unavailable.', 'multiai-chatbot' ),
 			),
-			'deepseek'          => array(
-				'model'      => __( 'E.g.: deepseek-v4-flash, deepseek-v4-pro, deepseek-chat.', 'multiai-chatbot' ),
-				'candidates' => __( 'Comma-separated DeepSeek fallback pool (429/404/400 tries the next).', 'multiai-chatbot' ),
-			),
-			'ollama'            => array(
+			'ollama'       => array(
 				'model'      => __( 'Name of the model installed in Ollama (e.g. llama3).', 'multiai-chatbot' ),
 				'candidates' => '',
 			),
-			'openai_compatible' => array(
-				'model'      => __( 'E.g.: gpt-4o-mini, gpt-4o.', 'multiai-chatbot' ),
-				'candidates' => '',
-			),
+		);
+	}
+
+	public static function maybe_ai_client_notice(): void {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin tab deep-link only.
+		if ( ! isset( $_GET['page'] ) || 'multch-plugin' !== sanitize_key( wp_unslash( (string) $_GET['page'] ) ) ) {
+			return;
+		}
+
+		$settings = self::get_stored_settings();
+		$provider = (string) ( $settings['provider'] ?? 'wordpress_ai' );
+		if ( 'wordpress_ai' !== $provider || multch_ai_client_available() ) {
+			return;
+		}
+
+		printf(
+			'<div class="notice notice-warning"><p>%s</p></div>',
+			wp_kses(
+				sprintf(
+					/* translators: %s: WordPress version number. */
+					__( 'Cloud AI requires WordPress %s or newer with the built-in AI Client, or choose Ollama for a local model.', 'multiai-chatbot' ),
+					'7.0'
+				),
+				array()
+			)
 		);
 	}
 
@@ -437,24 +456,20 @@ class Multch_Admin_Settings {
 	 * @param array<string, mixed> $out
 	 */
 	private static function sanitize_model_settings( array $input, array $current, array $defaults, array &$out ): void {
-		$provider = sanitize_key( $input['provider'] ?? $current['provider'] ?? 'gemini' );
-		$out['provider'] = in_array( $provider, array( 'gemini', 'ollama', 'openai_compatible', 'deepseek' ), true )
-			? $provider
-			: (string) ( $current['provider'] ?? 'gemini' );
-
-		$new_key = isset( $input['api_key'] ) ? trim( (string) $input['api_key'] ) : '';
-		if ( '' !== $new_key ) {
-			$out['api_key'] = $new_key;
-		} else {
-			$out['api_key'] = (string) ( $current['api_key'] ?? '' );
+		$provider = sanitize_key( $input['provider'] ?? $current['provider'] ?? 'wordpress_ai' );
+		if ( in_array( $provider, multch_legacy_cloud_provider_ids(), true ) ) {
+			$provider = 'wordpress_ai';
 		}
+		$out['provider'] = in_array( $provider, array( 'wordpress_ai', 'ollama' ), true )
+			? $provider
+			: (string) ( $current['provider'] ?? 'wordpress_ai' );
 
 		$out['model']            = sanitize_text_field( $input['model'] ?? $current['model'] ?? $defaults['model'] );
 		$out['model_candidates'] = sanitize_text_field( $input['model_candidates'] ?? $current['model_candidates'] ?? $defaults['model_candidates'] );
 		$out['ollama_base_url']  = esc_url_raw( $input['ollama_base_url'] ?? $current['ollama_base_url'] ?? $defaults['ollama_base_url'] );
-		$out['openai_base_url']  = esc_url_raw( $input['openai_base_url'] ?? $current['openai_base_url'] ?? $defaults['openai_base_url'] );
-		$out['deepseek_base_url'] = esc_url_raw( $input['deepseek_base_url'] ?? $current['deepseek_base_url'] ?? $defaults['deepseek_base_url'] );
 		$out['request_timeout']  = max( 5, min( 120, (int) ( $input['request_timeout'] ?? $current['request_timeout'] ?? $defaults['request_timeout'] ) ) );
+
+		unset( $out['api_key'], $out['openai_base_url'], $out['deepseek_base_url'] );
 	}
 
 	/**
@@ -1859,10 +1874,14 @@ class Multch_Admin_Settings {
 	 * @param array<string, mixed> $settings
 	 */
 	private static function render_model_fields( array $settings ): void {
-		$provider = (string) ( $settings['provider'] ?? 'gemini' );
+		$provider = (string) ( $settings['provider'] ?? 'wordpress_ai' );
+		if ( in_array( $provider, multch_legacy_cloud_provider_ids(), true ) ) {
+			$provider = 'wordpress_ai';
+		}
+
 		self::card_open(
 			__( 'AI provider', 'multiai-chatbot' ),
-			__( 'Choose the engine and configure credentials and models.', 'multiai-chatbot' )
+			__( 'Use the WordPress AI Client (site-wide Connectors) or a local Ollama server.', 'multiai-chatbot' )
 		);
 		?>
 		<table class="form-table" role="presentation">
@@ -1870,57 +1889,53 @@ class Multch_Admin_Settings {
 				<th scope="row"><?php esc_html_e( 'Provider', 'multiai-chatbot' ); ?></th>
 				<td>
 					<select name="<?php echo esc_attr( self::OPTION_KEY ); ?>[provider]" id="multch-provider">
-						<option value="gemini" <?php selected( $provider, 'gemini' ); ?>>Google Gemini</option>
-						<option value="deepseek" <?php selected( $provider, 'deepseek' ); ?>>DeepSeek</option>
+						<option value="wordpress_ai" <?php selected( $provider, 'wordpress_ai' ); ?>><?php esc_html_e( 'WordPress AI (Connectors)', 'multiai-chatbot' ); ?></option>
 						<option value="ollama" <?php selected( $provider, 'ollama' ); ?>>Ollama</option>
-						<option value="openai_compatible" <?php selected( $provider, 'openai_compatible' ); ?>>OpenAI-compatible</option>
 					</select>
+				</td>
+			</tr>
+			<tr class="multch-field-wordpress-ai">
+				<th scope="row"><?php esc_html_e( 'Connectors', 'multiai-chatbot' ); ?></th>
+				<td>
+					<p class="description">
+						<?php
+						printf(
+							wp_kses(
+								/* translators: %s: Settings → Connectors admin URL. */
+								__( 'API keys and cloud providers are configured once under <a href="%s">Settings → Connectors</a>. This plugin does not store provider credentials.', 'multiai-chatbot' ),
+								array( 'a' => array( 'href' => array() ) )
+							),
+							esc_url( multch_connectors_admin_url() )
+						);
+						?>
+					</p>
 				</td>
 			</tr>
 			<tr>
 				<th scope="row"><?php esc_html_e( 'Model', 'multiai-chatbot' ); ?></th>
 				<td>
 					<input type="text" class="regular-text" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[model]" id="multch-model" value="<?php echo esc_attr( (string) $settings['model'] ); ?>" />
-					<p class="description" id="multch-model-desc"><?php esc_html_e( 'E.g.: gemini-3.1-flash-lite, deepseek-v4-flash, llama3, gpt-4o-mini.', 'multiai-chatbot' ); ?></p>
+					<p class="description" id="multch-model-desc"><?php esc_html_e( 'Preferred model ID for WordPress AI or Ollama model name.', 'multiai-chatbot' ); ?></p>
 				</td>
 			</tr>
-			<tr class="multch-field-gemini multch-field-deepseek">
-				<th scope="row"><?php esc_html_e( 'Fallback model', 'multiai-chatbot' ); ?></th>
+			<tr class="multch-field-wordpress-ai">
+				<th scope="row"><?php esc_html_e( 'Fallback models', 'multiai-chatbot' ); ?></th>
 				<td>
 					<input type="text" class="large-text" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[model_candidates]" value="<?php echo esc_attr( (string) $settings['model_candidates'] ); ?>" />
-					<p class="description" id="multch-model-candidates-desc"><?php esc_html_e( 'Gemini only. Comma-separated rotation pool (429/404/400 tries the next). Equivalent to GEMINI_MODEL_CANDIDATES.', 'multiai-chatbot' ); ?></p>
+					<p class="description" id="multch-model-candidates-desc"><?php esc_html_e( 'Comma-separated model preferences if the primary model is unavailable.', 'multiai-chatbot' ); ?></p>
 				</td>
 			</tr>
 			<tr class="multch-field-ollama">
 				<th scope="row"><?php esc_html_e( 'Ollama base URL', 'multiai-chatbot' ); ?></th>
 				<td>
 					<input type="url" class="regular-text" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[ollama_base_url]" value="<?php echo esc_attr( (string) $settings['ollama_base_url'] ); ?>" />
-				</td>
-			</tr>
-			<tr class="multch-field-openai">
-				<th scope="row"><?php esc_html_e( 'OpenAI-compatible base URL', 'multiai-chatbot' ); ?></th>
-				<td>
-					<input type="url" class="regular-text" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[openai_base_url]" value="<?php echo esc_attr( (string) $settings['openai_base_url'] ); ?>" />
-				</td>
-			</tr>
-			<tr class="multch-field-deepseek-url">
-				<th scope="row"><?php esc_html_e( 'DeepSeek base URL', 'multiai-chatbot' ); ?></th>
-				<td>
-					<input type="url" class="regular-text" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[deepseek_base_url]" value="<?php echo esc_attr( (string) ( $settings['deepseek_base_url'] ?? 'https://api.deepseek.com/v1' ) ); ?>" />
-					<p class="description"><?php esc_html_e( 'Default: https://api.deepseek.com/v1', 'multiai-chatbot' ); ?></p>
+					<p class="description"><?php esc_html_e( 'Local Ollama server reachable from this WordPress host (default: http://127.0.0.1:11434).', 'multiai-chatbot' ); ?></p>
 				</td>
 			</tr>
 			<tr>
 				<th scope="row"><?php esc_html_e( 'Timeout (seconds)', 'multiai-chatbot' ); ?></th>
 				<td>
 					<input type="number" min="5" max="120" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[request_timeout]" value="<?php echo esc_attr( (string) $settings['request_timeout'] ); ?>" />
-				</td>
-			</tr>
-			<tr class="multch-field-api-key">
-				<th scope="row"><?php esc_html_e( 'API Key', 'multiai-chatbot' ); ?></th>
-				<td>
-					<input type="password" class="regular-text" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[api_key]" value="" placeholder="<?php echo ! empty( $settings['api_key'] ) ? '••••••••' : ''; ?>" autocomplete="new-password" />
-					<p class="description" id="multch-api-key-desc"><?php esc_html_e( 'Leave empty to keep the current key. In production define MULTCH_GEMINI_API_KEY, MULTCH_DEEPSEEK_API_KEY or MULTCH_OPENAI_API_KEY in wp-config.php.', 'multiai-chatbot' ); ?></p>
 				</td>
 			</tr>
 		</table>
@@ -2635,6 +2650,7 @@ class Multch_Admin_Settings {
 						<label for="multch-stats-provider"><?php esc_html_e( 'Provider', 'multiai-chatbot' ); ?></label>
 						<select id="multch-stats-provider" name="provider">
 							<option value="all"<?php selected( $filters['provider'], 'all' ); ?>><?php esc_html_e( 'All', 'multiai-chatbot' ); ?></option>
+							<option value="wordpress_ai"<?php selected( $filters['provider'], 'wordpress_ai' ); ?>><?php esc_html_e( 'WordPress AI', 'multiai-chatbot' ); ?></option>
 							<option value="gemini"<?php selected( $filters['provider'], 'gemini' ); ?>>Gemini</option>
 							<option value="deepseek"<?php selected( $filters['provider'], 'deepseek' ); ?>>DeepSeek</option>
 							<option value="ollama"<?php selected( $filters['provider'], 'ollama' ); ?>>Ollama</option>
@@ -3059,6 +3075,7 @@ class Multch_Admin_Settings {
 						<label for="multch-history-provider"><?php esc_html_e( 'Provider', 'multiai-chatbot' ); ?></label>
 						<select id="multch-history-provider" name="provider">
 							<option value="all"<?php selected( $provider, 'all' ); ?>><?php esc_html_e( 'All', 'multiai-chatbot' ); ?></option>
+							<option value="wordpress_ai"<?php selected( $provider, 'wordpress_ai' ); ?>><?php esc_html_e( 'WordPress AI', 'multiai-chatbot' ); ?></option>
 							<option value="gemini"<?php selected( $provider, 'gemini' ); ?>>Gemini</option>
 							<option value="deepseek"<?php selected( $provider, 'deepseek' ); ?>>DeepSeek</option>
 							<option value="ollama"<?php selected( $provider, 'ollama' ); ?>>Ollama</option>
@@ -3540,6 +3557,7 @@ private static function format_history_status_label( string $status ): string {
 
 private static function format_history_provider_label( string $provider, string $model = '' ): string {
 	$labels = array(
+		'wordpress_ai'      => __( 'WordPress AI', 'multiai-chatbot' ),
 		'gemini'            => 'Gemini',
 		'deepseek'          => 'DeepSeek',
 		'ollama'            => 'Ollama',
@@ -3556,6 +3574,7 @@ private static function format_history_provider_label( string $provider, string 
 
 private static function format_history_provider_name( string $provider ): string {
 	$labels = array(
+		'wordpress_ai'      => __( 'WordPress AI', 'multiai-chatbot' ),
 		'gemini'            => 'Gemini',
 		'deepseek'          => 'DeepSeek',
 		'ollama'            => 'Ollama',
@@ -3567,6 +3586,7 @@ private static function format_history_provider_name( string $provider ): string
 
 private static function format_history_provider_avatar( string $provider ): string {
 	$labels = array(
+		'wordpress_ai'      => 'WP',
 		'gemini'            => 'G',
 		'deepseek'          => 'DS',
 		'ollama'            => 'O',

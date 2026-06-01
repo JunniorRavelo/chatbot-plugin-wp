@@ -31,6 +31,7 @@ class Multch_Migration {
 		self::migrate_options();
 		self::migrate_tables();
 		self::migrate_cron();
+		self::migrate_ai_providers();
 		self::delete_legacy_transients();
 
 		update_option( 'multch_legacy_migration_done', '1', false );
@@ -78,6 +79,32 @@ class Multch_Migration {
 				$wpdb->query( "RENAME TABLE `{$old}` TO `{$new}`" );
 			}
 		}
+	}
+
+	/**
+	 * Map legacy direct cloud providers to the WordPress AI Client.
+	 */
+	private static function migrate_ai_providers(): void {
+		$done = get_option( 'multch_ai_client_migration_done', '' );
+		if ( '1' === $done ) {
+			return;
+		}
+
+		$stored = get_option( Multch_Admin_Settings::OPTION_KEY, array() );
+		if ( ! is_array( $stored ) ) {
+			update_option( 'multch_ai_client_migration_done', '1', false );
+			return;
+		}
+
+		$provider = (string) ( $stored['provider'] ?? '' );
+		if ( in_array( $provider, multch_legacy_cloud_provider_ids(), true ) ) {
+			$stored['provider'] = 'wordpress_ai';
+		}
+
+		unset( $stored['api_key'], $stored['openai_base_url'], $stored['deepseek_base_url'] );
+
+		update_option( Multch_Admin_Settings::OPTION_KEY, wp_parse_args( $stored, Multch_Admin_Settings::default_settings() ), false );
+		update_option( 'multch_ai_client_migration_done', '1', false );
 	}
 
 	private static function migrate_cron(): void {

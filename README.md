@@ -1,6 +1,6 @@
 # MultiAI ChatBot
 
-**Version 1.0.1** · WordPress plugin that adds an AI chat widget (Gemini, DeepSeek, Ollama, or OpenAI-compatible), admin panel, and usage telemetry.
+**Version 1.0.3** · WordPress plugin that adds an AI chat widget via the WordPress AI Client (Connectors) or Ollama, plus admin panel and usage telemetry.
 
 ## Naming conventions (namespace)
 
@@ -8,9 +8,9 @@ The public widget uses the `maicb-*` class prefix and the `#multch-plugin-root` 
 
 ## Requirements
 
-- WordPress 6.0+
+- WordPress 6.2+ (7.0+ recommended for cloud AI via Connectors)
 - PHP 8.0+
-- For Gemini, DeepSeek, or OpenAI: a valid API key
+- For WordPress AI: providers connected under **Settings → Connectors**
 - For Ollama: a server reachable from the WordPress host (e.g. `http://127.0.0.1:11434`)
 
 ## Installation
@@ -40,7 +40,7 @@ This runs `./scripts/package-plugin`, confirms the ZIP excludes `scripts/`, `.gi
 1. Copy the `multiai-chatbot` folder to `wp-content/plugins/` (or use the ZIP above).
 2. Activate the plugin under **Plugins**.
 3. Go to **MultiAI ChatBot** in the admin menu.
-4. Configure the provider, API key, and styles.
+4. Connect AI providers under **Settings → Connectors**, then configure model preferences and styles in **MultiAI ChatBot**.
 5. After activation, streaming rewrite rules are registered automatically. If the stream does not respond, visit **Settings → Permalinks** and save again.
 
 ## Admin panel
@@ -48,54 +48,32 @@ This runs `./scripts/package-plugin`, confirms the ZIP excludes `scripts/`, `.gi
 | Tab | Contents |
 |-----|----------|
 | **General** | Global widget, welcome message, system prompt, streaming, rate limit |
-| **AI Model** | Provider, API key, model, Ollama/OpenAI/DeepSeek URLs |
+| **AI Model** | Provider (WordPress AI or Ollama), model preferences, Ollama URL |
 | **Chat Style** | CSS presets, custom colors, and widget position |
 | **Statistics** | Totals, breakdown, and CSV export |
 | **History** | Conversations in cards (ID `CB-YYYY-MM-DD-HH-MM-SS`), filters, and message detail |
 
 ## AI providers
 
-### Google Gemini
+### WordPress AI (Connectors)
 
-- Provider: `gemini`
-- Default model: `gemini-2.0-flash`
-- Fallback models: comma-separated field
-- Optional constant in `wp-config.php`:
-
-```php
-define( 'MULTCH_GEMINI_API_KEY', 'your-key' );
-```
-
-### DeepSeek
-
-- Provider: `deepseek`
-- Default base URL: `https://api.deepseek.com/v1`
-- Recommended default model: `deepseek-v4-flash` (fast) or `deepseek-v4-pro` (more capable)
-- Fallback models: comma-separated field (rotation on 429/404/400)
-- Optional constant in `wp-config.php`:
+- Provider ID: `wordpress_ai`
+- Requires WordPress 7.0+ with the built-in AI Client
+- Configure API keys and provider plugins under **Settings → Connectors**
+- Set a **preferred model** and optional comma-separated **fallback models** in **MultiAI ChatBot → AI Model**
+- Optional `wp-config.php` overrides for model preference:
 
 ```php
-define( 'MULTCH_DEEPSEEK_API_KEY', 'your-key' );
+define( 'MULTCH_MODEL', 'gemini-2.5-flash' );
+define( 'MULTCH_MODEL_CANDIDATES', 'gpt-4o-mini,claude-sonnet-4-6' );
 ```
-
-Get your API key at [platform.deepseek.com](https://platform.deepseek.com/).
 
 ### Ollama
 
-- Provider: `ollama`
-- No API key required
+- Provider ID: `ollama`
+- No API key in this plugin
 - Default base URL: `http://127.0.0.1:11434`
 - Model: name of the model installed in Ollama (e.g. `llama3`)
-
-### OpenAI-compatible
-
-- Provider: `openai_compatible`
-- Base URL: `https://api.openai.com/v1` or another compatible endpoint
-- Optional constant:
-
-```php
-define( 'MULTCH_OPENAI_API_KEY', 'your-key' );
-```
 
 ## Site usage
 

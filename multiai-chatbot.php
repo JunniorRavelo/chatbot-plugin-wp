@@ -2,8 +2,8 @@
 /**
  * Plugin Name: MultiAI ChatBot
  * Plugin URI: https://github.com/JunniorRavelo/multiai-chatbot
- * Description: AI chat widget (Gemini, DeepSeek, Ollama, OpenAI-compatible), configurable styles, and telemetry.
- * Version: 1.0.2
+ * Description: AI chat widget using the WordPress AI Client and optional Ollama, with configurable styles and telemetry.
+ * Version: 1.0.3
  * Requires at least: 6.2
  * Requires PHP: 8.0
  * Author: J. Santiago Ravelo Velasco
@@ -21,7 +21,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'MULTCH_PLUGIN_VERSION', '1.0.2' );
+define( 'MULTCH_PLUGIN_VERSION', '1.0.3' );
 define( 'MULTCH_PLUGIN_FILE', __FILE__ );
 define( 'MULTCH_PLUGIN_PATH', plugin_dir_path( __FILE__ ) );
 define( 'MULTCH_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
@@ -29,11 +29,10 @@ define( 'MULTCH_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
 
 require_once MULTCH_PLUGIN_PATH . 'includes/telemetry.php';
 require_once MULTCH_PLUGIN_PATH . 'includes/chat-history.php';
+require_once MULTCH_PLUGIN_PATH . 'includes/ai-client.php';
 require_once MULTCH_PLUGIN_PATH . 'includes/providers/interface-provider.php';
-require_once MULTCH_PLUGIN_PATH . 'includes/providers/class-provider-gemini.php';
+require_once MULTCH_PLUGIN_PATH . 'includes/providers/class-provider-wordpress-ai.php';
 require_once MULTCH_PLUGIN_PATH . 'includes/providers/class-provider-ollama.php';
-require_once MULTCH_PLUGIN_PATH . 'includes/providers/class-provider-openai.php';
-require_once MULTCH_PLUGIN_PATH . 'includes/providers/class-provider-deepseek.php';
 require_once MULTCH_PLUGIN_PATH . 'includes/api-handler.php';
 require_once MULTCH_PLUGIN_PATH . 'includes/rest-api.php';
 require_once MULTCH_PLUGIN_PATH . 'includes/widget-namespace.php';

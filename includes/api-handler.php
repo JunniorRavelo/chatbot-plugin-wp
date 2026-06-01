@@ -38,7 +38,7 @@ class Multch_Api_Handler {
 			);
 		}
 
-		$provider_id = ! empty( $settings['provider'] ) ? (string) $settings['provider'] : 'gemini';
+		$provider_id = ! empty( $settings['provider'] ) ? (string) $settings['provider'] : 'wordpress_ai';
 		$provider    = self::get_provider( $provider_id );
 		if ( is_wp_error( $provider ) ) {
 			self::record_event( $session_hash, $settings, '', 'config_error', (int) ( ( microtime( true ) - $started ) * 1000 ), 'CONFIGURATION_ERROR' );
@@ -98,13 +98,10 @@ class Multch_Api_Handler {
 		}
 
 		$provider_settings = array(
-			'api_key'           => ! empty( $settings['api_key'] ) ? (string) $settings['api_key'] : '',
-			'model'             => ! empty( $settings['model'] ) ? (string) $settings['model'] : '',
-			'model_candidates'  => ! empty( $settings['model_candidates'] ) ? (string) $settings['model_candidates'] : '',
-			'ollama_base_url'   => ! empty( $settings['ollama_base_url'] ) ? (string) $settings['ollama_base_url'] : 'http://127.0.0.1:11434',
-			'openai_base_url'    => ! empty( $settings['openai_base_url'] ) ? (string) $settings['openai_base_url'] : 'https://api.openai.com/v1',
-			'deepseek_base_url'  => ! empty( $settings['deepseek_base_url'] ) ? (string) $settings['deepseek_base_url'] : 'https://api.deepseek.com/v1',
-			'request_timeout'    => ! empty( $settings['request_timeout'] ) ? (int) $settings['request_timeout'] : 22,
+			'model'            => ! empty( $settings['model'] ) ? (string) $settings['model'] : '',
+			'model_candidates' => ! empty( $settings['model_candidates'] ) ? (string) $settings['model_candidates'] : '',
+			'ollama_base_url'  => ! empty( $settings['ollama_base_url'] ) ? (string) $settings['ollama_base_url'] : 'http://127.0.0.1:11434',
+			'request_timeout'  => ! empty( $settings['request_timeout'] ) ? (int) $settings['request_timeout'] : 22,
 		);
 
 		$result = $provider->complete( $system, $messages, $provider_settings );
@@ -461,15 +458,15 @@ class Multch_Api_Handler {
 	 * @return Multch_AI_Provider|WP_Error
 	 */
 	private static function get_provider( string $id ) {
+		if ( in_array( $id, multch_legacy_cloud_provider_ids(), true ) ) {
+			$id = 'wordpress_ai';
+		}
+
 		switch ( $id ) {
-			case 'gemini':
-				return new Multch_Provider_Gemini();
+			case 'wordpress_ai':
+				return new Multch_Provider_WordPress_AI();
 			case 'ollama':
 				return new Multch_Provider_Ollama();
-			case 'openai_compatible':
-				return new Multch_Provider_OpenAI();
-			case 'deepseek':
-				return new Multch_Provider_DeepSeek();
 			default:
 				return new WP_Error(
 					'configuration_error',
@@ -791,7 +788,7 @@ class Multch_Api_Handler {
 		Multch_Telemetry::record(
 			array(
 				'session_hash'    => $session_hash,
-				'provider'        => ! empty( $settings['provider'] ) ? (string) $settings['provider'] : 'gemini',
+				'provider'        => ! empty( $settings['provider'] ) ? (string) $settings['provider'] : 'wordpress_ai',
 				'model'           => $model,
 				'status'          => $status,
 				'latency_ms'      => $latency_ms,

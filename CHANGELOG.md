@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.0.3
+
+### Changed
+
+- Cloud AI requests use the WordPress 7.0 AI Client (`wp_ai_client_prompt`) and site-wide **Settings → Connectors** credentials.
+- Removed direct HTTP integrations with Gemini, DeepSeek, and OpenAI-compatible APIs from the plugin package.
+- Admin **AI Model** tab: **WordPress AI (Connectors)** or **Ollama** only; no per-plugin API key fields.
+- Legacy provider values (`gemini`, `deepseek`, `openai_compatible`) migrate automatically to `wordpress_ai`.
+
+### Breaking (upgrade notes)
+
+- Configure cloud providers under **Settings → Connectors** (WordPress 7.0+).
+- API keys previously stored in `multch_plugin_settings` are cleared on migration and are not used.
+
 ## 1.0.2
 
 ### Changed
