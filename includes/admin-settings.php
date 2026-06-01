@@ -276,6 +276,32 @@ class Multch_Admin_Settings {
 	 *
 	 * @return array<string, string>
 	 */
+	/**
+	 * Provider-specific field descriptions for the Model admin tab (localized for JS).
+	 *
+	 * @return array<string, array{model: string, candidates: string}>
+	 */
+	private static function admin_model_provider_descriptions(): array {
+		return array(
+			'gemini'            => array(
+				'model'      => __( 'E.g.: gemini-3.1-flash-lite, gemini-2.5-flash. Equivalent to GEMINI_MODEL.', 'multiai-chatbot' ),
+				'candidates' => __( 'Comma-separated rotation pool (429/404/400 tries the next). Equivalent to GEMINI_MODEL_CANDIDATES.', 'multiai-chatbot' ),
+			),
+			'deepseek'          => array(
+				'model'      => __( 'E.g.: deepseek-v4-flash, deepseek-v4-pro, deepseek-chat.', 'multiai-chatbot' ),
+				'candidates' => __( 'Comma-separated DeepSeek fallback pool (429/404/400 tries the next).', 'multiai-chatbot' ),
+			),
+			'ollama'            => array(
+				'model'      => __( 'Name of the model installed in Ollama (e.g. llama3).', 'multiai-chatbot' ),
+				'candidates' => '',
+			),
+			'openai_compatible' => array(
+				'model'      => __( 'E.g.: gpt-4o-mini, gpt-4o.', 'multiai-chatbot' ),
+				'candidates' => '',
+			),
+		);
+	}
+
 	private static function admin_general_i18n_strings(): array {
 		return array(
 			'copyShortcode'       => __( 'Copy shortcode', 'multiai-chatbot' ),
@@ -904,6 +930,29 @@ class Multch_Admin_Settings {
 						self::admin_general_i18n_strings()
 					),
 					'credit'            => self::developer_credit_for_js(),
+				)
+			);
+		}
+
+		if ( 'model' === $tab ) {
+			$admin_model_js_path = MULTCH_PLUGIN_PATH . 'assets/js/admin-model.js';
+			$admin_model_js_ver  = file_exists( $admin_model_js_path )
+				? (string) filemtime( $admin_model_js_path )
+				: MULTCH_PLUGIN_VERSION;
+
+			wp_enqueue_script(
+				'multch-plugin-admin-model',
+				MULTCH_PLUGIN_URL . 'assets/js/admin-model.js',
+				array(),
+				$admin_model_js_ver,
+				true
+			);
+
+			wp_localize_script(
+				'multch-plugin-admin-model',
+				'multchModelAdmin',
+				array(
+					'descriptions' => self::admin_model_provider_descriptions(),
 				)
 			);
 		}
@@ -1875,61 +1924,6 @@ class Multch_Admin_Settings {
 				</td>
 			</tr>
 		</table>
-		<script>
-		(function () {
-			const sel = document.getElementById('multch-provider');
-			if (!sel) return;
-			const modelDesc = document.getElementById('multch-model-desc');
-			const candidatesDesc = document.getElementById('multch-model-candidates-desc');
-			const descriptions = {
-				gemini: {
-					model: '<?php echo esc_js( __( 'E.g.: gemini-3.1-flash-lite, gemini-2.5-flash. Equivalent to GEMINI_MODEL.', 'multiai-chatbot' ) ); ?>',
-					candidates: '<?php echo esc_js( __( 'Comma-separated rotation pool (429/404/400 tries the next). Equivalent to GEMINI_MODEL_CANDIDATES.', 'multiai-chatbot' ) ); ?>',
-				},
-				deepseek: {
-					model: '<?php echo esc_js( __( 'E.g.: deepseek-v4-flash, deepseek-v4-pro, deepseek-chat.', 'multiai-chatbot' ) ); ?>',
-					candidates: '<?php echo esc_js( __( 'Comma-separated DeepSeek fallback pool (429/404/400 tries the next).', 'multiai-chatbot' ) ); ?>',
-				},
-				ollama: {
-					model: '<?php echo esc_js( __( 'Name of the model installed in Ollama (e.g. llama3).', 'multiai-chatbot' ) ); ?>',
-					candidates: '',
-				},
-				openai_compatible: {
-					model: '<?php echo esc_js( __( 'E.g.: gpt-4o-mini, gpt-4o.', 'multiai-chatbot' ) ); ?>',
-					candidates: '',
-				},
-			};
-			function toggle() {
-				const v = sel.value;
-				document.querySelectorAll('.multch-field-api-key').forEach(el => {
-					el.style.display = v === 'ollama' ? 'none' : '';
-				});
-				document.querySelectorAll('.multch-field-gemini').forEach(el => {
-					el.style.display = v === 'gemini' ? '' : 'none';
-				});
-				document.querySelectorAll('.multch-field-deepseek').forEach(el => {
-					el.style.display = v === 'deepseek' ? '' : 'none';
-				});
-				document.querySelectorAll('.multch-field-ollama').forEach(el => {
-					el.style.display = v === 'ollama' ? '' : 'none';
-				});
-				document.querySelectorAll('.multch-field-openai').forEach(el => {
-					el.style.display = v === 'openai_compatible' ? '' : 'none';
-				});
-				document.querySelectorAll('.multch-field-deepseek-url').forEach(el => {
-					el.style.display = v === 'deepseek' ? '' : 'none';
-				});
-				if (modelDesc && descriptions[v]) {
-					modelDesc.textContent = descriptions[v].model;
-				}
-				if (candidatesDesc && descriptions[v]) {
-					candidatesDesc.textContent = descriptions[v].candidates;
-				}
-			}
-			sel.addEventListener('change', toggle);
-			toggle();
-		})();
-		</script>
 		<?php
 		self::card_close();
 	}
