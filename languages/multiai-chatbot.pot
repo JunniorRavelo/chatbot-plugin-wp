@@ -386,6 +386,58 @@ msgid "Restore default system prompt"
 msgstr ""
 
 #: includes/admin-settings.php
+msgid "Statistics and history"
+msgstr ""
+
+#: includes/admin-settings.php
+msgid "Optional local storage of chat usage and conversations on your server."
+msgstr ""
+
+#: includes/admin-settings.php
+msgid "Store statistics and history"
+msgstr ""
+
+#: includes/admin-settings.php
+msgid "Enable usage statistics and conversation history"
+msgstr ""
+
+#: includes/admin-settings.php
+msgid "When enabled, the plugin records anonymous usage statistics (provider, model, latency, errors) and saves chat conversations in your site database. The Statistics and History admin tabs appear. Disabled by default; nothing is stored until you turn this on. Disabling stops new collection; existing records remain until you delete them or uninstall the plugin."
+msgstr ""
+
+#: includes/admin-settings.php
+msgid "Statistics and conversation history are disabled. Enable them under General first."
+msgstr ""
+
+#: includes/admin-settings.php
+msgid "Statistics and history disabled"
+msgstr ""
+
+#: includes/admin-settings.php
+msgid "Statistics and history are disabled."
+msgstr ""
+
+#: includes/admin-settings.php
+msgid "Statistics and conversation history are disabled. Enable them under General to access those screens."
+msgstr ""
+
+#: includes/admin-settings.php
+msgid "Also append events to a log file in the uploads folder"
+msgstr ""
+
+#: includes/admin-settings.php
+msgid "Applies only when statistics and history are enabled under General. Database events use the same opt-in. Enable this additionally if you need a JSONL file for external tools. Can be forced via MULTCH_TELEMETRY_FILE_LOG in wp-config.php."
+msgstr ""
+
+#: includes/admin-settings.php
+msgid "Applies when statistics and history are enabled under General. 0 = keep indefinitely. Older conversations are purged automatically each day."
+msgstr ""
+
+#: includes/admin-settings.php
+msgid "Applies when statistics and history are enabled under General. 0 = keep indefinitely. Older statistics events are purged automatically each day."
+msgstr ""
+
+#: includes/admin-settings.php
 msgid "Response delivery"
 msgstr ""
 
@@ -1455,11 +1507,15 @@ msgstr ""
 msgid "What data this plugin collects"
 msgstr ""
 
-#: includes/privacy.php:52
-msgid "When visitors use the chat widget, the plugin may store and process the following data:"
+#: includes/privacy.php:54
+msgid "When visitors use the chat widget, the plugin processes messages to generate AI replies. Conversation history and usage telemetry are stored on your server only if you enable “Store statistics and history” under MultiAI ChatBot → General (disabled by default)."
 msgstr ""
 
-#: includes/privacy.php:54
+#: includes/privacy.php:55
+msgid "When that option is enabled, the plugin may also store:"
+msgstr ""
+
+#: includes/privacy.php:57
 msgid "Chat messages sent by visitors and AI assistant replies."
 msgstr ""
 
@@ -1484,7 +1540,7 @@ msgid "Data sent to third-party AI services"
 msgstr ""
 
 #: includes/privacy.php:62
-msgid "To generate responses, the plugin sends chat content to the AI provider configured by the site administrator (such as Google Gemini, DeepSeek, Ollama, or an OpenAI-compatible API). This typically includes:"
+msgid "To generate responses, the plugin sends chat content through the WordPress AI Client (using providers configured under Settings → Connectors) or to a self-hosted Ollama server you specify. This typically includes:"
 msgstr ""
 
 #: includes/privacy.php:64
@@ -1516,15 +1572,19 @@ msgid "Uninstall"
 msgstr ""
 
 #: includes/privacy.php:77
-msgid "When the plugin is deleted via the WordPress admin, database tables, plugin settings, scheduled tasks, and plugin transients are removed. External log files configured via telemetry_log_path are not deleted automatically."
+msgid "When the plugin is deleted via the WordPress admin, database tables, plugin settings, scheduled tasks, plugin transients, and any optional telemetry log file under wp-content/uploads/multiai-chatbot/ are removed."
 msgstr ""
 
-#: includes/privacy.php:79
+#: includes/privacy.php:82
+msgid "Statistics and conversation history are not collected while the opt-in under General remains disabled."
+msgstr ""
+
+#: includes/privacy.php:92
 msgid "Personal data requests"
 msgstr ""
 
-#: includes/privacy.php:80
-msgid "Chat history is stored with anonymous session identifiers and is not linked to visitor email addresses or WordPress user accounts by default. Site administrators can review, export, or delete conversations from the Chatbot admin screens."
+#: includes/privacy.php:93
+msgid "When enabled, chat history is stored with anonymous session identifiers and is not linked to visitor email addresses or WordPress user accounts by default. Site administrators can review, export, or delete conversations from the Chatbot admin screens."
 msgstr ""
 
 #: includes/providers/class-provider-deepseek.php:22

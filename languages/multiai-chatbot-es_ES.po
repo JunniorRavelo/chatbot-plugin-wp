@@ -390,6 +390,58 @@ msgid "Restore default system prompt"
 msgstr "Restaurar instrucciones del sistema predeterminadas"
 
 #: includes/admin-settings.php
+msgid "Statistics and history"
+msgstr "Estadísticas e historial"
+
+#: includes/admin-settings.php
+msgid "Optional local storage of chat usage and conversations on your server."
+msgstr "Almacenamiento local opcional del uso del chat y de las conversaciones en su servidor."
+
+#: includes/admin-settings.php
+msgid "Store statistics and history"
+msgstr "Guardar estadísticas e historial"
+
+#: includes/admin-settings.php
+msgid "Enable usage statistics and conversation history"
+msgstr "Activar estadísticas de uso e historial de conversaciones"
+
+#: includes/admin-settings.php
+msgid "When enabled, the plugin records anonymous usage statistics (provider, model, latency, errors) and saves chat conversations in your site database. The Statistics and History admin tabs appear. Disabled by default; nothing is stored until you turn this on. Disabling stops new collection; existing records remain until you delete them or uninstall the plugin."
+msgstr "Si está activado, el plugin registra estadísticas de uso anónimas (proveedor, modelo, latencia, errores) y guarda las conversaciones del chat en la base de datos del sitio. Aparecen las pestañas de administración Estadísticas e Historial. Desactivado por defecto; no se almacena nada hasta que lo active. Al desactivarlo se detiene la recopilación nueva; los registros existentes permanecen hasta que los elimine o desinstale el plugin."
+
+#: includes/admin-settings.php
+msgid "Statistics and conversation history are disabled. Enable them under General first."
+msgstr "Las estadísticas y el historial de conversaciones están desactivados. Actívelos primero en General."
+
+#: includes/admin-settings.php
+msgid "Statistics and history disabled"
+msgstr "Estadísticas e historial desactivados"
+
+#: includes/admin-settings.php
+msgid "Statistics and history are disabled."
+msgstr "Las estadísticas y el historial están desactivados."
+
+#: includes/admin-settings.php
+msgid "Statistics and conversation history are disabled. Enable them under General to access those screens."
+msgstr "Las estadísticas y el historial de conversaciones están desactivados. Actívelos en General para acceder a esas pantallas."
+
+#: includes/admin-settings.php
+msgid "Also append events to a log file in the uploads folder"
+msgstr "Añadir también los eventos a un archivo de registro en la carpeta de subidas"
+
+#: includes/admin-settings.php
+msgid "Applies only when statistics and history are enabled under General. Database events use the same opt-in. Enable this additionally if you need a JSONL file for external tools. Can be forced via MULTCH_TELEMETRY_FILE_LOG in wp-config.php."
+msgstr "Solo aplica cuando las estadísticas e historial están activados en General. Los eventos en base de datos usan el mismo consentimiento. Actívelo además solo si necesita un archivo JSONL para herramientas externas. Puede forzarse con MULTCH_TELEMETRY_FILE_LOG en wp-config.php."
+
+#: includes/admin-settings.php
+msgid "Applies when statistics and history are enabled under General. 0 = keep indefinitely. Older conversations are purged automatically each day."
+msgstr "Aplica cuando las estadísticas e historial están activados en General. 0 = conservar indefinidamente. Las conversaciones antiguas se purgan automáticamente cada día."
+
+#: includes/admin-settings.php
+msgid "Applies when statistics and history are enabled under General. 0 = keep indefinitely. Older statistics events are purged automatically each day."
+msgstr "Aplica cuando las estadísticas e historial están activados en General. 0 = conservar indefinidamente. Los eventos de estadísticas antiguos se purgan automáticamente cada día."
+
+#: includes/admin-settings.php
 msgid "Response delivery"
 msgstr "Entrega de respuestas"
 
@@ -1641,10 +1693,13 @@ msgstr "Los eventos de telemetría se conservan hasta que se purguen manualment"
 msgid "What data this plugin collects"
 msgstr "Qué datos recopila este plugin"
 
-#: includes/privacy.php:52
-msgid "When visitors use the chat widget, the plugin may store and process the following data:"
-msgstr "Cuando los visitantes usan el widget de chat, el plugin puede almacena"
-"r y procesar los siguientes datos:"
+#: includes/privacy.php:54
+msgid "When visitors use the chat widget, the plugin processes messages to generate AI replies. Conversation history and usage telemetry are stored on your server only if you enable “Store statistics and history” under MultiAI ChatBot → General (disabled by default)."
+msgstr "Cuando los visitantes usan el widget de chat, el plugin procesa los mensajes para generar respuestas de IA. El historial de conversaciones y la telemetría de uso se almacenan en su servidor solo si activa «Guardar estadísticas e historial» en MultiAI ChatBot → General (desactivado por defecto)."
+
+#: includes/privacy.php:55
+msgid "When that option is enabled, the plugin may also store:"
+msgstr "Cuando esa opción está activada, el plugin también puede almacenar:"
 
 #: includes/privacy.php:54
 msgid "Chat messages sent by visitors and AI assistant replies."
@@ -1674,12 +1729,9 @@ msgstr "Datos temporales de límite de tasa derivados de la IP del visitante (h"
 msgid "Data sent to third-party AI services"
 msgstr "Datos enviados a servicios de IA de terceros"
 
-#: includes/privacy.php:62
-msgid "To generate responses, the plugin sends chat content to the AI provider configured by the site administrator (such as Google Gemini, DeepSeek, Ollama, or an OpenAI-compatible API). This typically includes:"
-msgstr "Para generar respuestas, el plugin envía el contenido del chat al prov"
-"eedor de IA configurado por el administrador del sitio (como Google Ge"
-"mini, DeepSeek, Ollama o una API compatible con OpenAI). Esto suele in"
-"cluir:"
+#: includes/privacy.php:65
+msgid "To generate responses, the plugin sends chat content through the WordPress AI Client (using providers configured under Settings → Connectors) or to a self-hosted Ollama server you specify. This typically includes:"
+msgstr "Para generar respuestas, el plugin envía el contenido del chat mediante el cliente de IA de WordPress (con los proveedores configurados en Ajustes → Conectores) o a un servidor Ollama autohospedado que usted indique. Suele incluir:"
 
 #: includes/privacy.php:64
 msgid "The visitor message and recent conversation context."
@@ -1713,25 +1765,21 @@ msgstr "Retención"
 msgid "Uninstall"
 msgstr "Desinstalación"
 
-#: includes/privacy.php:77
-msgid "When the plugin is deleted via the WordPress admin, database tables, plugin settings, scheduled tasks, and plugin transients are removed. External log files configured via telemetry_log_path are not deleted automatically."
-msgstr "Cuando el plugin se elimina desde el administrador de WordPress, se el"
-"iminan las tablas de la base de datos, los ajustes del plugin, las tar"
-"eas programadas y los transients del plugin. Los archivos de registro "
-"externos configurados mediante telemetry_log_path no se eliminan autom"
-"áticamente."
+#: includes/privacy.php:90
+msgid "When the plugin is deleted via the WordPress admin, database tables, plugin settings, scheduled tasks, plugin transients, and any optional telemetry log file under wp-content/uploads/multiai-chatbot/ are removed."
+msgstr "Cuando el plugin se elimina desde el administrador de WordPress, se eliminan las tablas de la base de datos, los ajustes del plugin, las tareas programadas, los transients del plugin y cualquier archivo de registro de telemetría opcional en wp-content/uploads/multiai-chatbot/."
+
+#: includes/privacy.php:82
+msgid "Statistics and conversation history are not collected while the opt-in under General remains disabled."
+msgstr "No se recopilan estadísticas ni historial de conversaciones mientras el consentimiento en General permanezca desactivado."
 
 #: includes/privacy.php:79
 msgid "Personal data requests"
 msgstr "Solicitudes de datos personales"
 
-#: includes/privacy.php:80
-msgid "Chat history is stored with anonymous session identifiers and is not linked to visitor email addresses or WordPress user accounts by default. Site administrators can review, export, or delete conversations from the Chatbot admin screens."
-msgstr "El historial del chat se almacena con identificadores de sesión anónim"
-"os y no está vinculado por defecto a correos de visitantes ni a cuenta"
-"s de usuario de WordPress. Los administradores del sitio pueden revisa"
-"r, exportar o eliminar conversaciones desde las pantallas de administr"
-"ación de Chatbot."
+#: includes/privacy.php:93
+msgid "When enabled, chat history is stored with anonymous session identifiers and is not linked to visitor email addresses or WordPress user accounts by default. Site administrators can review, export, or delete conversations from the Chatbot admin screens."
+msgstr "Si está activado, el historial del chat se almacena con identificadores de sesión anónimos y no está vinculado por defecto a correos de visitantes ni a cuentas de usuario de WordPress. Los administradores del sitio pueden revisar, exportar o eliminar conversaciones desde las pantallas de administración del chatbot."
 
 #: includes/providers/class-provider-deepseek.php:22
 msgid "DeepSeek API key is not configured."
