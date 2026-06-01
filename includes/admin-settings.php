@@ -284,7 +284,7 @@ class Multch_Admin_Settings {
 		return array(
 			'wordpress_ai' => array(
 				'model'      => __( 'Preferred model ID (e.g. gemini-2.5-flash, gpt-4o-mini, claude-sonnet-4-6). WordPress picks the first available from your Connectors.', 'multiai-chatbot' ),
-				'candidates' => __( 'Comma-separated fallback model preferences if the primary model is unavailable.', 'multiai-chatbot' ),
+				'candidates' => __( 'Comma-separated fallback models, tried one at a time only if the primary model fails (not on timeout). Remove models you do not want used.', 'multiai-chatbot' ),
 			),
 			'ollama'       => array(
 				'model'      => __( 'Name of the model installed in Ollama (e.g. llama3).', 'multiai-chatbot' ),
@@ -2123,6 +2123,16 @@ class Multch_Admin_Settings {
 			__( 'AI provider', 'multiai-chatbot' ),
 			__( 'Use the WordPress AI Client (site-wide Connectors) or a local Ollama server.', 'multiai-chatbot' )
 		);
+
+		$constant_overrides = multch_ai_client_constant_overridden_keys();
+		if ( ! empty( $constant_overrides ) ) {
+			echo '<div class="notice notice-warning inline"><p>';
+			echo esc_html__(
+				'Model settings are overridden by constants in wp-config.php (MULTCH_MODEL, MULTCH_MODEL_CANDIDATES, or MULTCH_GEMINI_*). Values shown here may not match what the chat uses until those constants are updated or removed.',
+				'multiai-chatbot'
+			);
+			echo '</p></div>';
+		}
 		?>
 		<table class="form-table" role="presentation">
 			<tr>
@@ -2151,7 +2161,7 @@ class Multch_Admin_Settings {
 				<th scope="row"><?php esc_html_e( 'Fallback models', 'multiai-chatbot' ); ?></th>
 				<td>
 					<input type="text" class="large-text" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[model_candidates]" value="<?php echo esc_attr( (string) $settings['model_candidates'] ); ?>" />
-					<p class="description" id="multch-model-candidates-desc"><?php esc_html_e( 'Comma-separated model preferences if the primary model is unavailable.', 'multiai-chatbot' ); ?></p>
+					<p class="description" id="multch-model-candidates-desc"><?php esc_html_e( 'Comma-separated fallback models, tried one at a time only if the primary model fails (not on timeout). Remove models you do not want used.', 'multiai-chatbot' ); ?></p>
 				</td>
 			</tr>
 			<tr class="multch-field-ollama">

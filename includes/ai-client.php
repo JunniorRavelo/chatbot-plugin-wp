@@ -386,25 +386,93 @@ function multch_ai_client_build_history_messages( array $messages ): array {
 }
 
 /**
+ * Ordered model IDs to try: primary first, then comma-separated fallbacks (no duplicates).
+ *
+ * @param array<string, mixed> $settings
+ * @return list<string>
+ */
+function multch_ai_client_model_chain( array $settings ): array {
+	$preferred = ! empty( $settings['model'] ) ? trim( (string) $settings['model'] ) : '';
+	$pool_raw  = ! empty( $settings['model_candidates'] ) ? (string) $settings['model_candidates'] : '';
+	$pool      = array_filter( array_map( 'trim', explode( ',', $pool_raw ) ) );
+
+	$chain = array();
+	if ( '' !== $preferred ) {
+		$chain[] = $preferred;
+	}
+
+	foreach ( $pool as $candidate ) {
+		if ( '' === $candidate || ( '' !== $preferred && $candidate === $preferred ) ) {
+			continue;
+		}
+		$chain[] = $candidate;
+	}
+
+	return array_values( array_unique( $chain ) );
+}
+
+/**
+ * @deprecated 1.1.0 Use multch_ai_client_model_chain().
+ *
  * @param array<string, mixed> $settings
  * @return list<string>
  */
 function multch_ai_client_model_preferences( array $settings ): array {
-	$preferred = ! empty( $settings['model'] ) ? trim( (string) $settings['model'] ) : '';
-	$pool_raw  = ! empty( $settings['model_candidates'] ) ? (string) $settings['model_candidates'] : '';
-	$pool      = array_filter( array_map( 'trim', explode( ',', $pool_raw ) ) );
-	$merged    = array_values(
-		array_unique(
-			array_filter(
-				array_merge(
-					$preferred ? array( $preferred ) : array(),
-					$pool
-				)
-			)
-		)
-	);
+	return multch_ai_client_model_chain( $settings );
+}
 
-	return $merged;
+/**
+ * Whether a provider error should advance to the next model in the fallback chain.
+ */
+function multch_ai_client_should_try_next_model( WP_Error $error ): bool {
+	$code = strtolower( $error->get_error_code() );
+	if ( in_array( $code, array( 'rate_limit_model', 'configuration_error', 'model_temp_unavailable' ), true ) ) {
+		return true;
+	}
+
+	if ( 'provider_timeout' === $code ) {
+		return false;
+	}
+
+	$data   = $error->get_error_data();
+	$status = is_array( $data ) && isset( $data['status'] ) ? (int) $data['status'] : 0;
+	if ( in_array( $status, array( 404, 429 ), true ) ) {
+		return true;
+	}
+
+	$message = strtolower( $error->get_error_message() );
+
+	return str_contains( $message, 'not found' )
+		|| str_contains( $message, 'unavailable' )
+		|| str_contains( $message, 'does not exist' )
+		|| str_contains( $message, 'invalid model' );
+}
+
+/**
+ * Keys overridden in wp-config.php (MULTCH_* / CHATBOT_* / MULTCH_GEMINI_*).
+ *
+ * @return list<string> Setting keys, e.g. model, model_candidates.
+ */
+function multch_ai_client_constant_overridden_keys(): array {
+	$overridden = array();
+
+	if ( '' !== multch_resolve_constant( 'MULTCH_MODEL', 'CHATBOT_MODEL' ) ) {
+		$overridden[] = 'model';
+	} elseif ( '' !== multch_resolve_constant( 'MULTCH_GEMINI_MODEL', 'CHATBOT_GEMINI_MODEL' ) ) {
+		$overridden[] = 'model';
+	}
+
+	if ( '' !== multch_resolve_constant( 'MULTCH_MODEL_CANDIDATES', 'CHATBOT_MODEL_CANDIDATES' ) ) {
+		$overridden[] = 'model_candidates';
+	} elseif ( '' !== multch_resolve_constant( 'MULTCH_GEMINI_MODEL_CANDIDATES', 'CHATBOT_GEMINI_MODEL_CANDIDATES' ) ) {
+		$overridden[] = 'model_candidates';
+	}
+
+	if ( '' !== multch_resolve_constant( 'MULTCH_PROVIDER', 'CHATBOT_PROVIDER' ) ) {
+		$overridden[] = 'provider';
+	}
+
+	return $overridden;
 }
 
 /**
@@ -498,13 +566,14 @@ function multch_ai_client_extract_model( $result, string $fallback ): string {
  * Runs a configured prompt builder and returns text plus model id.
  *
  * @param object               $builder     WP_AI_Client_Prompt_Builder instance.
- * @param list<string>         $preferences Model preference list (may be empty).
+ * @param list<string>         $preferences One model ID per attempt (pass a single ID, not the full fallback chain).
  * @param string               $fallback_model
  * @return array{text: string, model: string}|WP_Error
  */
 function multch_ai_client_generate_from_builder( $builder, array $preferences, string $fallback_model ) {
 	if ( ! empty( $preferences ) && method_exists( $builder, 'using_model_preference' ) ) {
-		$builder = $builder->using_model_preference( ...$preferences );
+		// One model per call so the AI Client does not skip to another "available" model in the same request.
+		$builder = $builder->using_model_preference( $preferences[0] );
 	}
 
 	if ( method_exists( $builder, 'is_supported_for_text_generation' ) && ! $builder->is_supported_for_text_generation() ) {
