@@ -1442,17 +1442,48 @@ msgstr[1] ""
 msgid "Title"
 msgstr ""
 
-#: includes/donation-footer.php:25
+#: includes/donation-footer.php:52
 msgid "Support the plugin"
 msgstr ""
 
-#: includes/donation-footer.php:29
-msgid "Like this plugin? You can support development on GitHub Sponsors:"
+#: includes/donation-footer.php:56
+msgid "Enjoying MultiAI ChatBot?"
 msgstr ""
 
-#: includes/donation-footer.php:36
-#: includes/donation-footer.php:40
+#: includes/donation-footer.php:59
+msgid "Sponsor development, share the plugin, or leave a review — every bit helps."
+msgstr ""
+
+#: includes/donation-footer.php:62
+msgid "Ways to support"
+msgstr ""
+
+#: includes/donation-footer.php:68
 msgid "GitHub Sponsors"
+msgstr ""
+
+#: includes/donation-footer.php:71
+msgid "Sponsor"
+msgstr ""
+
+#: includes/donation-footer.php:77
+msgid "Link copied"
+msgstr ""
+
+#: includes/donation-footer.php:78
+msgid "Copy plugin link to share"
+msgstr ""
+
+#: includes/donation-footer.php:81
+msgid "Share"
+msgstr ""
+
+#: includes/donation-footer.php:87
+msgid "Write a review on WordPress.org"
+msgstr ""
+
+#: includes/donation-footer.php:90
+msgid "Review"
 msgstr ""
 
 #: includes/enqueue.php:125

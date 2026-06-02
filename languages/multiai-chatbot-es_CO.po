@@ -1626,18 +1626,49 @@ msgstr[1] "%d h"
 msgid "Title"
 msgstr "Título"
 
-#: includes/donation-footer.php:25
+#: includes/donation-footer.php:52
 msgid "Support the plugin"
 msgstr "Apoye el plugin"
 
-#: includes/donation-footer.php:29
-msgid "Like this plugin? You can support development on GitHub Sponsors:"
-msgstr "¿Le gusta este plugin? Puede apoyar el desarrollo en GitHub Sponsors:"
+#: includes/donation-footer.php:56
+msgid "Enjoying MultiAI ChatBot?"
+msgstr "¿Le gusta MultiAI ChatBot?"
 
-#: includes/donation-footer.php:36
-#: includes/donation-footer.php:40
+#: includes/donation-footer.php:59
+msgid "Sponsor development, share the plugin, or leave a review — every bit helps."
+msgstr "Patrocine el desarrollo, comparta el plugin o deje una reseña: todo suma."
+
+#: includes/donation-footer.php:62
+msgid "Ways to support"
+msgstr "Formas de apoyar"
+
+#: includes/donation-footer.php:68
 msgid "GitHub Sponsors"
 msgstr "GitHub Sponsors"
+
+#: includes/donation-footer.php:71
+msgid "Sponsor"
+msgstr "Patrocinar"
+
+#: includes/donation-footer.php:77
+msgid "Link copied"
+msgstr "Enlace copiado"
+
+#: includes/donation-footer.php:78
+msgid "Copy plugin link to share"
+msgstr "Copiar enlace del plugin para compartir"
+
+#: includes/donation-footer.php:81
+msgid "Share"
+msgstr "Compartir"
+
+#: includes/donation-footer.php:87
+msgid "Write a review on WordPress.org"
+msgstr "Escribir una reseña en WordPress.org"
+
+#: includes/donation-footer.php:90
+msgid "Review"
+msgstr "Reseña"
 
 #: includes/enqueue.php:125
 msgid "Open chat"
