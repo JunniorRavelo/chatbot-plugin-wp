@@ -2735,6 +2735,289 @@
   }
 }
 
+/* Seguridad */
+.multch-admin-security-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+  padding: 1rem 1.25rem;
+  border: 1px solid var(--cb-admin-border);
+  border-radius: var(--cb-admin-radius);
+  background: var(--cb-admin-surface);
+  box-shadow: var(--cb-admin-shadow);
+}
+
+.multch-admin-security-toolbar__intro h2 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #0f172a;
+  line-height: 1.3;
+}
+
+.multch-admin-security-toolbar__intro p {
+  margin: 0.25rem 0 0;
+  font-size: 0.8125rem;
+  color: var(--cb-admin-muted);
+  line-height: 1.45;
+}
+
+.multch-admin-security-toolbar__intro .multch-admin-stats-toolbar__link {
+  display: inline-block;
+  margin-top: 0.45rem;
+}
+
+.multch-admin-kpi-grid--security {
+  margin-bottom: 1.25rem;
+}
+
+.multch-admin-security-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.multch-admin-security-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+@media (min-width: 900px) {
+  .multch-admin-security-sidebar {
+    position: sticky;
+    top: 32px;
+  }
+}
+
+.multch-admin-security-summary__list {
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.multch-admin-security-summary__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.35rem 0.75rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px dashed var(--cb-admin-border);
+}
+
+.multch-admin-security-summary__row:last-child {
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.multch-admin-security-summary__row--wide {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.multch-admin-security-summary__row dt {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--cb-admin-muted);
+}
+
+.multch-admin-security-summary__row dd {
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: #334155;
+  text-align: right;
+}
+
+.multch-admin-security-summary__row--wide dd {
+  text-align: left;
+}
+
+.multch-admin-security-summary__code {
+  display: block;
+  padding: 0.35rem 0.5rem;
+  border-radius: 6px;
+  border: 1px solid var(--cb-admin-border);
+  background: var(--cb-admin-bg);
+  font-size: 0.6875rem;
+  word-break: break-all;
+}
+
+.multch-admin-security-summary__links {
+  margin-top: 1rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--cb-admin-border);
+}
+
+.multch-admin-origin-box {
+  margin-bottom: 1rem;
+  padding: 1rem;
+  border: 1px dashed var(--cb-admin-border);
+  border-radius: 8px;
+  background: #f8fafc;
+}
+
+.multch-admin-origin-box__label {
+  display: block;
+  margin: 0 0 0.5rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #334155;
+}
+
+.multch-admin-origin-box textarea {
+  width: 100%;
+  margin: 0;
+}
+
+.multch-admin-origin-box__actions {
+  margin-top: 0.65rem;
+}
+
+.multch-admin-origin-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 0.35rem;
+}
+
+.multch-admin-origin-chip {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  padding: 0.25rem 0.55rem;
+  border-radius: 999px;
+  border: 1px solid var(--cb-admin-border);
+  background: #fff;
+  color: #334155;
+  font-size: 0.75rem;
+  font-weight: 500;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  word-break: break-all;
+}
+
+.multch-admin-origin-chip--default {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  color: #1d4ed8;
+}
+
+.multch-admin-security-origins-preview__hint {
+  margin: 0.35rem 0 0;
+  width: 100%;
+}
+
+.multch-admin-security-form-table {
+  margin-top: 0;
+}
+
+.multch-admin-security-field-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem 1.25rem;
+}
+
+.multch-admin-security-field-grid--cache {
+  margin-bottom: 0.5rem;
+}
+
+.multch-admin-security-field-grid--abuse {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.multch-admin-security-field-grid__item label,
+.multch-admin-security-field-grid__label {
+  display: block;
+  margin: 0 0 0.35rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #334155;
+}
+
+.multch-admin-security-field-grid__item .description {
+  margin-top: 0.35rem;
+}
+
+.multch-admin-security-section {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--cb-admin-border);
+}
+
+.multch-admin-security-section:first-child {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
+}
+
+.multch-admin-security-section__title {
+  margin: 0 0 0.75rem;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.multch-admin-pills--cache {
+  margin: 0.5rem 0 0;
+}
+
+.multch-admin-pills__btn {
+  display: inline-block;
+  padding: 0.35rem 0.85rem;
+  border: none;
+  border-radius: 7px;
+  background: transparent;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--cb-admin-muted);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.multch-admin-pills__btn:hover {
+  color: #0f172a;
+  background: var(--cb-admin-surface);
+}
+
+.multch-admin-pills__btn.is-active {
+  background: var(--cb-admin-surface);
+  color: var(--cb-admin-primary);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+}
+
+.multch-admin-security-retention-note {
+  margin: 0.75rem 0 0;
+  padding: 0.75rem 0.85rem;
+  border-radius: 8px;
+  border: 1px solid #fde68a;
+  background: #fffbeb;
+  color: #92400e;
+}
+
+@media (max-width: 782px) {
+  .multch-admin-security-field-grid,
+  .multch-admin-security-field-grid--abuse {
+    grid-template-columns: 1fr;
+  }
+
+  .multch-admin-kpi-grid--security {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .multch-admin-security-summary__row dd {
+    text-align: left;
+  }
+}
+
 /* Notices inside wrap */
 .multch-admin-wrap .notice {
   margin: 0 0 1rem;

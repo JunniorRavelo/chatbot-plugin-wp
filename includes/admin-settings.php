@@ -1044,6 +1044,41 @@ class Multch_Admin_Settings {
 			);
 		}
 
+		if ( 'security' === $tab ) {
+			$admin_security_js_path = MULTCH_PLUGIN_PATH . 'assets/js/admin-security.js';
+			$admin_security_js_ver  = file_exists( $admin_security_js_path )
+				? (string) filemtime( $admin_security_js_path )
+				: MULTCH_PLUGIN_VERSION;
+
+			wp_enqueue_script(
+				'multch-plugin-admin-security',
+				MULTCH_PLUGIN_URL . 'assets/js/admin-security.js',
+				array(),
+				$admin_security_js_ver,
+				true
+			);
+
+			wp_localize_script(
+				'multch-plugin-admin-security',
+				'multchSecurityAdmin',
+				array(
+					'siteOrigin' => esc_url_raw( home_url( '/' ) ),
+					'i18n'       => array(
+						'copied'           => __( 'Copied', 'multiai-chatbot' ),
+						'copyFailed'       => __( 'Could not copy.', 'multiai-chatbot' ),
+						'cacheOff'         => __( 'Disabled', 'multiai-chatbot' ),
+						'cacheMinutes'     => __( '%d min', 'multiai-chatbot' ),
+						'cacheHours'       => __( '%d h', 'multiai-chatbot' ),
+						'suspendHours'     => __( '%1$d h %2$d min', 'multiai-chatbot' ),
+						'cacheDays'        => __( '%d days', 'multiai-chatbot' ),
+						'cacheDay'         => __( '1 day', 'multiai-chatbot' ),
+						'originsDefaultHint' => __( 'Default: only this WordPress site can use the chat API.', 'multiai-chatbot' ),
+						'suspendSummary'   => __( 'After %1$d violations · %2$s', 'multiai-chatbot' ),
+					),
+				)
+			);
+		}
+
 		if ( 'history' === $tab ) {
 			$admin_history_js_path = MULTCH_PLUGIN_PATH . 'assets/js/admin-history.js';
 			$admin_history_js_ver  = file_exists( $admin_history_js_path )
@@ -1856,35 +1891,356 @@ class Multch_Admin_Settings {
 	}
 
 	/**
+	 * @return list<string>
+	 */
+	private static function security_constant_overridden_keys(): array {
+		$map = array(
+			'allowed_origins'             => array( 'MULTCH_ALLOWED_ORIGINS', 'CHATBOT_ALLOWED_ORIGINS' ),
+			'cache_ttl_seconds'           => array( 'MULTCH_CACHE_TTL_SECONDS', 'CHATBOT_CACHE_TTL_SECONDS' ),
+			'rate_limit_per_minute'       => array( 'MULTCH_RATE_LIMIT_PER_MINUTE', 'CHATBOT_RATE_LIMIT_PER_MINUTE' ),
+			'rate_limit_per_day'          => array( 'MULTCH_RATE_LIMIT_PER_DAY', 'CHATBOT_RATE_LIMIT_PER_DAY' ),
+			'rate_limit_model_per_minute' => array( 'MULTCH_RATE_LIMIT_MODEL_PER_MINUTE', 'CHATBOT_RATE_LIMIT_MODEL_PER_MINUTE' ),
+			'rate_limit_model_per_day'    => array( 'MULTCH_RATE_LIMIT_MODEL_PER_DAY', 'CHATBOT_RATE_LIMIT_MODEL_PER_DAY' ),
+			'rate_limit_soft_threshold'   => array( 'MULTCH_RATE_LIMIT_SOFT_THRESHOLD', 'CHATBOT_RATE_LIMIT_SOFT_THRESHOLD' ),
+			'ip_suspend_after_violations' => array( 'MULTCH_IP_SUSPEND_AFTER_VIOLATIONS', 'CHATBOT_IP_SUSPEND_AFTER_VIOLATIONS' ),
+			'ip_suspend_seconds'          => array( 'MULTCH_IP_SUSPEND_SECONDS', 'CHATBOT_IP_SUSPEND_SECONDS' ),
+			'internal_chat_base_url'      => array( 'MULTCH_INTERNAL_CHAT_BASE_URL', 'CHATBOT_INTERNAL_CHAT_BASE_URL' ),
+		);
+
+		$keys = array();
+		foreach ( $map as $key => $constants ) {
+			if ( '' !== multch_resolve_constant( $constants[0], $constants[1] ) ) {
+				$keys[] = $key;
+			}
+		}
+
+		if ( defined( 'MULTCH_TELEMETRY_FILE_LOG' ) || defined( 'CHATBOT_TELEMETRY_FILE_LOG' ) ) {
+			$keys[] = 'telemetry_file_log';
+		}
+
+		return $keys;
+	}
+
+	private static function format_admin_duration( int $seconds ): string {
+		if ( $seconds <= 0 ) {
+			return __( 'Disabled', 'multiai-chatbot' );
+		}
+		if ( $seconds < 3600 ) {
+			return sprintf(
+				/* translators: %d: number of minutes */
+				__( '%d min', 'multiai-chatbot' ),
+				(int) round( $seconds / 60 )
+			);
+		}
+		if ( $seconds < 86400 ) {
+			$hours   = (int) floor( $seconds / 3600 );
+			$minutes = (int) floor( ( $seconds % 3600 ) / 60 );
+			if ( $minutes > 0 ) {
+				return sprintf(
+					/* translators: 1: hours, 2: minutes */
+					__( '%1$d h %2$d min', 'multiai-chatbot' ),
+					$hours,
+					$minutes
+				);
+			}
+
+			return sprintf(
+				/* translators: %d: number of hours */
+				__( '%d h', 'multiai-chatbot' ),
+				$hours
+			);
+		}
+
+		$days = (int) floor( $seconds / 86400 );
+
+		return sprintf(
+			/* translators: %d: number of days */
+			_n( '%d day', '%d days', $days, 'multiai-chatbot' ),
+			$days
+		);
+	}
+
+	/**
+	 * @return list<string>
+	 */
+	private static function parse_origins_list( string $value ): array {
+		if ( '' === trim( $value ) ) {
+			return array();
+		}
+
+		return array_values(
+			array_filter(
+				array_map(
+					static function ( $origin ) {
+						return trim( (string) $origin );
+					},
+					explode( ',', $value )
+				)
+			)
+		);
+	}
+
+	/**
+	 * @param array<string, mixed> $settings
+	 */
+	private static function render_security_summary_panel( array $settings ): void {
+		$site_origin     = esc_url( home_url( '/' ) );
+		$origins         = self::parse_origins_list( (string) ( $settings['allowed_origins'] ?? '' ) );
+		$cache_ttl       = (int) ( $settings['cache_ttl_seconds'] ?? 0 );
+		$stats_enabled   = ! empty( $settings['stats_history_enabled'] );
+		$stats_url       = self::build_stats_url( array( 'status' => 'rate_limited', 'paged' => 1 ) );
+		$general_url     = admin_url( 'admin.php?page=multch-plugin&tab=general' );
+		$log_path        = Multch_Telemetry::get_file_log_path();
+		$file_log_on     = ! empty( $settings['telemetry_file_log'] );
+		$history_days    = (int) ( $settings['history_retention_days'] ?? 0 );
+		$telemetry_days  = (int) ( $settings['telemetry_retention_days'] ?? 0 );
+		$suspend_after   = (int) ( $settings['ip_suspend_after_violations'] ?? 3 );
+		$suspend_seconds = (int) ( $settings['ip_suspend_seconds'] ?? 900 );
+		?>
+		<div class="multch-admin-security-sidebar">
+			<div class="multch-admin-card multch-admin-security-summary">
+				<div class="multch-admin-card__head">
+					<h2><?php esc_html_e( 'Protection overview', 'multiai-chatbot' ); ?></h2>
+					<p><?php esc_html_e( 'Summary of the active security posture for this site.', 'multiai-chatbot' ); ?></p>
+				</div>
+				<div class="multch-admin-card__body">
+					<dl class="multch-admin-security-summary__list">
+						<div class="multch-admin-security-summary__row">
+							<dt><?php esc_html_e( 'Endpoint access', 'multiai-chatbot' ); ?></dt>
+							<dd>
+								<?php if ( empty( $origins ) ) : ?>
+									<span class="multch-admin-badge multch-admin-badge--on"><?php esc_html_e( 'This site only', 'multiai-chatbot' ); ?></span>
+								<?php else : ?>
+									<span class="multch-admin-badge multch-admin-badge--live">
+										<?php
+										echo esc_html(
+											sprintf(
+												/* translators: %d: number of allowed origins */
+												_n( '%d origin', '%d origins', count( $origins ), 'multiai-chatbot' ),
+												count( $origins )
+											)
+										);
+										?>
+									</span>
+								<?php endif; ?>
+							</dd>
+						</div>
+						<div class="multch-admin-security-summary__row">
+							<dt><?php esc_html_e( 'Response cache', 'multiai-chatbot' ); ?></dt>
+							<dd id="multch-security-summary-cache"><?php echo esc_html( self::format_admin_duration( $cache_ttl ) ); ?></dd>
+						</div>
+						<div class="multch-admin-security-summary__row">
+							<dt><?php esc_html_e( 'IP suspension', 'multiai-chatbot' ); ?></dt>
+							<dd id="multch-security-summary-suspend">
+								<?php
+								echo esc_html(
+									sprintf(
+										/* translators: 1: violations count, 2: suspension duration */
+										__( 'After %1$d violations · %2$s', 'multiai-chatbot' ),
+										$suspend_after,
+										self::format_admin_duration( $suspend_seconds )
+									)
+								);
+								?>
+							</dd>
+						</div>
+						<div class="multch-admin-security-summary__row">
+							<dt><?php esc_html_e( 'Statistics & history', 'multiai-chatbot' ); ?></dt>
+							<dd>
+								<span class="multch-admin-badge <?php echo $stats_enabled ? 'multch-admin-badge--on' : 'multch-admin-badge--off'; ?>">
+									<?php
+									echo $stats_enabled
+										? esc_html__( 'Enabled', 'multiai-chatbot' )
+										: esc_html__( 'Disabled', 'multiai-chatbot' );
+									?>
+								</span>
+							</dd>
+						</div>
+						<?php if ( $stats_enabled ) : ?>
+							<div class="multch-admin-security-summary__row">
+								<dt><?php esc_html_e( 'Data retention', 'multiai-chatbot' ); ?></dt>
+								<dd>
+									<?php
+									$history_label = $history_days > 0
+										? sprintf(
+											/* translators: %d: number of days */
+											_n( '%d day (history)', '%d days (history)', $history_days, 'multiai-chatbot' ),
+											$history_days
+										)
+										: __( 'History: keep all', 'multiai-chatbot' );
+									$telemetry_label = $telemetry_days > 0
+										? sprintf(
+											/* translators: %d: number of days */
+											_n( '%d day (stats)', '%d days (stats)', $telemetry_days, 'multiai-chatbot' ),
+											$telemetry_days
+										)
+										: __( 'Stats: keep all', 'multiai-chatbot' );
+									echo esc_html( $history_label . ' · ' . $telemetry_label );
+									?>
+								</dd>
+							</div>
+						<?php endif; ?>
+						<?php if ( $file_log_on && '' !== $log_path ) : ?>
+							<div class="multch-admin-security-summary__row multch-admin-security-summary__row--wide">
+								<dt><?php esc_html_e( 'File log', 'multiai-chatbot' ); ?></dt>
+								<dd><code class="multch-admin-security-summary__code"><?php echo esc_html( $log_path ); ?></code></dd>
+							</div>
+						<?php endif; ?>
+					</dl>
+					<div class="multch-admin-security-summary__links">
+						<?php if ( $stats_enabled ) : ?>
+							<a class="multch-admin-stats-toolbar__link" href="<?php echo esc_url( $stats_url ); ?>">
+								<?php esc_html_e( 'View rate-limited requests', 'multiai-chatbot' ); ?>
+							</a>
+						<?php else : ?>
+							<a class="multch-admin-stats-toolbar__link" href="<?php echo esc_url( $general_url ); ?>">
+								<?php esc_html_e( 'Enable statistics under General', 'multiai-chatbot' ); ?>
+							</a>
+						<?php endif; ?>
+					</div>
+				</div>
+			</div>
+
+			<div class="multch-admin-card multch-admin-security-origins-preview">
+				<div class="multch-admin-card__head">
+					<h2><?php esc_html_e( 'Allowed origins', 'multiai-chatbot' ); ?></h2>
+					<p><?php esc_html_e( 'Domains that may call the chat REST endpoint.', 'multiai-chatbot' ); ?></p>
+				</div>
+				<div class="multch-admin-card__body">
+					<div class="multch-admin-origin-chips" id="multch-security-origin-chips" aria-live="polite">
+						<?php if ( empty( $origins ) ) : ?>
+							<span class="multch-admin-origin-chip multch-admin-origin-chip--default"><?php echo esc_html( $site_origin ); ?></span>
+							<p class="description multch-admin-security-origins-preview__hint"><?php esc_html_e( 'Default: only this WordPress site can use the chat API.', 'multiai-chatbot' ); ?></p>
+						<?php else : ?>
+							<?php foreach ( $origins as $origin ) : ?>
+								<span class="multch-admin-origin-chip"><?php echo esc_html( $origin ); ?></span>
+							<?php endforeach; ?>
+						<?php endif; ?>
+					</div>
+					<div class="multch-admin-origin-box__actions">
+						<button type="button" class="button button-secondary button-small" id="multch-copy-site-origin" data-origin="<?php echo esc_attr( $site_origin ); ?>">
+							<?php esc_html_e( 'Copy site URL', 'multiai-chatbot' ); ?>
+						</button>
+					</div>
+				</div>
+			</div>
+		</div>
+		<?php
+	}
+
+	/**
 	 * @param array<string, mixed> $settings
 	 */
 	private static function render_security_fields( array $settings ): void {
-		$site_origin = esc_url( home_url( '/' ) );
+		$site_origin           = esc_url( home_url( '/' ) );
+		$cache_ttl             = (int) ( $settings['cache_ttl_seconds'] ?? 1800 );
+		$rate_ip_min           = (int) ( $settings['rate_limit_per_minute'] ?? 10 );
+		$rate_ip_day           = (int) ( $settings['rate_limit_per_day'] ?? 30 );
+		$rate_model_min        = (int) ( $settings['rate_limit_model_per_minute'] ?? 6 );
+		$rate_model_day        = (int) ( $settings['rate_limit_model_per_day'] ?? 24 );
+		$soft_threshold        = (float) ( $settings['rate_limit_soft_threshold'] ?? 0.8 );
+		$suspend_after         = (int) ( $settings['ip_suspend_after_violations'] ?? 3 );
+		$suspend_seconds       = (int) ( $settings['ip_suspend_seconds'] ?? 900 );
+		$stats_enabled         = ! empty( $settings['stats_history_enabled'] );
+		$stats_url             = self::build_stats_url( array( 'status' => 'rate_limited', 'paged' => 1 ) );
+		$constant_overrides    = self::security_constant_overridden_keys();
+		$log_path              = Multch_Telemetry::get_file_log_path();
+		$cache_presets         = array(
+			0    => __( 'Off', 'multiai-chatbot' ),
+			900  => __( '15 min', 'multiai-chatbot' ),
+			1800 => __( '30 min', 'multiai-chatbot' ),
+			3600 => __( '1 hour', 'multiai-chatbot' ),
+		);
+		?>
+		<div class="multch-admin-security-toolbar">
+			<div class="multch-admin-security-toolbar__intro">
+				<h2><?php esc_html_e( 'Endpoint protection', 'multiai-chatbot' ); ?></h2>
+				<p><?php esc_html_e( 'Control who can access the chat API, how responses are cached, and how abuse is throttled.', 'multiai-chatbot' ); ?></p>
+				<?php if ( $stats_enabled ) : ?>
+					<a class="multch-admin-stats-toolbar__link" href="<?php echo esc_url( $stats_url ); ?>">
+						<?php esc_html_e( 'Review rate-limited traffic in Statistics', 'multiai-chatbot' ); ?>
+					</a>
+				<?php endif; ?>
+			</div>
+		</div>
+
+		<?php if ( ! empty( $constant_overrides ) ) : ?>
+			<div class="multch-admin-notice multch-admin-notice--warning" role="status">
+				<div class="multch-admin-notice__content">
+					<strong class="multch-admin-notice__title"><?php esc_html_e( 'wp-config.php overrides', 'multiai-chatbot' ); ?></strong>
+					<p class="multch-admin-notice__text">
+						<?php esc_html_e( 'Some security values are locked by constants in wp-config.php. The fields below may not reflect what the chat uses until those constants are updated or removed.', 'multiai-chatbot' ); ?>
+					</p>
+				</div>
+			</div>
+		<?php endif; ?>
+
+		<div class="multch-admin-kpi-grid multch-admin-kpi-grid--security">
+			<div class="multch-admin-kpi">
+				<span class="multch-admin-kpi__label"><?php esc_html_e( 'Cache TTL', 'multiai-chatbot' ); ?></span>
+				<span class="multch-admin-kpi__value" id="multch-kpi-cache"><?php echo esc_html( self::format_admin_duration( $cache_ttl ) ); ?></span>
+			</div>
+			<div class="multch-admin-kpi">
+				<span class="multch-admin-kpi__label"><?php esc_html_e( 'Per IP / minute', 'multiai-chatbot' ); ?></span>
+				<span class="multch-admin-kpi__value" id="multch-kpi-ip-min"><?php echo esc_html( number_format_i18n( $rate_ip_min ) ); ?></span>
+			</div>
+			<div class="multch-admin-kpi">
+				<span class="multch-admin-kpi__label"><?php esc_html_e( 'Per IP / day', 'multiai-chatbot' ); ?></span>
+				<span class="multch-admin-kpi__value" id="multch-kpi-ip-day"><?php echo esc_html( number_format_i18n( $rate_ip_day ) ); ?></span>
+			</div>
+			<div class="multch-admin-kpi">
+				<span class="multch-admin-kpi__label"><?php esc_html_e( 'Model / minute', 'multiai-chatbot' ); ?></span>
+				<span class="multch-admin-kpi__value" id="multch-kpi-model-min"><?php echo esc_html( number_format_i18n( $rate_model_min ) ); ?></span>
+			</div>
+			<div class="multch-admin-kpi">
+				<span class="multch-admin-kpi__label"><?php esc_html_e( 'Model / day', 'multiai-chatbot' ); ?></span>
+				<span class="multch-admin-kpi__value" id="multch-kpi-model-day"><?php echo esc_html( number_format_i18n( $rate_model_day ) ); ?></span>
+			</div>
+			<div class="multch-admin-kpi">
+				<span class="multch-admin-kpi__label"><?php esc_html_e( 'Soft threshold', 'multiai-chatbot' ); ?></span>
+				<span class="multch-admin-kpi__value" id="multch-kpi-soft-threshold"><?php echo esc_html( number_format_i18n( $soft_threshold * 100, 0 ) ); ?>%</span>
+			</div>
+		</div>
+
+		<div class="multch-admin-layout multch-admin-layout--split">
+			<div class="multch-admin-security-fields">
+		<?php
 		self::card_open(
 			__( 'Origins and access', 'multiai-chatbot' ),
 			__( 'Control which domains can call the chat endpoint.', 'multiai-chatbot' )
 		);
 		?>
-		<table class="form-table" role="presentation">
+		<div class="multch-admin-origin-box">
+			<label for="multch-allowed-origins" class="multch-admin-origin-box__label"><?php esc_html_e( 'Allowed origins', 'multiai-chatbot' ); ?></label>
+			<textarea
+				name="<?php echo esc_attr( self::OPTION_KEY ); ?>[allowed_origins]"
+				id="multch-allowed-origins"
+				rows="3"
+				class="large-text code"
+				placeholder="<?php echo esc_attr( $site_origin ); ?>"
+			><?php echo esc_textarea( (string) ( $settings['allowed_origins'] ?? '' ) ); ?></textarea>
+			<p class="description">
+				<?php
+				printf(
+					/* translators: %s: site home URL */
+					esc_html__( 'Comma-separated URLs. Leave empty to allow this site only (%s). Equivalent to MULTCH_ALLOWED_ORIGINS.', 'multiai-chatbot' ),
+					esc_html( $site_origin )
+				);
+				?>
+			</p>
+		</div>
+		<table class="form-table multch-admin-security-form-table" role="presentation">
 			<tr>
-				<th scope="row"><?php esc_html_e( 'Allowed origins', 'multiai-chatbot' ); ?></th>
+				<th scope="row"><label for="multch-internal-chat-url"><?php esc_html_e( 'Internal chat URL', 'multiai-chatbot' ); ?></label></th>
 				<td>
-					<textarea name="<?php echo esc_attr( self::OPTION_KEY ); ?>[allowed_origins]" rows="3" class="large-text code" placeholder="<?php echo esc_attr( $site_origin ); ?>"><?php echo esc_textarea( (string) ( $settings['allowed_origins'] ?? '' ) ); ?></textarea>
-					<p class="description">
-						<?php
-						printf(
-							/* translators: %s: site home URL */
-							esc_html__( 'Comma-separated URLs. Empty = this site only (%s). Equivalent to CHAT_ALLOWED_ORIGINS.', 'multiai-chatbot' ),
-							esc_html( $site_origin )
-						);
-						?>
-					</p>
-				</td>
-			</tr>
-			<tr>
-				<th scope="row"><?php esc_html_e( 'Internal chat URL', 'multiai-chatbot' ); ?></th>
-				<td>
-					<input type="url" class="regular-text code" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[internal_chat_base_url]" value="<?php echo esc_attr( (string) ( $settings['internal_chat_base_url'] ?? '' ) ); ?>" placeholder="<?php echo esc_attr( untrailingslashit( home_url() ) ); ?>" />
+					<input
+						type="url"
+						class="regular-text code"
+						id="multch-internal-chat-url"
+						name="<?php echo esc_attr( self::OPTION_KEY ); ?>[internal_chat_base_url]"
+						value="<?php echo esc_attr( (string) ( $settings['internal_chat_base_url'] ?? '' ) ); ?>"
+						placeholder="<?php echo esc_attr( untrailingslashit( home_url() ) ); ?>"
+					/>
 					<p class="description"><?php esc_html_e( 'Optional. Leave empty in most installations. If set, use a local URL (e.g. http://127.0.0.1); do not use the public URL with Cloudflare.', 'multiai-chatbot' ); ?></p>
 				</td>
 			</tr>
@@ -1897,26 +2253,44 @@ class Multch_Admin_Settings {
 			__( 'Reduce repeated model calls and optionally log events to a file.', 'multiai-chatbot' )
 		);
 		?>
-		<table class="form-table" role="presentation">
-			<tr>
-				<th scope="row"><?php esc_html_e( 'Cache TTL (seconds)', 'multiai-chatbot' ); ?></th>
-				<td>
-					<input type="number" min="0" max="86400" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[cache_ttl_seconds]" value="<?php echo esc_attr( (string) ( $settings['cache_ttl_seconds'] ?? 1800 ) ); ?>" class="small-text" />
-					<p class="description"><?php esc_html_e( '0 = disable cache. Equivalent to CHAT_CACHE_TTL_SECONDS.', 'multiai-chatbot' ); ?></p>
-				</td>
-			</tr>
-			<tr>
-				<th scope="row"><?php esc_html_e( 'Telemetry file log', 'multiai-chatbot' ); ?></th>
-				<td>
-					<input type="hidden" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[telemetry_file_log]" value="0" />
-					<label>
-						<input type="checkbox" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[telemetry_file_log]" value="1" <?php checked( ! empty( $settings['telemetry_file_log'] ) ); ?> />
-						<?php esc_html_e( 'Also append events to a log file in the uploads folder', 'multiai-chatbot' ); ?>
-					</label>
-					<?php
-					$log_path = Multch_Telemetry::get_file_log_path();
-					if ( '' !== $log_path ) :
-						?>
+		<div class="multch-admin-security-field-grid multch-admin-security-field-grid--cache">
+			<div class="multch-admin-security-field-grid__item">
+				<label for="multch-cache-ttl"><?php esc_html_e( 'Cache TTL (seconds)', 'multiai-chatbot' ); ?></label>
+				<input
+					type="number"
+					min="0"
+					max="86400"
+					id="multch-cache-ttl"
+					name="<?php echo esc_attr( self::OPTION_KEY ); ?>[cache_ttl_seconds]"
+					value="<?php echo esc_attr( (string) $cache_ttl ); ?>"
+					class="small-text"
+				/>
+				<p class="description" id="multch-cache-ttl-hint"><?php echo esc_html( self::format_admin_duration( $cache_ttl ) ); ?></p>
+				<div class="multch-admin-pills multch-admin-pills--cache" role="group" aria-label="<?php esc_attr_e( 'Cache presets', 'multiai-chatbot' ); ?>">
+					<?php foreach ( $cache_presets as $seconds => $label ) : ?>
+						<button
+							type="button"
+							class="multch-admin-pills__btn<?php echo (int) $cache_ttl === (int) $seconds ? ' is-active' : ''; ?>"
+							data-cache-seconds="<?php echo esc_attr( (string) $seconds ); ?>"
+						><?php echo esc_html( $label ); ?></button>
+					<?php endforeach; ?>
+				</div>
+				<p class="description"><?php esc_html_e( '0 disables the cache. Equivalent to MULTCH_CACHE_TTL_SECONDS.', 'multiai-chatbot' ); ?></p>
+			</div>
+			<div class="multch-admin-security-field-grid__item">
+				<span class="multch-admin-security-field-grid__label"><?php esc_html_e( 'Telemetry file log', 'multiai-chatbot' ); ?></span>
+				<input type="hidden" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[telemetry_file_log]" value="0" />
+				<label class="multch-admin-toggle">
+					<input
+						type="checkbox"
+						id="multch-telemetry-file-log"
+						name="<?php echo esc_attr( self::OPTION_KEY ); ?>[telemetry_file_log]"
+						value="1"
+						<?php checked( ! empty( $settings['telemetry_file_log'] ) ); ?>
+					/>
+					<span><?php esc_html_e( 'Append events to a JSONL file in uploads', 'multiai-chatbot' ); ?></span>
+				</label>
+				<?php if ( '' !== $log_path ) : ?>
 					<p class="description">
 						<?php
 						printf(
@@ -1926,25 +2300,59 @@ class Multch_Admin_Settings {
 						);
 						?>
 					</p>
-					<?php endif; ?>
-					<p class="description"><?php esc_html_e( 'Applies only when statistics and history are enabled under General. Database events use the same opt-in. Enable this additionally if you need a JSONL file for external tools. Can be forced via MULTCH_TELEMETRY_FILE_LOG in wp-config.php.', 'multiai-chatbot' ); ?></p>
-				</td>
-			</tr>
-			<tr>
-				<th scope="row"><?php esc_html_e( 'History retention (days)', 'multiai-chatbot' ); ?></th>
-				<td>
-					<input type="number" min="0" max="3650" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[history_retention_days]" value="<?php echo esc_attr( (string) ( $settings['history_retention_days'] ?? 0 ) ); ?>" class="small-text" />
-					<p class="description"><?php esc_html_e( 'Applies when statistics and history are enabled under General. 0 = keep indefinitely. Older conversations are purged automatically each day.', 'multiai-chatbot' ); ?></p>
-				</td>
-			</tr>
-			<tr>
-				<th scope="row"><?php esc_html_e( 'Telemetry retention (days)', 'multiai-chatbot' ); ?></th>
-				<td>
-					<input type="number" min="0" max="3650" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[telemetry_retention_days]" value="<?php echo esc_attr( (string) ( $settings['telemetry_retention_days'] ?? 0 ) ); ?>" class="small-text" />
-					<p class="description"><?php esc_html_e( 'Applies when statistics and history are enabled under General. 0 = keep indefinitely. Older statistics events are purged automatically each day.', 'multiai-chatbot' ); ?></p>
-				</td>
-			</tr>
-		</table>
+				<?php endif; ?>
+				<p class="description"><?php esc_html_e( 'Requires statistics and history under General. Can be forced via MULTCH_TELEMETRY_FILE_LOG in wp-config.php.', 'multiai-chatbot' ); ?></p>
+			</div>
+		</div>
+
+		<?php if ( $stats_enabled ) : ?>
+			<div class="multch-admin-security-section">
+				<h3 class="multch-admin-security-section__title"><?php esc_html_e( 'Data retention', 'multiai-chatbot' ); ?></h3>
+				<div class="multch-admin-security-field-grid">
+					<div class="multch-admin-security-field-grid__item">
+						<label for="multch-history-retention"><?php esc_html_e( 'History retention (days)', 'multiai-chatbot' ); ?></label>
+						<input
+							type="number"
+							min="0"
+							max="3650"
+							id="multch-history-retention"
+							name="<?php echo esc_attr( self::OPTION_KEY ); ?>[history_retention_days]"
+							value="<?php echo esc_attr( (string) ( $settings['history_retention_days'] ?? 0 ) ); ?>"
+							class="small-text"
+						/>
+						<p class="description"><?php esc_html_e( '0 = keep indefinitely. Older conversations are purged daily.', 'multiai-chatbot' ); ?></p>
+					</div>
+					<div class="multch-admin-security-field-grid__item">
+						<label for="multch-telemetry-retention"><?php esc_html_e( 'Telemetry retention (days)', 'multiai-chatbot' ); ?></label>
+						<input
+							type="number"
+							min="0"
+							max="3650"
+							id="multch-telemetry-retention"
+							name="<?php echo esc_attr( self::OPTION_KEY ); ?>[telemetry_retention_days]"
+							value="<?php echo esc_attr( (string) ( $settings['telemetry_retention_days'] ?? 0 ) ); ?>"
+							class="small-text"
+						/>
+						<p class="description"><?php esc_html_e( '0 = keep indefinitely. Older statistics events are purged daily.', 'multiai-chatbot' ); ?></p>
+					</div>
+				</div>
+			</div>
+		<?php else : ?>
+			<p class="description multch-admin-security-retention-note">
+				<?php
+				printf(
+					wp_kses(
+						/* translators: %s: General settings tab URL. */
+						__( 'History and telemetry retention apply when statistics are enabled under <a href="%s">General</a>.', 'multiai-chatbot' ),
+						array( 'a' => array( 'href' => array() ) )
+					),
+					esc_url( admin_url( 'admin.php?page=multch-plugin&tab=general' ) )
+				);
+				?>
+			</p>
+			<input type="hidden" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[history_retention_days]" value="<?php echo esc_attr( (string) ( $settings['history_retention_days'] ?? 0 ) ); ?>" />
+			<input type="hidden" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[telemetry_retention_days]" value="<?php echo esc_attr( (string) ( $settings['telemetry_retention_days'] ?? 0 ) ); ?>" />
+		<?php endif; ?>
 		<?php
 		self::card_close();
 
@@ -1953,59 +2361,124 @@ class Multch_Admin_Settings {
 			__( 'Protect the endpoint and AI provider quota from abuse.', 'multiai-chatbot' )
 		);
 		?>
-		<table class="form-table" role="presentation">
-			<tr>
-				<th scope="row"><?php esc_html_e( 'Per IP / minute', 'multiai-chatbot' ); ?></th>
-				<td>
-					<input type="number" min="1" max="120" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[rate_limit_per_minute]" value="<?php echo esc_attr( (string) ( $settings['rate_limit_per_minute'] ?? 10 ) ); ?>" class="small-text" />
-					<p class="description"><?php esc_html_e( 'CHAT_RATE_LIMIT_PER_MINUTE', 'multiai-chatbot' ); ?></p>
-				</td>
-			</tr>
-			<tr>
-				<th scope="row"><?php esc_html_e( 'Per IP / day', 'multiai-chatbot' ); ?></th>
-				<td>
-					<input type="number" min="1" max="1000" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[rate_limit_per_day]" value="<?php echo esc_attr( (string) ( $settings['rate_limit_per_day'] ?? 30 ) ); ?>" class="small-text" />
-					<p class="description"><?php esc_html_e( 'CHAT_RATE_LIMIT_PER_DAY', 'multiai-chatbot' ); ?></p>
-				</td>
-			</tr>
-			<tr>
-				<th scope="row"><?php esc_html_e( 'Model / minute (global)', 'multiai-chatbot' ); ?></th>
-				<td>
-					<input type="number" min="1" max="120" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[rate_limit_model_per_minute]" value="<?php echo esc_attr( (string) ( $settings['rate_limit_model_per_minute'] ?? 6 ) ); ?>" class="small-text" />
-					<p class="description"><?php esc_html_e( 'CHAT_RATE_LIMIT_MODEL_PER_MINUTE', 'multiai-chatbot' ); ?></p>
-				</td>
-			</tr>
-			<tr>
-				<th scope="row"><?php esc_html_e( 'Model / day (global)', 'multiai-chatbot' ); ?></th>
-				<td>
-					<input type="number" min="1" max="5000" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[rate_limit_model_per_day]" value="<?php echo esc_attr( (string) ( $settings['rate_limit_model_per_day'] ?? 24 ) ); ?>" class="small-text" />
-					<p class="description"><?php esc_html_e( 'CHAT_RATE_LIMIT_MODEL_PER_DAY', 'multiai-chatbot' ); ?></p>
-				</td>
-			</tr>
-			<tr>
-				<th scope="row"><?php esc_html_e( 'Soft threshold', 'multiai-chatbot' ); ?></th>
-				<td>
-					<input type="number" min="0.1" max="1" step="0.05" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[rate_limit_soft_threshold]" value="<?php echo esc_attr( (string) ( $settings['rate_limit_soft_threshold'] ?? 0.8 ) ); ?>" class="small-text" />
-					<p class="description"><?php esc_html_e( 'Fraction of the limit (0.1–1) at which a warning is logged. CHAT_RATE_LIMIT_SOFT_THRESHOLD', 'multiai-chatbot' ); ?></p>
-				</td>
-			</tr>
-			<tr>
-				<th scope="row"><?php esc_html_e( 'Suspend IP after violations', 'multiai-chatbot' ); ?></th>
-				<td>
-					<input type="number" min="1" max="20" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[ip_suspend_after_violations]" value="<?php echo esc_attr( (string) ( $settings['ip_suspend_after_violations'] ?? 3 ) ); ?>" class="small-text" />
-					<p class="description"><?php esc_html_e( 'CHAT_IP_SUSPEND_AFTER_VIOLATIONS', 'multiai-chatbot' ); ?></p>
-				</td>
-			</tr>
-			<tr>
-				<th scope="row"><?php esc_html_e( 'Suspension duration (sec)', 'multiai-chatbot' ); ?></th>
-				<td>
-					<input type="number" min="60" max="86400" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[ip_suspend_seconds]" value="<?php echo esc_attr( (string) ( $settings['ip_suspend_seconds'] ?? 900 ) ); ?>" class="small-text" />
-					<p class="description"><?php esc_html_e( 'CHAT_IP_SUSPEND_SECONDS', 'multiai-chatbot' ); ?></p>
-				</td>
-			</tr>
-		</table>
+		<div class="multch-admin-security-section">
+			<h3 class="multch-admin-security-section__title"><?php esc_html_e( 'Per visitor (IP)', 'multiai-chatbot' ); ?></h3>
+			<div class="multch-admin-security-field-grid">
+				<div class="multch-admin-security-field-grid__item">
+					<label for="multch-rate-limit-per-minute"><?php esc_html_e( 'Requests / minute', 'multiai-chatbot' ); ?></label>
+					<input
+						type="number"
+						min="1"
+						max="120"
+						id="multch-rate-limit-per-minute"
+						name="<?php echo esc_attr( self::OPTION_KEY ); ?>[rate_limit_per_minute]"
+						value="<?php echo esc_attr( (string) $rate_ip_min ); ?>"
+						class="small-text"
+					/>
+					<p class="description"><?php esc_html_e( 'MULTCH_RATE_LIMIT_PER_MINUTE', 'multiai-chatbot' ); ?></p>
+				</div>
+				<div class="multch-admin-security-field-grid__item">
+					<label for="multch-rate-limit-per-day"><?php esc_html_e( 'Requests / day', 'multiai-chatbot' ); ?></label>
+					<input
+						type="number"
+						min="1"
+						max="1000"
+						id="multch-rate-limit-per-day"
+						name="<?php echo esc_attr( self::OPTION_KEY ); ?>[rate_limit_per_day]"
+						value="<?php echo esc_attr( (string) $rate_ip_day ); ?>"
+						class="small-text"
+					/>
+					<p class="description"><?php esc_html_e( 'MULTCH_RATE_LIMIT_PER_DAY', 'multiai-chatbot' ); ?></p>
+				</div>
+			</div>
+		</div>
+
+		<div class="multch-admin-security-section">
+			<h3 class="multch-admin-security-section__title"><?php esc_html_e( 'Global model quota', 'multiai-chatbot' ); ?></h3>
+			<div class="multch-admin-security-field-grid">
+				<div class="multch-admin-security-field-grid__item">
+					<label for="multch-rate-limit-model-per-minute"><?php esc_html_e( 'Calls / minute', 'multiai-chatbot' ); ?></label>
+					<input
+						type="number"
+						min="1"
+						max="120"
+						id="multch-rate-limit-model-per-minute"
+						name="<?php echo esc_attr( self::OPTION_KEY ); ?>[rate_limit_model_per_minute]"
+						value="<?php echo esc_attr( (string) $rate_model_min ); ?>"
+						class="small-text"
+					/>
+					<p class="description"><?php esc_html_e( 'MULTCH_RATE_LIMIT_MODEL_PER_MINUTE', 'multiai-chatbot' ); ?></p>
+				</div>
+				<div class="multch-admin-security-field-grid__item">
+					<label for="multch-rate-limit-model-per-day"><?php esc_html_e( 'Calls / day', 'multiai-chatbot' ); ?></label>
+					<input
+						type="number"
+						min="1"
+						max="5000"
+						id="multch-rate-limit-model-per-day"
+						name="<?php echo esc_attr( self::OPTION_KEY ); ?>[rate_limit_model_per_day]"
+						value="<?php echo esc_attr( (string) $rate_model_day ); ?>"
+						class="small-text"
+					/>
+					<p class="description"><?php esc_html_e( 'MULTCH_RATE_LIMIT_MODEL_PER_DAY', 'multiai-chatbot' ); ?></p>
+				</div>
+			</div>
+		</div>
+
+		<div class="multch-admin-security-section">
+			<h3 class="multch-admin-security-section__title"><?php esc_html_e( 'Abuse response', 'multiai-chatbot' ); ?></h3>
+			<div class="multch-admin-security-field-grid multch-admin-security-field-grid--abuse">
+				<div class="multch-admin-security-field-grid__item">
+					<label for="multch-rate-limit-soft-threshold"><?php esc_html_e( 'Soft threshold', 'multiai-chatbot' ); ?></label>
+					<input
+						type="number"
+						min="0.1"
+						max="1"
+						step="0.05"
+						id="multch-rate-limit-soft-threshold"
+						name="<?php echo esc_attr( self::OPTION_KEY ); ?>[rate_limit_soft_threshold]"
+						value="<?php echo esc_attr( (string) $soft_threshold ); ?>"
+						class="small-text"
+					/>
+					<p class="description"><?php esc_html_e( 'Fraction of the limit (0.1–1) at which a warning is logged.', 'multiai-chatbot' ); ?></p>
+				</div>
+				<div class="multch-admin-security-field-grid__item">
+					<label for="multch-ip-suspend-after"><?php esc_html_e( 'Suspend IP after violations', 'multiai-chatbot' ); ?></label>
+					<input
+						type="number"
+						min="1"
+						max="20"
+						id="multch-ip-suspend-after"
+						name="<?php echo esc_attr( self::OPTION_KEY ); ?>[ip_suspend_after_violations]"
+						value="<?php echo esc_attr( (string) $suspend_after ); ?>"
+						class="small-text"
+					/>
+					<p class="description"><?php esc_html_e( 'MULTCH_IP_SUSPEND_AFTER_VIOLATIONS', 'multiai-chatbot' ); ?></p>
+				</div>
+				<div class="multch-admin-security-field-grid__item">
+					<label for="multch-ip-suspend-seconds"><?php esc_html_e( 'Suspension duration (sec)', 'multiai-chatbot' ); ?></label>
+					<input
+						type="number"
+						min="60"
+						max="86400"
+						id="multch-ip-suspend-seconds"
+						name="<?php echo esc_attr( self::OPTION_KEY ); ?>[ip_suspend_seconds]"
+						value="<?php echo esc_attr( (string) $suspend_seconds ); ?>"
+						class="small-text"
+					/>
+					<p class="description" id="multch-ip-suspend-hint"><?php echo esc_html( self::format_admin_duration( $suspend_seconds ) ); ?></p>
+				</div>
+			</div>
+		</div>
 		<?php
 		self::card_close();
+		?>
+			</div>
+		<?php
+		self::render_security_summary_panel( $settings );
+		?>
+		</div>
+		<?php
 	}
 
 	/**
