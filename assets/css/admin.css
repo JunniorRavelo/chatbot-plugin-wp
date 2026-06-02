@@ -254,6 +254,176 @@
   font-size: 0.8125rem;
 }
 
+/* Developer credit — featured card (Chat style tab, last section) */
+.multch-admin-card--developer-credit {
+  position: relative;
+  isolation: isolate;
+  margin-top: 0.35rem;
+  border: 1px solid transparent;
+  background:
+    linear-gradient(var(--cb-admin-surface), var(--cb-admin-surface)) padding-box,
+    linear-gradient(
+      135deg,
+      rgba(37, 99, 235, 0.55),
+      rgba(124, 58, 237, 0.45),
+      rgba(37, 99, 235, 0.55)
+    )
+    border-box;
+  background-size: 100% 100%, 220% 220%;
+  animation: multch-dev-credit-border 5s ease-in-out infinite;
+  box-shadow:
+    0 1px 3px rgba(15, 23, 42, 0.06),
+    0 10px 28px -10px rgba(37, 99, 235, 0.22),
+    0 0 0 1px rgba(37, 99, 235, 0.04);
+  transition: box-shadow 0.25s ease, transform 0.25s ease;
+}
+
+.multch-admin-card--developer-credit:hover {
+  transform: translateY(-1px);
+  box-shadow:
+    0 2px 6px rgba(15, 23, 42, 0.08),
+    0 14px 36px -12px rgba(37, 99, 235, 0.28),
+    0 0 0 1px rgba(37, 99, 235, 0.08);
+}
+
+.multch-admin-card--developer-credit::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(
+    120% 80% at 100% 0%,
+    rgba(124, 58, 237, 0.07) 0%,
+    transparent 55%
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+.multch-admin-card--developer-credit .multch-admin-card__head,
+.multch-admin-card--developer-credit .multch-admin-card__body {
+  position: relative;
+  z-index: 1;
+}
+
+.multch-admin-card--developer-credit .multch-admin-card__head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: auto auto;
+  gap: 0.35rem 0.75rem;
+  align-items: start;
+  background: linear-gradient(
+    135deg,
+    rgba(37, 99, 235, 0.07) 0%,
+    rgba(124, 58, 237, 0.05) 52%,
+    rgba(255, 255, 255, 0.92) 100%
+  );
+  border-bottom-color: rgba(37, 99, 235, 0.14);
+}
+
+.multch-admin-card--developer-credit .multch-admin-card__head h2 {
+  grid-column: 1;
+  grid-row: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  background: linear-gradient(135deg, #1e40af 0%, #6d28d9 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.multch-admin-card--developer-credit .multch-admin-card__head p {
+  grid-column: 1;
+  grid-row: 2;
+  margin: 0;
+}
+
+.multch-admin-card--developer-credit .multch-admin-card__head::after {
+  content: attr(data-badge);
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  align-self: start;
+  flex-shrink: 0;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #4338ca;
+  background: rgba(99, 102, 241, 0.12);
+  border: 1px solid rgba(99, 102, 241, 0.22);
+  animation: multch-dev-credit-badge 3.2s ease-in-out infinite;
+}
+
+.multch-admin-card--developer-credit .multch-admin-card__head h2::before {
+  content: "";
+  flex-shrink: 0;
+  width: 1.35rem;
+  height: 1.35rem;
+  border-radius: 0.45rem;
+  background: linear-gradient(145deg, var(--cb-admin-primary) 0%, var(--cb-admin-accent) 100%);
+  box-shadow: 0 4px 12px -4px rgba(37, 99, 235, 0.55);
+  animation: multch-dev-credit-icon 2.8s ease-in-out infinite;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3l1.912 5.813a2 2 0 0 0 1.272 1.272L21 12l-5.816 1.915a2 2 0 0 0-1.272 1.272L12 21l-1.912-5.813a2 2 0 0 0-1.272-1.272L3 12l5.816-1.915a2 2 0 0 0 1.272-1.272L12 3Z'/%3E%3C/svg%3E")
+    center / 0.85rem no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3l1.912 5.813a2 2 0 0 0 1.272 1.272L21 12l-5.816 1.915a2 2 0 0 0-1.272 1.272L12 21l-1.912-5.813a2 2 0 0 0-1.272-1.272L3 12l5.816-1.915a2 2 0 0 0 1.272-1.272L12 3Z'/%3E%3C/svg%3E")
+    center / 0.85rem no-repeat;
+}
+
+.multch-admin-card--developer-credit .multch-admin-card__body {
+  background: linear-gradient(180deg, rgba(248, 250, 252, 0.65) 0%, var(--cb-admin-surface) 100%);
+}
+
+.multch-admin-card--developer-credit .multch-admin-toggle span {
+  font-weight: 500;
+}
+
+@keyframes multch-dev-credit-border {
+  0%,
+  100% {
+    background-position: 0 0, 0% 50%;
+  }
+  50% {
+    background-position: 0 0, 100% 50%;
+  }
+}
+
+@keyframes multch-dev-credit-icon {
+  0%,
+  100% {
+    transform: scale(1);
+    box-shadow: 0 4px 12px -4px rgba(37, 99, 235, 0.55);
+  }
+  50% {
+    transform: scale(1.06);
+    box-shadow: 0 6px 16px -4px rgba(124, 58, 237, 0.5);
+  }
+}
+
+@keyframes multch-dev-credit-badge {
+  0%,
+  100% {
+    opacity: 0.88;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .multch-admin-card--developer-credit,
+  .multch-admin-card--developer-credit .multch-admin-card__head h2::before,
+  .multch-admin-card--developer-credit .multch-admin-card__head::after {
+    animation: none;
+  }
+
+  .multch-admin-card--developer-credit:hover {
+    transform: none;
+  }
+}
+
 /* Connectors status (Model tab) */
 .multch-connectors-panel {
   display: grid;

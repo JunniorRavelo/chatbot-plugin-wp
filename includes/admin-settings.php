@@ -1706,10 +1706,18 @@ class Multch_Admin_Settings {
 	 * @param string $title
 	 * @param string $description
 	 */
-	private static function card_open( string $title, string $description = '' ): void {
+	private static function card_open( string $title, string $description = '', string $extra_class = '', string $badge = '' ): void {
+		$card_class = 'multch-admin-card';
+		if ( '' !== $extra_class ) {
+			foreach ( preg_split( '/\s+/', trim( $extra_class ) ) ?: array() as $modifier ) {
+				if ( '' !== $modifier ) {
+					$card_class .= ' ' . sanitize_html_class( $modifier );
+				}
+			}
+		}
 		?>
-		<div class="multch-admin-card">
-			<div class="multch-admin-card__head">
+		<div class="<?php echo esc_attr( $card_class ); ?>">
+			<div class="multch-admin-card__head"<?php echo '' !== $badge ? ' data-badge="' . esc_attr( $badge ) . '"' : ''; ?>>
 				<h2><?php echo esc_html( $title ); ?></h2>
 				<?php if ( '' !== $description ) : ?>
 					<p><?php echo esc_html( $description ); ?></p>
@@ -3111,27 +3119,6 @@ class Multch_Admin_Settings {
 		self::card_close();
 
 		self::card_open(
-			__( 'Developer credit', 'multiai-chatbot' ),
-			__( 'Optional attribution shown inside the chat panel.', 'multiai-chatbot' )
-		);
-		?>
-		<table class="form-table" role="presentation">
-			<tr>
-				<th scope="row"><?php esc_html_e( 'Show in chat', 'multiai-chatbot' ); ?></th>
-				<td>
-					<label class="multch-admin-toggle">
-						<input type="hidden" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[style_show_credit]" value="0" />
-						<input type="checkbox" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[style_show_credit]" value="1" <?php checked( ! empty( $settings['style_show_credit'] ) ); ?> />
-						<span><?php esc_html_e( 'Show developer credit in chat', 'multiai-chatbot' ); ?></span>
-					</label>
-					<p class="description"><?php esc_html_e( 'Adds a small line below the message box with the plugin name and a link. Off by default.', 'multiai-chatbot' ); ?></p>
-				</td>
-			</tr>
-		</table>
-		<?php
-		self::card_close();
-
-		self::card_open(
 			__( 'Screen position', 'multiai-chatbot' ),
 			__( 'Where the panel and floating button appear on the site.', 'multiai-chatbot' )
 		);
@@ -3169,6 +3156,29 @@ class Multch_Admin_Settings {
 						<span><?php esc_html_e( 'Show title next to the 💬 icon', 'multiai-chatbot' ); ?></span>
 					</label>
 					<p class="description"><?php esc_html_e( 'The title is configured under General → Widget header.', 'multiai-chatbot' ); ?></p>
+				</td>
+			</tr>
+		</table>
+		<?php
+		self::card_close();
+
+		self::card_open(
+			__( 'Developer credit', 'multiai-chatbot' ),
+			__( 'Optional attribution shown inside the chat panel.', 'multiai-chatbot' ),
+			'multch-admin-card--developer-credit',
+			__( 'Optional', 'multiai-chatbot' )
+		);
+		?>
+		<table class="form-table" role="presentation">
+			<tr>
+				<th scope="row"><?php esc_html_e( 'Show in chat', 'multiai-chatbot' ); ?></th>
+				<td>
+					<label class="multch-admin-toggle">
+						<input type="hidden" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[style_show_credit]" value="0" />
+						<input type="checkbox" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[style_show_credit]" value="1" <?php checked( ! empty( $settings['style_show_credit'] ) ); ?> />
+						<span><?php esc_html_e( 'Show developer credit in chat', 'multiai-chatbot' ); ?></span>
+					</label>
+					<p class="description"><?php esc_html_e( 'Adds a small line below the message box with the plugin name and a link. Off by default.', 'multiai-chatbot' ); ?></p>
 				</td>
 			</tr>
 		</table>
