@@ -210,13 +210,20 @@
     }
   }
 
+  const PLUGIN_RATE_LIMIT_CODES = new Set([
+    "RATE_LIMIT_GENERAL",
+    "RATE_LIMIT_MODEL_MINUTE",
+    "RATE_LIMIT_MODEL_DAILY",
+    "IP_SUSPENDED",
+  ]);
+
   function mapErrorMessage(code) {
     const map = {
       RATE_LIMIT_GENERAL: "Too many requests. Please wait a moment.",
       RATE_LIMIT_MODEL_MINUTE: "This site’s chat limit for AI messages was reached. Wait a moment before sending another.",
       RATE_LIMIT_MODEL_DAILY: "This site’s daily chat limit for AI messages was reached. Try again later.",
       RATE_LIMIT_PROVIDER: "The AI provider rate limit was reached. Try again shortly.",
-      QUOTA_EXHAUSTED: "Google API quota was reached. The chat tried your configured models. Wait a few minutes or change models in MultiAI ChatBot → AI Model.",
+      QUOTA_EXHAUSTED: "The AI provider quota was reached. The chat tried your configured models. Wait a few minutes or change models in MultiAI ChatBot → AI Model.",
       MODEL_ALL_EXHAUSTED: "All models are temporarily saturated.",
       MODEL_TEMP_UNAVAILABLE: "The model did not return a valid response. Check Connectors and the model in AI Model settings.",
       PROVIDER_TIMEOUT: "The provider took too long to respond.",
@@ -227,6 +234,41 @@
       SERVER_ERROR: "Internal server error.",
     };
     return map[code] || i18n.errorGeneric || "Could not send the message.";
+  }
+
+  function truncateMessage(message, maxLen) {
+    if (!message || typeof message !== "string") {
+      return message;
+    }
+    if (message.length > maxLen) {
+      return message.slice(0, maxLen) + "…";
+    }
+    return message;
+  }
+
+  function resolveErrorMessage(err) {
+    const code = err && err.code;
+    const rawMessage = err && err.message;
+
+    if (code && PLUGIN_RATE_LIMIT_CODES.has(code)) {
+      return mapErrorMessage(code);
+    }
+
+    if (code && code !== "UNKNOWN" && code !== "PROVIDER_UPSTREAM" && code !== "SERVER_ERROR") {
+      if (code === "RATE_LIMIT_PROVIDER" || code === "QUOTA_EXHAUSTED") {
+        if (
+          rawMessage &&
+          /exceeded your (current )?quota|check your plan and billing|resource exhausted|quota exceeded/i.test(
+            rawMessage
+          )
+        ) {
+          return truncateMessage(rawMessage, 220);
+        }
+      }
+      return mapErrorMessage(code);
+    }
+
+    return sanitizeErrorMessage(rawMessage, err && err.status) || mapErrorMessage(code);
   }
 
   function sanitizeErrorMessage(message, status) {
@@ -240,19 +282,11 @@
       return "The server returned an error (502). Leave the internal chat URL empty and verify the DeepSeek API key.";
     }
     if (
-      /quota|too many requests|\b429\b|exceeded your current/i.test(message)
+      /exceeded your (current )?quota|check your plan and billing|resource exhausted|quota exceeded/i.test(
+        message
+      )
     ) {
-      if (
-        /could not be used|Gemini fallback|primary model|Settings → Connectors/i.test(
-          message
-        )
-      ) {
-        return message;
-      }
-      return (
-        (i18n && i18n.quotaExhausted) ||
-        "Google API quota was reached. Wait a few minutes or change models in the plugin settings."
-      );
+      return truncateMessage(message, 220);
     }
     if (message.length > 220) {
       return message.slice(0, 220) + "…";
@@ -662,7 +696,7 @@
         throw {
           status: res.status,
           code: data.errorCode || "UNKNOWN",
-          message: sanitizeErrorMessage(data.error || mapErrorMessage(data.errorCode), res.status),
+          message: resolveErrorMessage({ code: data.errorCode || "UNKNOWN", message: data.error, status: res.status }),
           retryAfter: data.retryAfter,
         };
       }
@@ -710,7 +744,7 @@
         throw {
           status: res.status,
           code: data.errorCode || "UNKNOWN",
-          message: sanitizeErrorMessage(data.error || mapErrorMessage(data.errorCode), res.status),
+          message: resolveErrorMessage({ code: data.errorCode || "UNKNOWN", message: data.error, status: res.status }),
           retryAfter: data.retryAfter,
         };
       }
@@ -802,7 +836,7 @@
         if (idx >= 0) {
           messages.splice(idx, 1);
         }
-        setError(sanitizeErrorMessage(err && err.message, err && err.status) || mapErrorMessage(err && err.code));
+        setError(resolveErrorMessage(err));
       }
 
       saveState(messages);

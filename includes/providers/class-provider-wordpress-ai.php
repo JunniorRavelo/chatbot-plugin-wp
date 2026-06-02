@@ -157,8 +157,8 @@ class Multch_Provider_WordPress_AI implements Multch_AI_Provider {
 				return multch_ai_client_finalize_provider_result( $result, $model_primary, $actual_index, $chain );
 			}
 
-			// Primary is Gemma but the connector answered with another text model — use it instead of burning Gemini quota.
-			if ( 0 === $index && multch_ai_client_is_gemma_model( $model_id ) && multch_ai_client_is_provider_text_substitute( $actual_model ) ) {
+			// Connectors routed to a different text model — accept the response instead of retrying the chain.
+			if ( multch_ai_client_is_provider_text_substitute( $actual_model ) ) {
 				$result['fallback_configured'] = $model_id;
 				$result['provider_rerouted']   = true;
 				return multch_ai_client_finalize_provider_result( $result, $model_primary, $index, $chain );
@@ -185,10 +185,10 @@ class Multch_Provider_WordPress_AI implements Multch_AI_Provider {
 			return multch_ai_client_finalize_provider_result( $result, $model_primary, $index, $chain );
 		}
 
-		if ( $allow_google_any && $is_last && multch_ai_client_is_provider_text_substitute( $actual_model ) ) {
+		if ( multch_ai_client_is_provider_text_substitute( $actual_model ) ) {
 			$result['fallback_configured'] = $model_id;
 			$result['provider_rerouted']   = true;
-			return multch_ai_client_finalize_provider_result( $result, $model_primary, max( 1, $index ), $chain );
+			return multch_ai_client_finalize_provider_result( $result, $model_primary, $index, $chain );
 		}
 
 		return new WP_Error(

@@ -630,6 +630,8 @@ function multch_ai_client_finalize_provider_result( array $result, string $model
 
 /**
  * Whether an error message indicates Google/provider quota or rate limits.
+ *
+ * Does not match the plugin's own rate-limit messages (e.g. "Too many requests. Please wait a moment.").
  */
 function multch_ai_client_message_indicates_quota( string $message ): bool {
 	$message = strtolower( $message );
@@ -637,14 +639,7 @@ function multch_ai_client_message_indicates_quota( string $message ): bool {
 		return false;
 	}
 
-	if ( preg_match( '/\b429\b/', $message ) ) {
-		return true;
-	}
-
-	$needles = array(
-		'too many requests',
-		'rate limit',
-		'rate-limit',
+	$provider_needles = array(
 		'resource exhausted',
 		'quota exceeded',
 		'exceeded your current quota',
@@ -652,10 +647,15 @@ function multch_ai_client_message_indicates_quota( string $message ): bool {
 		'check your plan and billing',
 	);
 
-	foreach ( $needles as $needle ) {
+	foreach ( $provider_needles as $needle ) {
 		if ( str_contains( $message, $needle ) ) {
 			return true;
 		}
+	}
+
+	// Provider-specific rate limit wording (not the plugin's generic "Too many requests").
+	if ( str_contains( $message, 'rate limit' ) || str_contains( $message, 'rate-limit' ) ) {
+		return ! str_contains( $message, 'please wait a moment' );
 	}
 
 	return false;
@@ -729,7 +729,7 @@ function multch_ai_client_quota_exhausted_error( string $model_primary = '', arr
 
 	return new WP_Error(
 		'quota_exhausted',
-		__( 'Google API quota was reached for the Gemini models in your chain. Wait a few minutes or choose other models in MultiAI ChatBot → AI Model.', 'multiai-chatbot' ),
+		__( 'The AI provider quota or rate limit was reached for the models in your chain. Wait a few minutes, check Settings → Connectors, or choose other models in MultiAI ChatBot → AI Model.', 'multiai-chatbot' ),
 		array(
 			'status'      => 429,
 			'error_code'  => 'QUOTA_EXHAUSTED',

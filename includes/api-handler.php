@@ -738,13 +738,13 @@ class Multch_Api_Handler {
 		$checks = array(
 			array(
 				'key'    => 'multch_rl_model_min_' . $scope,
-				'limit'  => max( 1, (int) ( $settings['rate_limit_model_per_minute'] ?? 6 ) ),
+				'limit'  => max( 1, (int) ( $settings['rate_limit_model_per_minute'] ?? 20 ) ),
 				'window' => MINUTE_IN_SECONDS,
 				'code'   => 'RATE_LIMIT_MODEL_MINUTE',
 			),
 			array(
 				'key'    => 'multch_rl_model_day_' . $scope,
-				'limit'  => max( 1, (int) ( $settings['rate_limit_model_per_day'] ?? 24 ) ),
+				'limit'  => max( 1, (int) ( $settings['rate_limit_model_per_day'] ?? 200 ) ),
 				'window' => DAY_IN_SECONDS,
 				'code'   => 'RATE_LIMIT_MODEL_DAILY',
 			),
