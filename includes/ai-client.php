@@ -696,6 +696,72 @@ function multch_ai_client_quota_exhausted_error(): WP_Error {
 }
 
 /**
+ * @param array<string, mixed> $settings
+ */
+function multch_ai_client_configured_models_summary( array $settings ): string {
+	$chain = multch_ai_client_model_chain( $settings );
+	if ( empty( $chain ) ) {
+		return 'automatic';
+	}
+
+	return implode( ' → ', $chain );
+}
+
+/**
+ * @param WP_Error $error
+ */
+function multch_ai_client_extract_error_code( WP_Error $error ): string {
+	$data = $error->get_error_data();
+	if ( is_array( $data ) && ! empty( $data['error_code'] ) ) {
+		return sanitize_text_field( (string) $data['error_code'] );
+	}
+
+	return sanitize_key( $error->get_error_code() );
+}
+
+/**
+ * @param list<array{model: string, error_code: string, message?: string}> $attempt_log
+ */
+function multch_ai_client_log_provider_attempt( array &$attempt_log, string $model_id, WP_Error $error ): void {
+	$attempt_log[] = array(
+		'model'      => '' !== $model_id ? $model_id : 'google-automatic',
+		'error_code' => multch_ai_client_extract_error_code( $error ),
+		'message'    => $error->get_error_message(),
+	);
+}
+
+/**
+ * @param list<array{model: string, error_code: string, message?: string}> $attempt_log
+ */
+function multch_ai_client_attempts_indicate_quota( array $attempt_log ): bool {
+	foreach ( $attempt_log as $row ) {
+		if ( ! empty( $row['message'] ) && multch_ai_client_message_indicates_quota( (string) $row['message'] ) ) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+/**
+ * @param list<array{model: string, error_code: string, message?: string}> $attempt_log
+ */
+function multch_ai_client_wrap_error_with_attempt_log( WP_Error $error, array $attempt_log ): WP_Error {
+	$data = $error->get_error_data();
+	if ( ! is_array( $data ) ) {
+		$data = array();
+	}
+
+	$data['attempt_log'] = $attempt_log;
+
+	return new WP_Error(
+		$error->get_error_code(),
+		$error->get_error_message(),
+		$data
+	);
+}
+
+/**
  * Index of a model in the configured chain, or -1 when not listed.
  *
  * @param list<string> $chain
@@ -942,7 +1008,7 @@ function multch_ai_client_map_error( WP_Error $error ): WP_Error {
 	if ( multch_ai_client_is_provider_rate_limit_error( $error ) ) {
 		return new WP_Error(
 			'rate_limit_model',
-			__( 'This model hit the Google API quota. Trying the next configured model…', 'multiai-chatbot' ),
+			$message,
 			array(
 				'status'      => 429,
 				'error_code'  => 'RATE_LIMIT_PROVIDER',

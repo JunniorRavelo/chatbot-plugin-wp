@@ -93,7 +93,19 @@ class Multch_Api_Handler {
 
 		$model_limit = self::enforce_model_rate_limit( $settings, $session_hash );
 		if ( $model_limit instanceof WP_REST_Response ) {
-			self::record_event( $session_hash, $settings, '', 'rate_limited', (int) ( ( microtime( true ) - $started ) * 1000 ), 'RATE_LIMIT_MODEL' );
+			$limit_data = $model_limit->get_data();
+			$limit_code = is_array( $limit_data ) && ! empty( $limit_data['errorCode'] )
+				? (string) $limit_data['errorCode']
+				: 'RATE_LIMIT_MODEL';
+			self::record_event(
+				$session_hash,
+				$settings,
+				multch_ai_client_configured_models_summary( $settings ),
+				'rate_limited',
+				(int) ( ( microtime( true ) - $started ) * 1000 ),
+				$limit_code,
+				$conversation
+			);
 			return $model_limit;
 		}
 
@@ -114,13 +126,13 @@ class Multch_Api_Handler {
 			$error_code = is_array( $error_data ) && isset( $error_data['error_code'] ) ? (string) $error_data['error_code'] : 'SERVER_ERROR';
 			$retry_after = is_array( $error_data ) && isset( $error_data['retry_after'] ) ? (int) $error_data['retry_after'] : 0;
 
-			self::record_event( $session_hash, $settings, '', 'error', $latency, $error_code, $conversation );
+			self::record_provider_failure_events( $session_hash, $settings, $result, $latency, $conversation );
 			self::persist_history_exchange(
 				$conversation,
 				$parsed['message'],
 				$result->get_error_message(),
 				$provider_id,
-				'',
+				multch_ai_client_configured_models_summary( $settings ),
 				'error',
 				$latency,
 				$parsed
@@ -833,6 +845,56 @@ class Multch_Api_Handler {
 	/**
 	 * @param array<string, mixed> $settings
 	 */
+	/**
+	 * @param array{id: int, public_id: string}|null $conversation
+	 */
+	/**
+	 * @param array{id: int, public_id: string}|null $conversation
+	 */
+	private static function record_provider_failure_events(
+		string $session_hash,
+		array $settings,
+		WP_Error $error,
+		int $latency_ms,
+		?array $conversation = null
+	): void {
+		$data        = $error->get_error_data();
+		$attempt_log = is_array( $data ) && ! empty( $data['attempt_log'] ) && is_array( $data['attempt_log'] )
+			? $data['attempt_log']
+			: array();
+
+		if ( empty( $attempt_log ) ) {
+			self::record_event(
+				$session_hash,
+				$settings,
+				multch_ai_client_configured_models_summary( $settings ),
+				'error',
+				$latency_ms,
+				multch_ai_client_extract_error_code( $error ),
+				$conversation
+			);
+			return;
+		}
+
+		$count      = count( $attempt_log );
+		$per_attempt = max( 1, (int) floor( $latency_ms / $count ) );
+
+		foreach ( $attempt_log as $attempt ) {
+			$model = ! empty( $attempt['model'] ) ? (string) $attempt['model'] : 'unknown';
+			$code  = ! empty( $attempt['error_code'] ) ? (string) $attempt['error_code'] : multch_ai_client_extract_error_code( $error );
+
+			self::record_event(
+				$session_hash,
+				$settings,
+				$model,
+				'error',
+				$per_attempt,
+				$code,
+				$conversation
+			);
+		}
+	}
+
 	/**
 	 * @param array{id: int, public_id: string}|null $conversation
 	 */

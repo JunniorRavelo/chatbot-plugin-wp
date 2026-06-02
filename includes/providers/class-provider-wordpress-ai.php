@@ -40,18 +40,20 @@ class Multch_Provider_WordPress_AI implements Multch_AI_Provider {
 			);
 		}
 
-		$chain              = multch_ai_client_model_chain( $settings );
-		$attempts           = ! empty( $chain ) ? $chain : array( '' );
-		$model_primary      = isset( $chain[0] ) ? (string) $chain[0] : '';
-		$allow_google_any   = multch_ai_client_allow_google_any_model( $settings );
-		$last_error         = null;
-		$last_result        = null;
+		$chain            = multch_ai_client_model_chain( $settings );
+		$attempts         = ! empty( $chain ) ? $chain : array( '' );
+		$model_primary    = isset( $chain[0] ) ? (string) $chain[0] : '';
+		$allow_google_any = multch_ai_client_allow_google_any_model( $settings );
+		$attempt_log      = array();
+		$last_error       = null;
+		$last_result      = null;
 
 		foreach ( $attempts as $index => $model_id ) {
 			$is_last = ( $index === count( $attempts ) - 1 );
 			$result  = $this->run_model_attempt( $system, $split, $model_id, $chain, $index, $is_last, $model_primary, $allow_google_any );
 
 			if ( is_wp_error( $result ) ) {
+				multch_ai_client_log_provider_attempt( $attempt_log, $model_id, $result );
 				$last_error = $result;
 				if ( $is_last || ! multch_ai_client_should_try_next_model( $result ) ) {
 					break;
@@ -71,6 +73,7 @@ class Multch_Provider_WordPress_AI implements Multch_AI_Provider {
 				return $automatic;
 			}
 			if ( $automatic instanceof WP_Error ) {
+				multch_ai_client_log_provider_attempt( $attempt_log, '', $automatic );
 				$last_error = $automatic;
 			}
 		}
@@ -80,10 +83,11 @@ class Multch_Provider_WordPress_AI implements Multch_AI_Provider {
 		}
 
 		if ( $last_error instanceof WP_Error ) {
-			if ( multch_ai_client_message_indicates_quota( $last_error->get_error_message() ) ) {
-				return multch_ai_client_quota_exhausted_error();
+			if ( multch_ai_client_attempts_indicate_quota( $attempt_log ) || multch_ai_client_message_indicates_quota( $last_error->get_error_message() ) ) {
+				return multch_ai_client_wrap_error_with_attempt_log( multch_ai_client_quota_exhausted_error(), $attempt_log );
 			}
-			return $last_error;
+
+			return multch_ai_client_wrap_error_with_attempt_log( $last_error, $attempt_log );
 		}
 
 		return new WP_Error(
@@ -95,7 +99,7 @@ class Multch_Provider_WordPress_AI implements Multch_AI_Provider {
 
 	/**
 	 * @param list<string> $chain
-	 * @return array<string, mixed>|WP_Error|null Null when the loop should try the next configured model.
+	 * @return array<string, mixed>|WP_Error
 	 */
 	private function run_model_attempt(
 		string $system,
@@ -120,7 +124,11 @@ class Multch_Provider_WordPress_AI implements Multch_AI_Provider {
 			return new WP_Error(
 				'model_temp_unavailable',
 				__( 'The model did not return a valid response.', 'multiai-chatbot' ),
-				array( 'status' => 503, 'error_code' => 'MODEL_TEMP_UNAVAILABLE' )
+				array(
+					'status'     => 503,
+					'error_code' => 'MODEL_TEMP_UNAVAILABLE',
+					'model'      => $model_id,
+				)
 			);
 		}
 
@@ -143,12 +151,12 @@ class Multch_Provider_WordPress_AI implements Multch_AI_Provider {
 			if ( $substituted && ! $is_last ) {
 				return new WP_Error(
 					'model_substituted',
-					sprintf(
-						/* translators: %s: model ID that was requested */
-						__( 'Model %s is unavailable; trying the next configured model.', 'multiai-chatbot' ),
-						$requested_model
-					),
-					array( 'status' => 503, 'error_code' => 'MODEL_SUBSTITUTED' )
+					__( 'The configured model is unavailable; trying the next one.', 'multiai-chatbot' ),
+					array(
+						'status'     => 503,
+						'error_code' => 'MODEL_SUBSTITUTED',
+						'model'      => $model_id,
+					)
 				);
 			}
 
@@ -169,7 +177,11 @@ class Multch_Provider_WordPress_AI implements Multch_AI_Provider {
 				$model_id,
 				$actual_model
 			),
-			array( 'status' => 503, 'error_code' => 'MODEL_FALLBACK_MISMATCH' )
+			array(
+				'status'     => 503,
+				'error_code' => 'MODEL_FALLBACK_MISMATCH',
+				'model'      => $model_id,
+			)
 		);
 	}
 
@@ -189,7 +201,11 @@ class Multch_Provider_WordPress_AI implements Multch_AI_Provider {
 			return new WP_Error(
 				'model_temp_unavailable',
 				__( 'No AI model returned a valid response.', 'multiai-chatbot' ),
-				array( 'status' => 503, 'error_code' => 'MODEL_TEMP_UNAVAILABLE' )
+				array(
+					'status'     => 503,
+					'error_code' => 'MODEL_TEMP_UNAVAILABLE',
+					'model'      => 'google-automatic',
+				)
 			);
 		}
 
@@ -202,7 +218,11 @@ class Multch_Provider_WordPress_AI implements Multch_AI_Provider {
 					__( 'Google returned %s, which is not allowed for text chat.', 'multiai-chatbot' ),
 					$actual_model
 				),
-				array( 'status' => 503, 'error_code' => 'MODEL_NOT_ALLOWED' )
+				array(
+					'status'     => 503,
+					'error_code' => 'MODEL_NOT_ALLOWED',
+					'model'      => 'google-automatic',
+				)
 			);
 		}
 
@@ -228,7 +248,11 @@ class Multch_Provider_WordPress_AI implements Multch_AI_Provider {
 				$requested_model,
 				$allow_google_any && $is_last ? '' : ' ' . __( 'Enable “Google automatic fallback” or update AI Model settings.', 'multiai-chatbot' )
 			),
-			array( 'status' => 503, 'error_code' => 'MODEL_NOT_ALLOWED' )
+			array(
+				'status'     => 503,
+				'error_code' => 'MODEL_NOT_ALLOWED',
+				'model'      => $requested_model,
+			)
 		);
 	}
 
