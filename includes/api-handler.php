@@ -98,10 +98,11 @@ class Multch_Api_Handler {
 		}
 
 		$provider_settings = array(
-			'model'            => ! empty( $settings['model'] ) ? (string) $settings['model'] : '',
-			'model_candidates' => ! empty( $settings['model_candidates'] ) ? (string) $settings['model_candidates'] : '',
-			'ollama_base_url'  => ! empty( $settings['ollama_base_url'] ) ? (string) $settings['ollama_base_url'] : 'http://127.0.0.1:11434',
-			'request_timeout'  => ! empty( $settings['request_timeout'] ) ? (int) $settings['request_timeout'] : 22,
+			'model'                  => ! empty( $settings['model'] ) ? (string) $settings['model'] : '',
+			'model_candidates'       => ! empty( $settings['model_candidates'] ) ? (string) $settings['model_candidates'] : '',
+			'allow_google_any_model' => ! empty( $settings['allow_google_any_model'] ),
+			'ollama_base_url'        => ! empty( $settings['ollama_base_url'] ) ? (string) $settings['ollama_base_url'] : 'http://127.0.0.1:11434',
+			'request_timeout'        => ! empty( $settings['request_timeout'] ) ? (int) $settings['request_timeout'] : 22,
 		);
 
 		$result = $provider->complete( $system, $messages, $provider_settings );

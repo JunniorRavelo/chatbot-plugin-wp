@@ -452,7 +452,7 @@ function multch_ai_client_should_try_next_model( WP_Error $error ): bool {
 		return true;
 	}
 
-	if ( in_array( $code, array( 'model_substituted', 'model_fallback_mismatch' ), true ) ) {
+	if ( in_array( $code, array( 'model_substituted', 'model_fallback_mismatch', 'model_not_allowed' ), true ) ) {
 		return true;
 	}
 
@@ -571,6 +571,13 @@ function multch_ai_client_response_matches_attempt( string $actual, string $mode
 	}
 
 	return false;
+}
+
+/**
+ * @param array<string, mixed> $settings
+ */
+function multch_ai_client_allow_google_any_model( array $settings ): bool {
+	return ! empty( $settings['allow_google_any_model'] );
 }
 
 /**
@@ -734,9 +741,17 @@ function multch_ai_client_extract_model( $result, string $fallback ): string {
 /**
  * Human-readable model label for chat UI, history, and statistics.
  */
-function multch_format_model_display( string $model, string $model_primary = '', bool $used_fallback = false, string $fallback_configured = '' ): string {
+function multch_format_model_display( string $model, string $model_primary = '', bool $used_fallback = false, string $fallback_configured = '', bool $google_auto_reroute = false ): string {
 	if ( '' === $model ) {
 		return '';
+	}
+
+	if ( $google_auto_reroute ) {
+		return sprintf(
+			/* translators: %s: model ID Google actually used */
+			__( '%s (Google automatic; primary and fallback unavailable)', 'multiai-chatbot' ),
+			$model
+		);
 	}
 
 	if ( '' !== $fallback_configured && ! multch_ai_client_models_match( $model, $fallback_configured ) ) {
@@ -769,12 +784,13 @@ function multch_ai_client_model_meta_from_result( array $result ): array {
 	$model_primary       = (string) ( $result['model_primary'] ?? '' );
 	$used_fallback       = ! empty( $result['used_fallback'] );
 	$fallback_configured = (string) ( $result['fallback_configured'] ?? '' );
+	$google_auto_reroute = ! empty( $result['google_auto_reroute'] );
 
 	return array(
 		'model'        => $model,
 		'modelPrimary' => $model_primary,
 		'usedFallback' => $used_fallback,
-		'modelLabel'   => multch_format_model_display( $model, $model_primary, $used_fallback, $fallback_configured ),
+		'modelLabel'   => multch_format_model_display( $model, $model_primary, $used_fallback, $fallback_configured, $google_auto_reroute ),
 	);
 }
 

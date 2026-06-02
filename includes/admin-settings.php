@@ -49,6 +49,7 @@ class Multch_Admin_Settings {
 			'provider'                       => 'wordpress_ai',
 			'model'                          => 'gemini-2.5-flash',
 			'model_candidates'               => 'gemini-2.5-flash-lite,gpt-4o-mini,claude-sonnet-4-6',
+			'allow_google_any_model'         => false,
 			'ollama_base_url'                => 'http://127.0.0.1:11434',
 			'request_timeout'       => 22,
 			'style_preset'          => 'default',
@@ -516,6 +517,12 @@ class Multch_Admin_Settings {
 		}
 		$out['ollama_base_url']  = esc_url_raw( $input['ollama_base_url'] ?? $current['ollama_base_url'] ?? $defaults['ollama_base_url'] );
 		$out['request_timeout']  = max( 5, min( 120, (int) ( $input['request_timeout'] ?? $current['request_timeout'] ?? $defaults['request_timeout'] ) ) );
+		$out['allow_google_any_model'] = self::sanitize_checkbox(
+			$input,
+			$current,
+			'allow_google_any_model',
+			(bool) $defaults['allow_google_any_model']
+		);
 
 		unset( $out['api_key'], $out['openai_base_url'], $out['deepseek_base_url'] );
 
@@ -2271,6 +2278,25 @@ class Multch_Admin_Settings {
 							?>
 						</p>
 					<?php endif; ?>
+				</td>
+			</tr>
+			<tr class="multch-field-wordpress-ai">
+				<th scope="row"><?php esc_html_e( 'Google automatic fallback', 'multiai-chatbot' ); ?></th>
+				<td>
+					<label>
+						<input type="hidden" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[allow_google_any_model]" value="0" />
+						<input
+							type="checkbox"
+							name="<?php echo esc_attr( self::OPTION_KEY ); ?>[allow_google_any_model]"
+							value="1"
+							<?php checked( ! empty( $settings['allow_google_any_model'] ) ); ?>
+							<?php disabled( ! $wp_models_active ); ?>
+						/>
+						<?php esc_html_e( 'Allow Google to answer with any available text model if the primary and fallback models fail (quota, rate limits, or unavailability).', 'multiai-chatbot' ); ?>
+					</label>
+					<p class="description">
+						<?php esc_html_e( 'Order: (1) primary model, (2) fallback model, (3) whatever text model Google returns. The model shown in chat and statistics will reflect the model actually used.', 'multiai-chatbot' ); ?>
+					</p>
 				</td>
 			</tr>
 			<tr class="multch-field-ollama">
