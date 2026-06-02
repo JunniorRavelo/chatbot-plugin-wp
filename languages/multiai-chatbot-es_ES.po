@@ -2162,8 +2162,32 @@ msgid "File location: %s"
 msgstr "Ubicación del archivo: %s"
 
 #: includes/admin-settings.php:2304
-msgid "Requires statistics and history under General. Can be forced via MULTCH_TELEMETRY_FILE_LOG in wp-config.php."
-msgstr "Requiere estadísticas e historial en General. Puede forzarse con MULTCH_TELEMETRY_FILE_LOG en wp-config.php."
+msgid "Also save a copy of events to a log file"
+msgstr "Guardar también una copia de los eventos en un archivo de registro"
+
+msgid "Log file: %s"
+msgstr "Archivo de registro: %s"
+
+msgid "Optional. Database statistics use the same preference as “Store statistics and history” in General. Enable this only if you need a JSONL file for external tools."
+msgstr "Opcional. Las estadísticas en base de datos siguen la misma preferencia que «Guardar estadísticas e historial» en General. Actívelo solo si necesita un archivo JSONL para herramientas externas."
+
+msgid "Turn on <a href=\"%s\">Store statistics and history</a> in General before enabling a file log."
+msgstr "Active <a href=\"%s\">Guardar estadísticas e historial</a> en General antes de habilitar un registro en archivo."
+
+msgid "Maximum chat requests per visitor IP each minute."
+msgstr "Máximo de solicitudes de chat por IP de visitante cada minuto."
+
+msgid "Maximum chat requests per visitor IP per day."
+msgstr "Máximo de solicitudes de chat por IP de visitante al día."
+
+msgid "Maximum AI calls shared across all visitors each minute."
+msgstr "Máximo de llamadas a la IA compartidas entre todos los visitantes cada minuto."
+
+msgid "Maximum AI calls shared across all visitors per day."
+msgstr "Máximo de llamadas a la IA compartidas entre todos los visitantes al día."
+
+msgid "How many limit violations before the visitor IP is temporarily blocked."
+msgstr "Cuántas infracciones del límite antes de bloquear temporalmente la IP del visitante."
 
 #: includes/admin-settings.php:2323
 msgid "0 = keep indefinitely. Older conversations are purged daily."

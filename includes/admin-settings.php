@@ -1975,6 +1975,23 @@ class Multch_Admin_Settings {
 	/**
 	 * @return list<string>
 	 */
+	/**
+	 * Aviso cuando valores están fijados fuera del panel (p. ej. constantes del servidor).
+	 * Sin mencionar wp-config ni nombres de constantes (directrices WordPress.org).
+	 */
+	private static function render_admin_external_config_notice(): void {
+		?>
+		<div class="multch-admin-notice multch-admin-notice--warning" role="status">
+			<div class="multch-admin-notice__content">
+				<strong class="multch-admin-notice__title"><?php esc_html_e( 'Some settings are read-only', 'multiai-chatbot' ); ?></strong>
+				<p class="multch-admin-notice__text">
+					<?php esc_html_e( 'Your host or server configuration defines some values on this screen. They cannot be changed here; contact your site administrator if you need to update them.', 'multiai-chatbot' ); ?>
+				</p>
+			</div>
+		</div>
+		<?php
+	}
+
 	private static function security_constant_overridden_keys(): array {
 		$map = array(
 			'allowed_origins'             => array( 'MULTCH_ALLOWED_ORIGINS', 'CHATBOT_ALLOWED_ORIGINS' ),
@@ -2246,16 +2263,11 @@ class Multch_Admin_Settings {
 			</div>
 		</div>
 
-		<?php if ( ! empty( $constant_overrides ) ) : ?>
-			<div class="multch-admin-notice multch-admin-notice--warning" role="status">
-				<div class="multch-admin-notice__content">
-					<strong class="multch-admin-notice__title"><?php esc_html_e( 'wp-config.php overrides', 'multiai-chatbot' ); ?></strong>
-					<p class="multch-admin-notice__text">
-						<?php esc_html_e( 'Some security values are locked by constants in wp-config.php. The fields below may not reflect what the chat uses until those constants are updated or removed.', 'multiai-chatbot' ); ?>
-					</p>
-				</div>
-			</div>
-		<?php endif; ?>
+		<?php
+		if ( ! empty( $constant_overrides ) ) {
+			self::render_admin_external_config_notice();
+		}
+		?>
 
 		<div class="multch-admin-kpi-grid multch-admin-kpi-grid--security">
 			<div class="multch-admin-kpi">
@@ -2305,7 +2317,7 @@ class Multch_Admin_Settings {
 				<?php
 				printf(
 					/* translators: %s: site home URL */
-					esc_html__( 'Comma-separated URLs. Leave empty to allow this site only (%s). Equivalent to MULTCH_ALLOWED_ORIGINS.', 'multiai-chatbot' ),
+					esc_html__( 'Comma-separated URLs. Leave empty to allow only this site (%s).', 'multiai-chatbot' ),
 					esc_html( $site_origin )
 				);
 				?>
@@ -2357,7 +2369,7 @@ class Multch_Admin_Settings {
 						><?php echo esc_html( $label ); ?></button>
 					<?php endforeach; ?>
 				</div>
-				<p class="description"><?php esc_html_e( '0 disables the cache. Equivalent to MULTCH_CACHE_TTL_SECONDS.', 'multiai-chatbot' ); ?></p>
+				<p class="description"><?php esc_html_e( 'Enter 0 to disable response caching.', 'multiai-chatbot' ); ?></p>
 			</div>
 			<div class="multch-admin-security-field-grid__item">
 				<span class="multch-admin-security-field-grid__label"><?php esc_html_e( 'Telemetry file log', 'multiai-chatbot' ); ?></span>
@@ -2369,21 +2381,37 @@ class Multch_Admin_Settings {
 						name="<?php echo esc_attr( self::OPTION_KEY ); ?>[telemetry_file_log]"
 						value="1"
 						<?php checked( ! empty( $settings['telemetry_file_log'] ) ); ?>
+						<?php disabled( ! $stats_enabled ); ?>
 					/>
-					<span><?php esc_html_e( 'Append events to a JSONL file in uploads', 'multiai-chatbot' ); ?></span>
+					<span><?php esc_html_e( 'Also save a copy of events to a log file', 'multiai-chatbot' ); ?></span>
 				</label>
-				<?php if ( '' !== $log_path ) : ?>
+				<?php if ( $stats_enabled && '' !== $log_path && ! empty( $settings['telemetry_file_log'] ) ) : ?>
 					<p class="description">
 						<?php
 						printf(
-							/* translators: %s: absolute path inside wp-content/uploads */
-							esc_html__( 'File location: %s', 'multiai-chatbot' ),
+							/* translators: %s: path inside the WordPress uploads directory */
+							esc_html__( 'Log file: %s', 'multiai-chatbot' ),
 							'<code>' . esc_html( $log_path ) . '</code>'
 						);
 						?>
 					</p>
 				<?php endif; ?>
-				<p class="description"><?php esc_html_e( 'Requires statistics and history under General. Can be forced via MULTCH_TELEMETRY_FILE_LOG in wp-config.php.', 'multiai-chatbot' ); ?></p>
+				<p class="description">
+					<?php if ( $stats_enabled ) : ?>
+						<?php esc_html_e( 'Optional. Database statistics use the same preference as “Store statistics and history” in General. Enable this only if you need a JSONL file for external tools.', 'multiai-chatbot' ); ?>
+					<?php else : ?>
+						<?php
+						printf(
+							wp_kses(
+								/* translators: %s: General settings tab URL. */
+								__( 'Turn on <a href="%s">Store statistics and history</a> in General before enabling a file log.', 'multiai-chatbot' ),
+								array( 'a' => array( 'href' => array() ) )
+							),
+							esc_url( admin_url( 'admin.php?page=multch-plugin&tab=general' ) )
+						);
+						?>
+					<?php endif; ?>
+				</p>
 			</div>
 		</div>
 
@@ -2457,7 +2485,7 @@ class Multch_Admin_Settings {
 						value="<?php echo esc_attr( (string) $rate_ip_min ); ?>"
 						class="small-text"
 					/>
-					<p class="description"><?php esc_html_e( 'MULTCH_RATE_LIMIT_PER_MINUTE', 'multiai-chatbot' ); ?></p>
+					<p class="description"><?php esc_html_e( 'Maximum chat requests per visitor IP each minute.', 'multiai-chatbot' ); ?></p>
 				</div>
 				<div class="multch-admin-security-field-grid__item">
 					<label for="multch-rate-limit-per-day"><?php esc_html_e( 'Requests / day', 'multiai-chatbot' ); ?></label>
@@ -2470,7 +2498,7 @@ class Multch_Admin_Settings {
 						value="<?php echo esc_attr( (string) $rate_ip_day ); ?>"
 						class="small-text"
 					/>
-					<p class="description"><?php esc_html_e( 'MULTCH_RATE_LIMIT_PER_DAY', 'multiai-chatbot' ); ?></p>
+					<p class="description"><?php esc_html_e( 'Maximum chat requests per visitor IP per day.', 'multiai-chatbot' ); ?></p>
 				</div>
 			</div>
 		</div>
@@ -2489,7 +2517,7 @@ class Multch_Admin_Settings {
 						value="<?php echo esc_attr( (string) $rate_model_min ); ?>"
 						class="small-text"
 					/>
-					<p class="description"><?php esc_html_e( 'MULTCH_RATE_LIMIT_MODEL_PER_MINUTE', 'multiai-chatbot' ); ?></p>
+					<p class="description"><?php esc_html_e( 'Maximum AI calls shared across all visitors each minute.', 'multiai-chatbot' ); ?></p>
 				</div>
 				<div class="multch-admin-security-field-grid__item">
 					<label for="multch-rate-limit-model-per-day"><?php esc_html_e( 'Calls / day', 'multiai-chatbot' ); ?></label>
@@ -2502,7 +2530,7 @@ class Multch_Admin_Settings {
 						value="<?php echo esc_attr( (string) $rate_model_day ); ?>"
 						class="small-text"
 					/>
-					<p class="description"><?php esc_html_e( 'MULTCH_RATE_LIMIT_MODEL_PER_DAY', 'multiai-chatbot' ); ?></p>
+					<p class="description"><?php esc_html_e( 'Maximum AI calls shared across all visitors per day.', 'multiai-chatbot' ); ?></p>
 				</div>
 			</div>
 		</div>
@@ -2535,7 +2563,7 @@ class Multch_Admin_Settings {
 						value="<?php echo esc_attr( (string) $suspend_after ); ?>"
 						class="small-text"
 					/>
-					<p class="description"><?php esc_html_e( 'MULTCH_IP_SUSPEND_AFTER_VIOLATIONS', 'multiai-chatbot' ); ?></p>
+					<p class="description"><?php esc_html_e( 'How many limit violations before the visitor IP is temporarily blocked.', 'multiai-chatbot' ); ?></p>
 				</div>
 				<div class="multch-admin-security-field-grid__item">
 					<label for="multch-ip-suspend-seconds"><?php esc_html_e( 'Suspension duration (sec)', 'multiai-chatbot' ); ?></label>
@@ -2753,8 +2781,9 @@ class Multch_Admin_Settings {
 		$current_model    = (string) ( $settings['model'] ?? '' );
 		$fallback_model   = multch_ai_client_fallback_model( $settings );
 		$wp_models_active = 'wordpress_ai' === $provider;
-		$candidates_raw   = (string) ( $settings['model_candidates'] ?? '' );
-		$legacy_multi     = str_contains( $candidates_raw, ',' );
+		$candidates_raw        = (string) ( $settings['model_candidates'] ?? '' );
+		$legacy_multi          = str_contains( $candidates_raw, ',' );
+		$provider_descriptions = self::admin_model_provider_descriptions();
 
 		self::card_open(
 			__( 'AI provider', 'multiai-chatbot' ),
@@ -2763,12 +2792,7 @@ class Multch_Admin_Settings {
 
 		$constant_overrides = multch_ai_client_constant_overridden_keys();
 		if ( ! empty( $constant_overrides ) ) {
-			echo '<div class="notice notice-warning inline"><p>';
-			echo esc_html__(
-				'Model settings are overridden by constants in wp-config.php (MULTCH_MODEL, MULTCH_MODEL_CANDIDATES, or MULTCH_GEMINI_*). Values shown here may not match what the chat uses until those constants are updated or removed.',
-				'multiai-chatbot'
-			);
-			echo '</p></div>';
+			self::render_admin_external_config_notice();
 		}
 		?>
 		<table class="form-table" role="presentation">
@@ -2800,7 +2824,7 @@ class Multch_Admin_Settings {
 						)
 					);
 					?>
-					<p class="description" id="multch-model-desc"><?php esc_html_e( 'Models listed here come from connectors that are connected under Settings → Connectors.', 'multiai-chatbot' ); ?></p>
+					<p class="description" id="multch-model-desc"><?php echo esc_html( (string) ( $provider_descriptions['wordpress_ai']['model'] ?? '' ) ); ?></p>
 				</td>
 			</tr>
 			<tr class="multch-field-wordpress-ai">
@@ -2819,7 +2843,7 @@ class Multch_Admin_Settings {
 						)
 					);
 					?>
-					<p class="description" id="multch-model-candidates-desc"><?php esc_html_e( 'Used only if the primary model fails (not on timeout). Choose a different model than the primary.', 'multiai-chatbot' ); ?></p>
+					<p class="description" id="multch-model-candidates-desc"><?php echo esc_html( (string) ( $provider_descriptions['wordpress_ai']['candidates'] ?? '' ) ); ?></p>
 					<?php if ( $legacy_multi ) : ?>
 						<p class="description">
 							<?php
