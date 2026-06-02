@@ -2241,3 +2241,41 @@ msgid "%d day"
 msgid_plural "%d days"
 msgstr[0] "%d día"
 msgstr[1] "%d días"
+
+#: includes/admin-settings.php:2709
+msgid "Primary model"
+msgstr "Modelo principal"
+
+#: includes/admin-settings.php:2736
+msgid "— None —"
+msgstr "— Ninguno —"
+
+#: includes/admin-settings.php:2740
+#: includes/admin-settings.php:329
+msgid "Used only if the primary model fails (not on timeout). Choose a different model than the primary."
+msgstr "Se usa solo si el modelo principal falla (no por tiempo de espera). Elija un modelo distinto al principal."
+
+#. translators: %s: comma-separated legacy fallback model IDs
+#: includes/admin-settings.php:2747
+msgid "Previously saved fallbacks: %s. Saving this tab keeps only the fallback selected above."
+msgstr "Respaldos guardados anteriormente: %s. Al guardar esta pestaña se conserva solo el respaldo seleccionado arriba."
+
+#: includes/admin-settings.php:2757
+msgid "Google automatic fallback"
+msgstr "Respaldo automático de Google"
+
+#: includes/admin-settings.php:2768
+msgid "Allow Google to answer with any available text model if the primary and fallback models fail (quota, rate limits, or unavailability)."
+msgstr "Permitir que Google responda con cualquier modelo de texto disponible si fallan el modelo principal y el de respaldo (cuota, límites de tasa o indisponibilidad)."
+
+#: includes/admin-settings.php:2771
+msgid "Order: (1) primary model, (2) fallback model, (3) whatever text model Google returns. The model shown in chat and statistics will reflect the model actually used."
+msgstr "Orden: (1) modelo principal, (2) modelo de respaldo, (3) el modelo de texto que devuelva Google. El modelo mostrado en el chat y las estadísticas reflejará el modelo realmente usado."
+
+#: includes/admin-settings.php:2685
+msgid "Model settings are overridden by constants in wp-config.php (MULTCH_MODEL, MULTCH_MODEL_CANDIDATES, or MULTCH_GEMINI_*). Values shown here may not match what the chat uses until those constants are updated or removed."
+msgstr "Los ajustes del modelo están sobrescritos por constantes en wp-config.php (MULTCH_MODEL, MULTCH_MODEL_CANDIDATES o MULTCH_GEMINI_*). Los valores mostrados aquí pueden no coincidir con los que usa el chat hasta que se actualicen o eliminen esas constantes."
+
+#: includes/admin-settings.php:328
+msgid "Primary model from your connected AI providers."
+msgstr "Modelo principal de sus proveedores de IA conectados."
