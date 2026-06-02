@@ -2709,8 +2709,9 @@ class Multch_Admin_Settings {
 			'INVALID_REQUEST'      => __( 'Invalid request', 'multiai-chatbot' ),
 			'CONFIGURATION_ERROR'  => __( 'Configuration error', 'multiai-chatbot' ),
 			'SERVER_ERROR'         => __( 'Server error', 'multiai-chatbot' ),
-			'MODEL_NOT_ALLOWED'    => __( 'Model not allowed', 'multiai-chatbot' ),
-			'MODEL_SUBSTITUTED'    => __( 'Model substituted', 'multiai-chatbot' ),
+			'MODEL_NOT_ALLOWED'       => __( 'Model not allowed', 'multiai-chatbot' ),
+			'MODEL_SUBSTITUTED'       => __( 'Model substituted', 'multiai-chatbot' ),
+			'MODEL_FALLBACK_MISMATCH' => __( 'Fallback model mismatch', 'multiai-chatbot' ),
 		);
 
 		return $labels[ $code ] ?? $code;

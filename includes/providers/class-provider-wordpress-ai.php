@@ -69,14 +69,32 @@ class Multch_Provider_WordPress_AI implements Multch_AI_Provider {
 			$actual_model    = (string) ( $result['model'] ?? '' );
 			$requested_model = (string) ( $result['model_requested'] ?? $model_id );
 			$substituted     = ! empty( $result['model_substituted'] );
-			$allowed         = '' === $actual_model || multch_ai_client_is_allowed_response_model( $actual_model, $requested_model, $chain );
 
-			if ( ! $allowed ) {
-				if ( $is_last && multch_ai_client_is_provider_text_substitute( $actual_model ) ) {
-					$result['provider_substituted'] = true;
-					return multch_ai_client_finalize_provider_result( $result, $model_primary, $index, $substituted );
+			if ( $substituted ) {
+				$actual_index = multch_ai_client_chain_index_of( $actual_model, $chain );
+				if ( $actual_index > $index && multch_ai_client_is_allowed_response_model( $actual_model, (string) $chain[ $actual_index ], $chain ) ) {
+					return multch_ai_client_finalize_provider_result( $result, $model_primary, $actual_index );
 				}
+			}
 
+			if ( ! multch_ai_client_response_matches_attempt( $actual_model, $model_id, $chain, $index ) ) {
+				$last_error = new WP_Error(
+					'model_fallback_mismatch',
+					sprintf(
+						/* translators: 1: model ID configured for this step, 2: model ID the provider actually used */
+						__( 'Configured model %1$s was not used. The provider answered with %2$s instead. Pick that model in AI Model settings if your API only serves it.', 'multiai-chatbot' ),
+						$model_id,
+						$actual_model
+					),
+					array( 'status' => 503, 'error_code' => 'MODEL_FALLBACK_MISMATCH' )
+				);
+				if ( $is_last || ! multch_ai_client_should_try_next_model( $last_error ) ) {
+					return $last_error;
+				}
+				continue;
+			}
+
+			if ( ! multch_ai_client_is_allowed_response_model( $actual_model, $requested_model, $chain ) ) {
 				$last_error = new WP_Error(
 					'model_substituted',
 					sprintf(
@@ -93,31 +111,24 @@ class Multch_Provider_WordPress_AI implements Multch_AI_Provider {
 				continue;
 			}
 
-			if ( $substituted ) {
-				$actual_index = multch_ai_client_chain_index_of( $actual_model, $chain );
-				if ( $actual_index > $index ) {
-					return multch_ai_client_finalize_provider_result( $result, $model_primary, $index, true );
-				}
-
-				if ( ! $is_last ) {
-					$last_error = new WP_Error(
-						'model_substituted',
-						sprintf(
-							/* translators: %s: model ID that was requested */
-							__( 'Model %s is unavailable; trying the next configured model.', 'multiai-chatbot' ),
-							$requested_model
-						),
-						array( 'status' => 503, 'error_code' => 'MODEL_SUBSTITUTED' )
-					);
-					continue;
-				}
+			if ( $substituted && ! $is_last ) {
+				$last_error = new WP_Error(
+					'model_substituted',
+					sprintf(
+						/* translators: %s: model ID that was requested */
+						__( 'Model %s is unavailable; trying the next configured model.', 'multiai-chatbot' ),
+						$requested_model
+					),
+					array( 'status' => 503, 'error_code' => 'MODEL_SUBSTITUTED' )
+				);
+				continue;
 			}
 
-			return multch_ai_client_finalize_provider_result( $result, $model_primary, $index, $substituted );
+			return multch_ai_client_finalize_provider_result( $result, $model_primary, $index );
 		}
 
 		if ( is_array( $last_result ) && '' !== trim( (string) ( $last_result['text'] ?? '' ) ) ) {
-			return multch_ai_client_finalize_provider_result( $last_result, $model_primary, 0, false );
+			return multch_ai_client_finalize_provider_result( $last_result, $model_primary, 0 );
 		}
 
 		if ( $last_error instanceof WP_Error ) {

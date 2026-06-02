@@ -452,7 +452,7 @@ function multch_ai_client_should_try_next_model( WP_Error $error ): bool {
 		return true;
 	}
 
-	if ( 'model_substituted' === $code ) {
+	if ( in_array( $code, array( 'model_substituted', 'model_fallback_mismatch' ), true ) ) {
 		return true;
 	}
 
@@ -552,37 +552,33 @@ function multch_ai_client_is_allowed_response_model( string $model, string $requ
 }
 
 /**
- * Whether an out-of-chain model from the provider is acceptable for text chat on the last attempt.
+ * Whether the model reported by the provider matches what this chain step requested.
+ *
+ * @param list<string> $chain
  */
-function multch_ai_client_is_provider_text_substitute( string $model ): bool {
-	$model = multch_ai_client_normalize_model_id( $model );
-	if ( '' === $model ) {
-		return false;
+function multch_ai_client_response_matches_attempt( string $actual, string $model_id, array $chain, int $index ): bool {
+	if ( '' === multch_ai_client_normalize_model_id( $actual ) ) {
+		return true;
 	}
 
-	$blocked = array( '-image', '-tts', '-audio', '-vision', '-video', '-embedding' );
-	foreach ( $blocked as $marker ) {
-		if ( str_contains( $model, $marker ) ) {
-			return false;
-		}
+	if ( multch_ai_client_models_match( $actual, $model_id ) ) {
+		return true;
 	}
 
-	return (bool) preg_match( '/^(gemini|gpt|claude|deepseek|llama)/', $model );
+	$configured = isset( $chain[ $index ] ) ? (string) $chain[ $index ] : '';
+	if ( '' !== $configured && multch_ai_client_models_match( $actual, $configured ) ) {
+		return true;
+	}
+
+	return false;
 }
 
 /**
- * @param array{text: string, model: string, model_primary?: string, used_fallback?: bool, provider_substituted?: bool} $result
+ * @param array{text: string, model: string, model_primary?: string, used_fallback?: bool} $result
  */
-function multch_ai_client_finalize_provider_result( array $result, string $model_primary, int $index, bool $substituted ): array {
-	$actual_model = (string) ( $result['model'] ?? '' );
-
+function multch_ai_client_finalize_provider_result( array $result, string $model_primary, int $index ): array {
 	$result['model_primary'] = $model_primary;
-	$result['used_fallback'] = ( $index > 0 && '' !== $model_primary )
-		|| ( $substituted && '' !== $model_primary && ! multch_ai_client_models_match( $model_primary, $actual_model ) );
-
-	if ( ! empty( $result['provider_substituted'] ) ) {
-		$result['used_fallback'] = true;
-	}
+	$result['used_fallback'] = $index > 0 && '' !== $model_primary;
 
 	return $result;
 }
@@ -719,26 +715,17 @@ function multch_ai_client_extract_model( $result, string $fallback ): string {
 /**
  * Human-readable model label for chat UI, history, and statistics.
  */
-function multch_format_model_display( string $model, string $model_primary = '', bool $used_fallback = false, bool $provider_substituted = false ): string {
+function multch_format_model_display( string $model, string $model_primary = '', bool $used_fallback = false ): string {
 	if ( '' === $model ) {
 		return '';
 	}
 
-	if ( ! $used_fallback || '' === $model_primary || $model === $model_primary ) {
+	if ( ! $used_fallback || '' === $model_primary || multch_ai_client_models_match( $model, $model_primary ) ) {
 		return $model;
 	}
 
-	if ( $provider_substituted ) {
-		return sprintf(
-			/* translators: 1: model used by the provider, 2: configured primary model */
-			__( '%1$s (provider fallback; primary: %2$s)', 'multiai-chatbot' ),
-			$model,
-			$model_primary
-		);
-	}
-
 	return sprintf(
-		/* translators: 1: model that answered, 2: primary model that failed */
+		/* translators: 1: model that answered, 2: configured primary model */
 		__( '%1$s (fallback from %2$s)', 'multiai-chatbot' ),
 		$model,
 		$model_primary
@@ -750,17 +737,15 @@ function multch_format_model_display( string $model, string $model_primary = '',
  * @return array{model: string, modelPrimary: string, usedFallback: bool, modelLabel: string}
  */
 function multch_ai_client_model_meta_from_result( array $result ): array {
-	$model                 = (string) ( $result['model'] ?? '' );
-	$model_primary         = (string) ( $result['model_primary'] ?? '' );
-	$used_fallback         = ! empty( $result['used_fallback'] );
-	$provider_substituted  = ! empty( $result['provider_substituted'] );
+	$model         = (string) ( $result['model'] ?? '' );
+	$model_primary = (string) ( $result['model_primary'] ?? '' );
+	$used_fallback = ! empty( $result['used_fallback'] );
 
 	return array(
-		'model'                => $model,
-		'modelPrimary'         => $model_primary,
-		'usedFallback'         => $used_fallback,
-		'providerSubstituted'  => $provider_substituted,
-		'modelLabel'           => multch_format_model_display( $model, $model_primary, $used_fallback, $provider_substituted ),
+		'model'        => $model,
+		'modelPrimary' => $model_primary,
+		'usedFallback' => $used_fallback,
+		'modelLabel'   => multch_format_model_display( $model, $model_primary, $used_fallback ),
 	);
 }
 
