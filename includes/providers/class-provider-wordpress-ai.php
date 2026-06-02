@@ -12,7 +12,7 @@ class Multch_Provider_WordPress_AI implements Multch_AI_Provider {
 	/**
 	 * @param array<int, array{role: string, content: string}> $messages
 	 * @param array<string, mixed>                             $settings
-	 * @return array{text: string, model: string}|WP_Error
+	 * @return array{text: string, model: string, model_primary?: string, used_fallback?: bool}|WP_Error
 	 */
 	public function complete( string $system, array $messages, array $settings ) {
 		if ( ! multch_ai_client_available() ) {
@@ -40,10 +40,11 @@ class Multch_Provider_WordPress_AI implements Multch_AI_Provider {
 			);
 		}
 
-		$chain        = multch_ai_client_model_chain( $settings );
-		$attempts     = ! empty( $chain ) ? $chain : array( '' );
-		$last_error   = null;
-		$last_result  = null;
+		$chain         = multch_ai_client_model_chain( $settings );
+		$attempts      = ! empty( $chain ) ? $chain : array( '' );
+		$model_primary = isset( $chain[0] ) ? (string) $chain[0] : '';
+		$last_error    = null;
+		$last_result   = null;
 
 		foreach ( $attempts as $index => $model_id ) {
 			$is_last   = ( $index === count( $attempts ) - 1 );
@@ -62,11 +63,15 @@ class Multch_Provider_WordPress_AI implements Multch_AI_Provider {
 
 			$last_result = $result;
 			if ( '' !== $result['text'] ) {
+				$result['model_primary']  = $model_primary;
+				$result['used_fallback']  = $index > 0 && '' !== $model_primary;
 				return $result;
 			}
 		}
 
 		if ( is_array( $last_result ) ) {
+			$last_result['model_primary'] = $model_primary;
+			$last_result['used_fallback'] = false;
 			return $last_result;
 		}
 

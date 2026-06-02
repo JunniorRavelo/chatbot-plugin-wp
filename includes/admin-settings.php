@@ -2686,6 +2686,22 @@ class Multch_Admin_Settings {
 		return 'multch-admin-status--err';
 	}
 
+	/**
+	 * @param array<string, mixed> $event
+	 */
+	private static function format_telemetry_model_label( array $event ): string {
+		$model = (string) ( $event['model'] ?? '' );
+		if ( '' === $model ) {
+			return '—';
+		}
+
+		return multch_format_model_display(
+			$model,
+			(string) ( $event['model_primary'] ?? '' ),
+			! empty( $event['used_fallback'] )
+		);
+	}
+
 	private static function format_error_code_label( string $code ): string {
 		$labels = array(
 			'RATE_LIMIT_GENERAL'   => __( 'General limit', 'multiai-chatbot' ),
@@ -3094,7 +3110,7 @@ class Multch_Admin_Settings {
 							<tr>
 								<td><?php echo esc_html( Multch_Chat_History::format_datetime_local( (string) ( $event['created_at'] ?? '' ) ) ); ?></td>
 								<td><?php echo esc_html( (string) ( $event['provider'] ?? '' ) ); ?></td>
-								<td><?php echo esc_html( (string) ( $event['model'] ?? '' ) ); ?></td>
+								<td><?php echo esc_html( self::format_telemetry_model_label( $event ) ); ?></td>
 								<td>
 									<span class="multch-admin-status <?php echo esc_attr( self::format_telemetry_status_class( $status ) ); ?>">
 										<?php echo esc_html( self::format_telemetry_status_label( $status ) ); ?>
@@ -3829,6 +3845,9 @@ private static function render_history_card_body( array $conv, array $messages )
 							<span class="multch-admin-status <?php echo in_array( (string) ( $event['status'] ?? '' ), array( 'success', 'cached' ), true ) ? 'multch-admin-status--ok' : 'multch-admin-status--err'; ?>">
 								<?php echo esc_html( (string) ( $event['status'] ?? '' ) ); ?>
 							</span>
+							<?php if ( ! empty( $event['model'] ) ) : ?>
+								<span class="multch-admin-history-telemetry__model"><?php echo esc_html( self::format_telemetry_model_label( $event ) ); ?></span>
+							<?php endif; ?>
 							<span><?php echo esc_html( number_format_i18n( (int) ( $event['latency_ms'] ?? 0 ) ) ); ?> ms</span>
 							<?php if ( ! empty( $event['error_code'] ) ) : ?>
 								<code><?php echo esc_html( (string) $event['error_code'] ); ?></code>

@@ -638,6 +638,7 @@
 
       const streamMeta = {
         model: res.headers.get("X-Chat-Model") || "",
+        modelLabel: res.headers.get("X-Chat-Model-Label") || "",
         conversationId: res.headers.get("X-Chat-Conversation-Id") || "",
       };
 
@@ -731,7 +732,8 @@
               }
             });
             if (streamResult && typeof streamResult === "object") {
-              modelUsed = streamResult.model || "";
+              modelUsed =
+                streamResult.modelLabel || streamResult.model || "";
               streamConversationId = streamResult.conversationId || "";
             } else if (typeof streamResult === "string") {
               modelUsed = streamResult;
@@ -752,7 +754,8 @@
         if (idx >= 0 && !messages[idx].content.trim()) {
           const data = await requestChat(body);
           messages[idx].content = data.answer || "";
-          messages[idx].model = (data.meta && data.meta.model) || "";
+          messages[idx].model =
+            (data.meta && (data.meta.modelLabel || data.meta.model)) || "";
           if (data.meta && data.meta.conversationId) {
             setConversationId(data.meta.conversationId);
           }

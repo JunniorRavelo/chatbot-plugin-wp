@@ -575,6 +575,43 @@ function multch_ai_client_extract_model( $result, string $fallback ): string {
 }
 
 /**
+ * Human-readable model label for chat UI, history, and statistics.
+ */
+function multch_format_model_display( string $model, string $model_primary = '', bool $used_fallback = false ): string {
+	if ( '' === $model ) {
+		return '';
+	}
+
+	if ( ! $used_fallback || '' === $model_primary || $model === $model_primary ) {
+		return $model;
+	}
+
+	return sprintf(
+		/* translators: 1: model that answered, 2: primary model that failed */
+		__( '%1$s (fallback from %2$s)', 'multiai-chatbot' ),
+		$model,
+		$model_primary
+	);
+}
+
+/**
+ * @param array{text: string, model: string, model_primary?: string, used_fallback?: bool} $result
+ * @return array{model: string, modelPrimary: string, usedFallback: bool, modelLabel: string}
+ */
+function multch_ai_client_model_meta_from_result( array $result ): array {
+	$model          = (string) ( $result['model'] ?? '' );
+	$model_primary  = (string) ( $result['model_primary'] ?? '' );
+	$used_fallback  = ! empty( $result['used_fallback'] );
+
+	return array(
+		'model'         => $model,
+		'modelPrimary'  => $model_primary,
+		'usedFallback'  => $used_fallback,
+		'modelLabel'    => multch_format_model_display( $model, $model_primary, $used_fallback ),
+	);
+}
+
+/**
  * Runs a configured prompt builder and returns text plus model id.
  *
  * @param object               $builder     WP_AI_Client_Prompt_Builder instance.
@@ -601,8 +638,11 @@ function multch_ai_client_generate_from_builder( $builder, array $preferences, s
 		return multch_ai_client_map_error( $result );
 	}
 
-	$text  = multch_ai_client_extract_text( $result );
-	$model = multch_ai_client_extract_model( $result, $fallback_model );
+	$text = multch_ai_client_extract_text( $result );
+	// When a model ID was requested, trust it over connector metadata (often reports a default model).
+	$model = ! empty( $preferences )
+		? trim( (string) $preferences[0] )
+		: multch_ai_client_extract_model( $result, $fallback_model );
 
 	return array(
 		'text'  => $text,

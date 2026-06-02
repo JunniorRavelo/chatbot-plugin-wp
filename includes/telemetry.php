@@ -9,7 +9,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 class Multch_Telemetry {
 
-	const DB_VERSION = '1.1';
+	const DB_VERSION = '1.2';
 
 	/** @var string Uploads subdirectory for optional file logs (matches Text Domain / MULTCH_TEXT_DOMAIN). */
 	const UPLOADS_SUBDIR = 'multiai-chatbot';
@@ -40,6 +40,8 @@ class Multch_Telemetry {
 			session_hash varchar(64) NOT NULL DEFAULT '',
 			provider varchar(32) NOT NULL DEFAULT '',
 			model varchar(64) NOT NULL DEFAULT '',
+			model_primary varchar(64) NOT NULL DEFAULT '',
+			used_fallback tinyint(1) NOT NULL DEFAULT 0,
 			status varchar(32) NOT NULL DEFAULT '',
 			latency_ms int(11) NOT NULL DEFAULT 0,
 			error_code varchar(64) DEFAULT NULL,
@@ -146,6 +148,8 @@ class Multch_Telemetry {
 			'session_hash'    => isset( $event['session_hash'] ) ? sanitize_text_field( (string) $event['session_hash'] ) : '',
 			'provider'        => isset( $event['provider'] ) ? sanitize_text_field( (string) $event['provider'] ) : '',
 			'model'           => isset( $event['model'] ) ? sanitize_text_field( (string) $event['model'] ) : '',
+			'model_primary'   => isset( $event['model_primary'] ) ? sanitize_text_field( (string) $event['model_primary'] ) : '',
+			'used_fallback'   => ! empty( $event['used_fallback'] ) ? 1 : 0,
 			'status'          => isset( $event['status'] ) ? sanitize_text_field( (string) $event['status'] ) : '',
 			'latency_ms'      => isset( $event['latency_ms'] ) ? (int) $event['latency_ms'] : 0,
 			'error_code'      => ! empty( $event['error_code'] ) ? sanitize_text_field( (string) $event['error_code'] ) : null,
@@ -156,7 +160,7 @@ class Multch_Telemetry {
 		$wpdb->insert(
 			self::table_name(),
 			$row,
-			array( '%s', '%s', '%s', '%s', '%s', '%d', '%s', '%d' )
+			array( '%s', '%s', '%s', '%s', '%s', '%d', '%s', '%d', '%s', '%d' )
 		);
 
 		self::maybe_append_file_log( $row );
@@ -274,6 +278,8 @@ class Multch_Telemetry {
 				'session_hash'    => $row['session_hash'] ?? '',
 				'provider'        => $row['provider'] ?? '',
 				'model'           => $row['model'] ?? '',
+				'model_primary'   => $row['model_primary'] ?? '',
+				'used_fallback'   => ! empty( $row['used_fallback'] ),
 				'status'          => $row['status'] ?? '',
 				'latency_ms'      => $row['latency_ms'] ?? 0,
 				'error_code'      => $row['error_code'] ?? '',
@@ -546,7 +552,7 @@ class Multch_Telemetry {
 			)
 		);
 
-		$lines = array( 'created_at,session_hash,provider,model,status,latency_ms,error_code,conversation_id' );
+		$lines = array( 'created_at,session_hash,provider,model,model_primary,used_fallback,status,latency_ms,error_code,conversation_id' );
 
 		foreach ( $rows as $row ) {
 			$lines[] = implode(
@@ -564,6 +570,8 @@ class Multch_Telemetry {
 						$row['session_hash'] ?? '',
 						$row['provider'] ?? '',
 						$row['model'] ?? '',
+						$row['model_primary'] ?? '',
+						! empty( $row['used_fallback'] ) ? '1' : '0',
 						$row['status'] ?? '',
 						(string) ( $row['latency_ms'] ?? 0 ),
 						$row['error_code'] ?? '',

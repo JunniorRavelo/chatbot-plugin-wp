@@ -138,24 +138,37 @@ class Multch_Api_Handler {
 			return $response;
 		}
 
-		self::record_event( $session_hash, $settings, $result['model'], 'success', $latency, '', $conversation );
+		$model_meta = multch_ai_client_model_meta_from_result( $result );
+
+		self::record_event(
+			$session_hash,
+			$settings,
+			$model_meta['model'],
+			'success',
+			$latency,
+			'',
+			$conversation,
+			$model_meta['modelPrimary'],
+			$model_meta['usedFallback']
+		);
 		self::persist_history_exchange(
 			$conversation,
 			$parsed['message'],
 			$result['text'],
 			$provider_id,
-			$result['model'],
+			$model_meta['modelLabel'],
 			'success',
 			$latency,
-			$parsed
+			$parsed,
+			$model_meta
 		);
 
 		$response_data = array(
 			'answer' => $result['text'],
 			'meta'   => self::append_conversation_meta(
-				array(
-					'model'    => $result['model'],
-					'provider' => $provider_id,
+				array_merge(
+					$model_meta,
+					array( 'provider' => $provider_id )
 				),
 				$conversation
 			),
@@ -211,11 +224,16 @@ class Multch_Api_Handler {
 			}
 		};
 
-		return new WP_REST_Response( null, 200, array(
+		$stream_headers = array(
 			'Content-Type'  => 'text/plain; charset=utf-8',
 			'X-Chat-Stream' => 'chunked-text',
 			'X-Chat-Model'  => isset( $data['meta']['model'] ) ? (string) $data['meta']['model'] : '',
-		) );
+		);
+		if ( ! empty( $data['meta']['modelLabel'] ) ) {
+			$stream_headers['X-Chat-Model-Label'] = (string) $data['meta']['modelLabel'];
+		}
+
+		return new WP_REST_Response( null, 200, $stream_headers );
 	}
 
 	/**
@@ -263,6 +281,9 @@ class Multch_Api_Handler {
 		header( 'X-Chat-Stream: chunked-text' );
 		if ( ! empty( $data['meta']['model'] ) ) {
 			header( 'X-Chat-Model: ' . sanitize_text_field( (string) $data['meta']['model'] ) );
+		}
+		if ( ! empty( $data['meta']['modelLabel'] ) ) {
+			header( 'X-Chat-Model-Label: ' . sanitize_text_field( (string) $data['meta']['modelLabel'] ) );
 		}
 		if ( ! empty( $data['meta']['conversationId'] ) ) {
 			header( 'X-Chat-Conversation-Id: ' . sanitize_text_field( (string) $data['meta']['conversationId'] ) );
@@ -556,6 +577,10 @@ class Multch_Api_Handler {
 	 * @param array{id: int, public_id: string}|null $conversation
 	 * @param array<string, mixed>                  $parsed
 	 */
+	/**
+	 * @param array<string, mixed> $parsed
+	 * @param array{model?: string, modelPrimary?: string, usedFallback?: bool, modelLabel?: string} $model_meta
+	 */
 	private static function persist_history_exchange(
 		?array $conversation,
 		string $user_message,
@@ -564,7 +589,8 @@ class Multch_Api_Handler {
 		string $model,
 		string $status,
 		int $latency_ms,
-		array $parsed
+		array $parsed,
+		array $model_meta = array()
 	): void {
 		if ( ! Multch_Plugin::is_stats_history_enabled() ) {
 			return;
@@ -585,16 +611,22 @@ class Multch_Api_Handler {
 			)
 		);
 
+		$assistant_extra = array(
+			'provider'   => $provider_id,
+			'model'      => $model,
+			'status'     => $status,
+			'latency_ms' => $latency_ms,
+		);
+		if ( ! empty( $model_meta['usedFallback'] ) && ! empty( $model_meta['modelPrimary'] ) ) {
+			$assistant_extra['model_primary']  = (string) $model_meta['modelPrimary'];
+			$assistant_extra['used_fallback'] = true;
+		}
+
 		Multch_Chat_History::add_message(
 			$conversation['id'],
 			'assistant',
 			$assistant_message,
-			array(
-				'provider'   => $provider_id,
-				'model'      => $model,
-				'status'     => $status,
-				'latency_ms' => $latency_ms,
-			)
+			$assistant_extra
 		);
 	}
 
@@ -792,7 +824,17 @@ class Multch_Api_Handler {
 	/**
 	 * @param array{id: int, public_id: string}|null $conversation
 	 */
-	private static function record_event( string $session_hash, array $settings, string $model, string $status, int $latency_ms, string $error_code = '', ?array $conversation = null ): void {
+	private static function record_event(
+		string $session_hash,
+		array $settings,
+		string $model,
+		string $status,
+		int $latency_ms,
+		string $error_code = '',
+		?array $conversation = null,
+		string $model_primary = '',
+		bool $used_fallback = false
+	): void {
 		if ( ! Multch_Plugin::is_stats_history_enabled() ) {
 			return;
 		}
@@ -802,6 +844,8 @@ class Multch_Api_Handler {
 				'session_hash'    => $session_hash,
 				'provider'        => ! empty( $settings['provider'] ) ? (string) $settings['provider'] : 'wordpress_ai',
 				'model'           => $model,
+				'model_primary'   => $model_primary,
+				'used_fallback'   => $used_fallback,
 				'status'          => $status,
 				'latency_ms'      => $latency_ms,
 				'error_code'      => $error_code,
