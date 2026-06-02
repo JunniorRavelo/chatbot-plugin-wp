@@ -15,6 +15,7 @@
   --maicb-offset: 1rem;
   --maicb-panel-width: min(380px, calc(100vw - 2rem));
   --maicb-panel-max-height: none;
+  --maicb-z-base: 2147483645;
   --maicb-scrollbar-size: 6px;
   --maicb-scrollbar-size-input: 4px;
   --maicb-scrollbar-track: transparent;
@@ -40,7 +41,7 @@
   background: transparent;
   overflow: visible;
   pointer-events: none;
-  z-index: 2147483645;
+  z-index: var(--maicb-z-base);
   contain: none;
   isolation: isolate;
 }
@@ -262,7 +263,7 @@
 #multch-plugin-root .maicb-launcher,
 #multch-style-preview .maicb-launcher {
   position: fixed;
-  z-index: 2147483646;
+  z-index: calc(var(--maicb-z-base) + 1);
   bottom: calc(env(safe-area-inset-bottom, 0px) + 1.5rem);
   display: inline-flex;
   align-items: center;
@@ -501,7 +502,7 @@
 #multch-plugin-root .maicb-panel,
 #multch-style-preview .maicb-panel {
   position: fixed;
-  z-index: 2147483647;
+  z-index: calc(var(--maicb-z-base) + 2);
   display: flex;
   flex-direction: column;
   overflow: hidden;

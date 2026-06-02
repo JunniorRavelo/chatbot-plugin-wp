@@ -19,6 +19,7 @@
     "style_radius",
     "style_panel_width",
     "style_panel_max_height",
+    "style_z_index",
   ];
   var EXPORT_KEYS = Array.isArray(cfg.exportKeys) ? cfg.exportKeys : [];
 

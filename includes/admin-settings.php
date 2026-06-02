@@ -485,6 +485,8 @@ class Multch_Admin_Settings {
 			$preset_auto_dark = 'dark-glass';
 		}
 
+		$z = (int) ( $settings['style_z_index'] ?? 0 );
+
 		return array(
 			'preset'         => $preset,
 			'position'       => $position,
@@ -496,6 +498,7 @@ class Multch_Admin_Settings {
 			'offset'         => trim( (string) ( $settings['style_offset'] ?? '1rem' ) ) ?: '1rem',
 			'panelWidth'     => trim( (string) ( $settings['style_panel_width'] ?? '' ) ),
 			'panelMaxHeight' => trim( (string) ( $settings['style_panel_max_height'] ?? '' ) ),
+			'zIndex'         => $z > 0 ? $z : 0,
 			'fontFamily'     => sanitize_key( (string) ( $settings['style_font_family'] ?? 'system' ) ) ?: 'system',
 			'launcherLabel'  => ! empty( $settings['style_launcher_label'] ),
 			'showCredit'     => ! empty( $settings['style_show_credit'] ),

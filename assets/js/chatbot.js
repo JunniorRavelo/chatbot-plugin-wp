@@ -345,8 +345,16 @@
       bg: "--maicb-bg",
       fg: "--maicb-fg",
     };
+    const bgDerivedVars = ["--maicb-body-bg", "--maicb-card", "--maicb-composer-bg"];
+    const fgDerivedVars = ["--maicb-header-title-color"];
     varKeys.forEach(function (key) {
       el.style.removeProperty(cssMap[key]);
+    });
+    bgDerivedVars.forEach(function (cssVar) {
+      el.style.removeProperty(cssVar);
+    });
+    fgDerivedVars.forEach(function (cssVar) {
+      el.style.removeProperty(cssVar);
     });
     el.style.removeProperty("--maicb-offset");
     el.style.removeProperty("--maicb-panel-width");
@@ -358,6 +366,14 @@
           el.style.setProperty(cssMap[key], style.vars[key]);
         }
       });
+      if (style.vars.bg) {
+        bgDerivedVars.forEach(function (cssVar) {
+          el.style.setProperty(cssVar, style.vars.bg);
+        });
+      }
+      if (style.vars.fg) {
+        el.style.setProperty("--maicb-header-title-color", style.vars.fg);
+      }
     }
     if (style.offset) el.style.setProperty("--maicb-offset", style.offset);
     if (style.panelWidth) el.style.setProperty("--maicb-panel-width", style.panelWidth);
@@ -367,8 +383,14 @@
     if (style.fontFamily) {
       el.style.fontFamily = style.fontFamily;
     }
-    if (rootEl && style.zIndex) {
-      rootEl.style.zIndex = String(style.zIndex);
+    if (rootEl) {
+      if (style.zIndex) {
+        rootEl.style.setProperty("--maicb-z-base", String(style.zIndex));
+        rootEl.style.zIndex = String(style.zIndex);
+      } else {
+        rootEl.style.removeProperty("--maicb-z-base");
+        rootEl.style.removeProperty("z-index");
+      }
     }
   }
 
@@ -421,10 +443,6 @@
     const style = getStyleForRoot(root);
     const position = style.position || "bottom-right";
     const launcherLabel = style.launcherLabel !== false;
-
-    if (mode === "floating" && style.zIndex) {
-      root.style.zIndex = String(style.zIndex);
-    }
 
     const state = loadState();
     let messages = state.messages.length ? state.messages : [];

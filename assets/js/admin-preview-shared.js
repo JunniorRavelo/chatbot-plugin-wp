@@ -84,6 +84,7 @@
       var offsetEl = field("style_offset");
       var widthEl = field("style_panel_width");
       var maxHeightEl = field("style_panel_max_height");
+      var zIndexEl = field("style_z_index");
       var launcherLabelEl = checkboxField("style_launcher_label");
       var showCreditEl = checkboxField("style_show_credit");
       var reduceMotionEl = checkboxField("style_reduce_motion");
@@ -102,6 +103,7 @@
         offset: offsetEl ? offsetEl.value.trim() : "1rem",
         panelWidth: widthEl ? widthEl.value.trim() : "",
         panelMaxHeight: maxHeightEl ? maxHeightEl.value.trim() : "",
+        zIndex: zIndexEl ? parseInt(zIndexEl.value, 10) || 0 : 0,
         launcherLabel: launcherLabelEl ? launcherLabelEl.checked : true,
         showCredit: showCreditEl ? showCreditEl.checked : false,
         reduceMotion: reduceMotionEl ? reduceMotionEl.checked : false,
@@ -123,6 +125,7 @@
         offset: savedStyle.offset || "1rem",
         panelWidth: savedStyle.panelWidth || "",
         panelMaxHeight: savedStyle.panelMaxHeight || "",
+        zIndex: savedStyle.zIndex || 0,
         launcherLabel: savedStyle.launcherLabel !== false,
         showCredit: !!savedStyle.showCredit,
         reduceMotion: !!savedStyle.reduceMotion,
@@ -321,22 +324,42 @@
         bg: "--maicb-bg",
         fg: "--maicb-fg",
       };
+      var bgDerivedVars = ["--maicb-body-bg", "--maicb-card", "--maicb-composer-bg"];
+      var fgDerivedVars = ["--maicb-header-title-color"];
       keys.forEach(function (k) {
         wrap.style.removeProperty(cssMap[k]);
+      });
+      bgDerivedVars.forEach(function (cssVar) {
+        wrap.style.removeProperty(cssVar);
+      });
+      fgDerivedVars.forEach(function (cssVar) {
+        wrap.style.removeProperty(cssVar);
       });
       wrap.style.removeProperty("--maicb-offset");
       wrap.style.removeProperty("--maicb-panel-width");
       wrap.style.removeProperty("--maicb-panel-max-height");
+      wrap.style.removeProperty("--maicb-z-base");
 
       if (settings.primary) wrap.style.setProperty("--maicb-primary", settings.primary);
       if (settings.accent) wrap.style.setProperty("--maicb-accent", settings.accent);
-      if (settings.bg) wrap.style.setProperty("--maicb-bg", settings.bg);
-      if (settings.fg) wrap.style.setProperty("--maicb-fg", settings.fg);
+      if (settings.bg) {
+        wrap.style.setProperty("--maicb-bg", settings.bg);
+        bgDerivedVars.forEach(function (cssVar) {
+          wrap.style.setProperty(cssVar, settings.bg);
+        });
+      }
+      if (settings.fg) {
+        wrap.style.setProperty("--maicb-fg", settings.fg);
+        wrap.style.setProperty("--maicb-header-title-color", settings.fg);
+      }
       if (settings.radius) wrap.style.setProperty("--maicb-radius", settings.radius);
       if (settings.offset) wrap.style.setProperty("--maicb-offset", settings.offset);
       if (settings.panelWidth) wrap.style.setProperty("--maicb-panel-width", settings.panelWidth);
       if (settings.panelMaxHeight) {
         wrap.style.setProperty("--maicb-panel-max-height", settings.panelMaxHeight);
+      }
+      if (settings.zIndex) {
+        wrap.style.setProperty("--maicb-z-base", String(settings.zIndex));
       }
       wrap.style.fontFamily = fontCssValue(settings.fontFamily);
       wrap.classList.toggle("maicb-reduce-motion", !!settings.reduceMotion);
