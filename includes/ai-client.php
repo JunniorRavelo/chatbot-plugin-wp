@@ -552,6 +552,42 @@ function multch_ai_client_is_allowed_response_model( string $model, string $requ
 }
 
 /**
+ * Whether an out-of-chain model from the provider is acceptable for text chat on the last attempt.
+ */
+function multch_ai_client_is_provider_text_substitute( string $model ): bool {
+	$model = multch_ai_client_normalize_model_id( $model );
+	if ( '' === $model ) {
+		return false;
+	}
+
+	$blocked = array( '-image', '-tts', '-audio', '-vision', '-video', '-embedding' );
+	foreach ( $blocked as $marker ) {
+		if ( str_contains( $model, $marker ) ) {
+			return false;
+		}
+	}
+
+	return (bool) preg_match( '/^(gemini|gpt|claude|deepseek|llama)/', $model );
+}
+
+/**
+ * @param array{text: string, model: string, model_primary?: string, used_fallback?: bool, provider_substituted?: bool} $result
+ */
+function multch_ai_client_finalize_provider_result( array $result, string $model_primary, int $index, bool $substituted ): array {
+	$actual_model = (string) ( $result['model'] ?? '' );
+
+	$result['model_primary'] = $model_primary;
+	$result['used_fallback'] = ( $index > 0 && '' !== $model_primary )
+		|| ( $substituted && '' !== $model_primary && ! multch_ai_client_models_match( $model_primary, $actual_model ) );
+
+	if ( ! empty( $result['provider_substituted'] ) ) {
+		$result['used_fallback'] = true;
+	}
+
+	return $result;
+}
+
+/**
  * Index of a model in the configured chain, or -1 when not listed.
  *
  * @param list<string> $chain
@@ -683,13 +719,22 @@ function multch_ai_client_extract_model( $result, string $fallback ): string {
 /**
  * Human-readable model label for chat UI, history, and statistics.
  */
-function multch_format_model_display( string $model, string $model_primary = '', bool $used_fallback = false ): string {
+function multch_format_model_display( string $model, string $model_primary = '', bool $used_fallback = false, bool $provider_substituted = false ): string {
 	if ( '' === $model ) {
 		return '';
 	}
 
 	if ( ! $used_fallback || '' === $model_primary || $model === $model_primary ) {
 		return $model;
+	}
+
+	if ( $provider_substituted ) {
+		return sprintf(
+			/* translators: 1: model used by the provider, 2: configured primary model */
+			__( '%1$s (provider fallback; primary: %2$s)', 'multiai-chatbot' ),
+			$model,
+			$model_primary
+		);
 	}
 
 	return sprintf(
@@ -705,15 +750,17 @@ function multch_format_model_display( string $model, string $model_primary = '',
  * @return array{model: string, modelPrimary: string, usedFallback: bool, modelLabel: string}
  */
 function multch_ai_client_model_meta_from_result( array $result ): array {
-	$model          = (string) ( $result['model'] ?? '' );
-	$model_primary  = (string) ( $result['model_primary'] ?? '' );
-	$used_fallback  = ! empty( $result['used_fallback'] );
+	$model                 = (string) ( $result['model'] ?? '' );
+	$model_primary         = (string) ( $result['model_primary'] ?? '' );
+	$used_fallback         = ! empty( $result['used_fallback'] );
+	$provider_substituted  = ! empty( $result['provider_substituted'] );
 
 	return array(
-		'model'         => $model,
-		'modelPrimary'  => $model_primary,
-		'usedFallback'  => $used_fallback,
-		'modelLabel'    => multch_format_model_display( $model, $model_primary, $used_fallback ),
+		'model'                => $model,
+		'modelPrimary'         => $model_primary,
+		'usedFallback'         => $used_fallback,
+		'providerSubstituted'  => $provider_substituted,
+		'modelLabel'           => multch_format_model_display( $model, $model_primary, $used_fallback, $provider_substituted ),
 	);
 }
 
