@@ -615,13 +615,49 @@ function multch_ai_client_finalize_provider_result( array $result, string $model
 }
 
 /**
- * Whether a provider error is a real quota / rate-limit (not every HTTP 429).
+ * Whether an error message indicates Google/provider quota or rate limits.
+ */
+function multch_ai_client_message_indicates_quota( string $message ): bool {
+	$message = strtolower( $message );
+	if ( '' === $message ) {
+		return false;
+	}
+
+	if ( preg_match( '/\b429\b/', $message ) ) {
+		return true;
+	}
+
+	$needles = array(
+		'too many requests',
+		'rate limit',
+		'rate-limit',
+		'resource exhausted',
+		'quota exceeded',
+		'exceeded your current quota',
+		'exceeded your quota',
+		'check your plan and billing',
+	);
+
+	foreach ( $needles as $needle ) {
+		if ( str_contains( $message, $needle ) ) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+/**
+ * Whether a provider error is quota / rate-limit (triggers fallback to the next model).
  */
 function multch_ai_client_is_provider_rate_limit_error( WP_Error $error ): bool {
-	$data    = $error->get_error_data();
-	$status  = is_array( $data ) && isset( $data['status'] ) ? (int) $data['status'] : 0;
-	$code    = strtolower( $error->get_error_code() );
-	$message = strtolower( $error->get_error_message() );
+	if ( multch_ai_client_message_indicates_quota( $error->get_error_message() ) ) {
+		return true;
+	}
+
+	$data   = $error->get_error_data();
+	$status = is_array( $data ) && isset( $data['status'] ) ? (int) $data['status'] : 0;
+	$code   = strtolower( $error->get_error_code() );
 
 	if ( 429 !== $status ) {
 		return false;
@@ -641,24 +677,22 @@ function multch_ai_client_is_provider_rate_limit_error( WP_Error $error ): bool 
 		}
 	}
 
-	$message_needles = array(
-		'rate limit',
-		'rate-limit',
-		'too many requests',
-		'resource exhausted',
-		'quota exceeded',
-		'exceeded your current quota',
-		'requests per minute',
-		'requests per day',
-	);
-
-	foreach ( $message_needles as $needle ) {
-		if ( str_contains( $message, $needle ) ) {
-			return true;
-		}
-	}
-
 	return false;
+}
+
+/**
+ * User-facing error after primary, fallback, and optional Google automatic attempts all hit quota.
+ */
+function multch_ai_client_quota_exhausted_error(): WP_Error {
+	return new WP_Error(
+		'quota_exhausted',
+		__( 'Google API quota was reached. The chat tried your primary model, fallback, and (if enabled) an automatic Google model. Wait a few minutes or choose other models in MultiAI ChatBot → AI Model.', 'multiai-chatbot' ),
+		array(
+			'status'      => 429,
+			'error_code'  => 'QUOTA_EXHAUSTED',
+			'retry_after' => 120,
+		)
+	);
 }
 
 /**
@@ -908,9 +942,7 @@ function multch_ai_client_map_error( WP_Error $error ): WP_Error {
 	if ( multch_ai_client_is_provider_rate_limit_error( $error ) ) {
 		return new WP_Error(
 			'rate_limit_model',
-			'' !== $message
-				? $message
-				: __( 'The AI provider rate limit was reached for this model. Please try again shortly.', 'multiai-chatbot' ),
+			__( 'This model hit the Google API quota. Trying the next configured model…', 'multiai-chatbot' ),
 			array(
 				'status'      => 429,
 				'error_code'  => 'RATE_LIMIT_PROVIDER',

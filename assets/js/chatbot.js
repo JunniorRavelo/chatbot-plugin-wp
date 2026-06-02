@@ -216,6 +216,7 @@
       RATE_LIMIT_MODEL_MINUTE: "This site’s chat limit for AI messages was reached. Wait a moment before sending another.",
       RATE_LIMIT_MODEL_DAILY: "This site’s daily chat limit for AI messages was reached. Try again later.",
       RATE_LIMIT_PROVIDER: "The AI provider rate limit was reached. Try again shortly.",
+      QUOTA_EXHAUSTED: "Google API quota was reached. The chat tried your configured models. Wait a few minutes or change models in MultiAI ChatBot → AI Model.",
       MODEL_ALL_EXHAUSTED: "All models are temporarily saturated.",
       MODEL_TEMP_UNAVAILABLE: "The model did not return a valid response. Check Connectors and the model in AI Model settings.",
       PROVIDER_TIMEOUT: "The provider took too long to respond.",
@@ -238,8 +239,16 @@
     if (/<!doctype html/i.test(message) || /<html/i.test(message)) {
       return "The server returned an error (502). Leave the internal chat URL empty and verify the DeepSeek API key.";
     }
-    if (message.length > 280) {
-      return message.slice(0, 280) + "…";
+    if (
+      /quota|too many requests|\b429\b|exceeded your current/i.test(message)
+    ) {
+      return (
+        (i18n && i18n.quotaExhausted) ||
+        "Google API quota was reached. Wait a few minutes or change models in the plugin settings."
+      );
+    }
+    if (message.length > 220) {
+      return message.slice(0, 220) + "…";
     }
     return message;
   }

@@ -80,6 +80,9 @@ class Multch_Provider_WordPress_AI implements Multch_AI_Provider {
 		}
 
 		if ( $last_error instanceof WP_Error ) {
+			if ( multch_ai_client_message_indicates_quota( $last_error->get_error_message() ) ) {
+				return multch_ai_client_quota_exhausted_error();
+			}
 			return $last_error;
 		}
 

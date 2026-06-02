@@ -123,7 +123,8 @@ class Multch_Enqueue {
 					'onlineLabel'   => __( 'System online', 'multiai-chatbot' ),
 					'thinking'      => __( 'Thinking…', 'multiai-chatbot' ),
 					'welcomeLabel'  => __( 'Welcome message', 'multiai-chatbot' ),
-					'errorGeneric'  => __( 'Could not send the message. Please try again.', 'multiai-chatbot' ),
+					'errorGeneric'   => __( 'Could not send the message. Please try again.', 'multiai-chatbot' ),
+					'quotaExhausted' => __( 'Google API quota was reached. The chat tried your configured models. Wait a few minutes or change models in MultiAI ChatBot → AI Model.', 'multiai-chatbot' ),
 				),
 			)
 		);
