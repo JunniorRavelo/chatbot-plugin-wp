@@ -2735,6 +2735,78 @@ button.multch-donation-footer__chip {
   color: #0f172a;
 }
 
+.multch-admin-history-model-trace {
+  margin-top: 0.65rem;
+  padding: 0.65rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid var(--cb-admin-border);
+  background: var(--cb-admin-bg);
+}
+
+.multch-admin-history-model-trace__title {
+  margin: 0 0 0.45rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--cb-admin-muted);
+}
+
+.multch-admin-history-model-trace__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.multch-admin-history-model-trace__step {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.5rem;
+  font-size: 0.75rem;
+  line-height: 1.4;
+  padding: 0.35rem 0.45rem;
+  border-radius: 6px;
+  background: #fff;
+  border-left: 3px solid #94a3b8;
+}
+
+.multch-admin-history-model-trace__step--success {
+  border-left-color: #16a34a;
+}
+
+.multch-admin-history-model-trace__step--failed {
+  border-left-color: #dc2626;
+}
+
+.multch-admin-history-model-trace__step--skipped {
+  border-left-color: #cbd5e1;
+  opacity: 0.85;
+}
+
+.multch-admin-history-model-trace__slot {
+  font-weight: 600;
+  color: #334155;
+}
+
+.multch-admin-history-model-trace__status {
+  font-weight: 500;
+  color: #64748b;
+}
+
+.multch-admin-history-model-trace__note {
+  flex: 1 1 100%;
+  color: #64748b;
+  font-size: 0.6875rem;
+}
+
+.multch-admin-history-model-trace__final {
+  margin: 0.45rem 0 0;
+}
+
 /* Responsive — Historial */
 @media (max-width: 960px) {
   .multch-admin-history-toolbar {

@@ -448,7 +448,10 @@ function multch_ai_client_should_try_next_model( WP_Error $error ): bool {
 
 	$data   = $error->get_error_data();
 	$status = is_array( $data ) && isset( $data['status'] ) ? (int) $data['status'] : 0;
-	if ( in_array( $status, array( 403, 404, 429 ), true ) ) {
+	if ( 429 === $status ) {
+		return multch_ai_client_is_provider_rate_limit_error( $error );
+	}
+	if ( in_array( $status, array( 403, 404 ), true ) ) {
 		return true;
 	}
 
@@ -782,6 +785,196 @@ function multch_ai_client_extract_error_code( WP_Error $error ): string {
 }
 
 /**
+ * Human-readable slot labels for model trace (admin history).
+ *
+ * @return array<string, string>
+ */
+function multch_ai_client_trace_slot_labels(): array {
+	return array(
+		'primary'           => __( 'Primary', 'multiai-chatbot' ),
+		'fallback'          => __( 'Fallback', 'multiai-chatbot' ),
+		'google_automatic'  => __( 'Google automatic', 'multiai-chatbot' ),
+	);
+}
+
+/**
+ * @param list<string> $chain
+ * @return list<array{slot: string, model: string}>
+ */
+function multch_ai_client_trace_planned_steps( array $chain, bool $allow_google_any ): array {
+	$steps = array();
+	if ( ! empty( $chain ) ) {
+		$steps[] = array(
+			'slot'  => 'primary',
+			'model' => (string) $chain[0],
+		);
+		for ( $i = 1; $i < count( $chain ); $i++ ) {
+			$steps[] = array(
+				'slot'  => 'fallback',
+				'model' => (string) $chain[ $i ],
+			);
+		}
+	}
+
+	if ( $allow_google_any ) {
+		$steps[] = array(
+			'slot'  => 'google_automatic',
+			'model' => __( 'Any available text model', 'multiai-chatbot' ),
+		);
+	}
+
+	return $steps;
+}
+
+/**
+ * @param array{steps: list<array<string, mixed>>} $trace
+ */
+function multch_ai_client_trace_add_step( array &$trace, string $slot, string $model, string $status, array $extra = array() ): void {
+	if ( ! isset( $trace['steps'] ) || ! is_array( $trace['steps'] ) ) {
+		$trace['steps'] = array();
+	}
+
+	$step = array(
+		'slot'   => $slot,
+		'model'  => $model,
+		'status' => $status,
+	);
+	if ( ! empty( $extra['model_used'] ) ) {
+		$step['model_used'] = (string) $extra['model_used'];
+	}
+	if ( ! empty( $extra['error_code'] ) ) {
+		$step['error_code'] = sanitize_text_field( (string) $extra['error_code'] );
+	}
+	if ( ! empty( $extra['message'] ) ) {
+		$step['message'] = wp_strip_all_tags( (string) $extra['message'] );
+		if ( strlen( $step['message'] ) > 200 ) {
+			$step['message'] = substr( $step['message'], 0, 200 ) . '…';
+		}
+	}
+
+	$trace['steps'][] = $step;
+}
+
+/**
+ * @param list<string> $chain
+ */
+function multch_ai_client_trace_slot_for_index( int $index, array $chain ): string {
+	return 0 === $index ? 'primary' : 'fallback';
+}
+
+/**
+ * @param list<string> $chain
+ * @param list<array{model: string, error_code: string, message?: string}> $attempt_log
+ * @return array{steps: list<array<string, mixed>>, outcome: string}
+ */
+function multch_ai_client_trace_from_attempt_log( array $attempt_log, array $chain, bool $allow_google_any ): array {
+	$trace = array(
+		'steps'   => array(),
+		'outcome' => 'error',
+	);
+	$planned = multch_ai_client_trace_planned_steps( $chain, $allow_google_any );
+	$labels  = multch_ai_client_trace_slot_labels();
+
+	foreach ( $planned as $plan_index => $plan ) {
+		$matched = null;
+		foreach ( $attempt_log as $attempt ) {
+			$attempt_model = (string) ( $attempt['model'] ?? '' );
+			if ( 'google-automatic' === $attempt_model && 'google_automatic' === $plan['slot'] ) {
+				$matched = $attempt;
+				break;
+			}
+			if ( multch_ai_client_models_match( $attempt_model, (string) $plan['model'] )
+				|| str_contains( $attempt_model, (string) $plan['model'] ) ) {
+				$matched = $attempt;
+				break;
+			}
+		}
+
+		if ( null !== $matched ) {
+			multch_ai_client_trace_add_step(
+				$trace,
+				(string) $plan['slot'],
+				(string) $plan['model'],
+				'failed',
+				array(
+					'error_code' => (string) ( $matched['error_code'] ?? '' ),
+					'message'    => (string) ( $matched['message'] ?? '' ),
+				)
+			);
+			continue;
+		}
+
+		// Step was not reached (chain stopped earlier).
+		if ( $plan_index > count( $attempt_log ) ) {
+			multch_ai_client_trace_add_step(
+				$trace,
+				(string) $plan['slot'],
+				(string) $plan['model'],
+				'skipped',
+				array(
+					'message' => __( 'Not attempted (a previous step already failed).', 'multiai-chatbot' ),
+				)
+			);
+		}
+	}
+
+	// Fallback: append raw attempts if plan matching missed entries.
+	if ( empty( $trace['steps'] ) && ! empty( $attempt_log ) ) {
+		foreach ( $attempt_log as $i => $attempt ) {
+			$slot = 0 === $i ? 'primary' : ( str_contains( (string) ( $attempt['model'] ?? '' ), 'automatic' ) ? 'google_automatic' : 'fallback' );
+			multch_ai_client_trace_add_step(
+				$trace,
+				$slot,
+				(string) ( $attempt['model'] ?? '' ),
+				'failed',
+				array(
+					'error_code' => (string) ( $attempt['error_code'] ?? '' ),
+					'message'    => (string) ( $attempt['message'] ?? '' ),
+				)
+			);
+		}
+	}
+
+	unset( $labels );
+
+	return $trace;
+}
+
+/**
+ * @param array{steps: list<array<string, mixed>>} $trace
+ * @param array<string, mixed>                    $result
+ */
+function multch_ai_client_trace_record_success( array &$trace, int $index, string $model_id, array $result, array $chain, bool $allow_google_any ): void {
+	$slot = multch_ai_client_trace_slot_for_index( $index, $chain );
+	if ( ! empty( $result['google_auto_reroute'] ) ) {
+		$slot = 'google_automatic';
+	}
+
+	$model_used = (string) ( $result['model'] ?? $model_id );
+	$extra      = array( 'model_used' => $model_used );
+	if ( ! empty( $result['provider_rerouted'] ) && ! multch_ai_client_models_match( $model_used, $model_id ) ) {
+		$extra['message'] = sprintf(
+			/* translators: 1: model requested, 2: model actually used */
+			__( 'Connectors used %2$s instead of %1$s.', 'multiai-chatbot' ),
+			$model_id,
+			$model_used
+		);
+	}
+
+	multch_ai_client_trace_add_step( $trace, $slot, $model_id, 'success', $extra );
+	$trace['outcome']    = 'success';
+	$trace['model_final'] = $model_used;
+}
+
+/**
+ * @param array{steps: list<array<string, mixed>>} $trace
+ */
+function multch_ai_client_attach_trace_to_result( array $result, array $trace ): array {
+	$result['model_trace'] = $trace;
+	return $result;
+}
+
+/**
  * @param list<array{model: string, error_code: string, message?: string}> $attempt_log
  */
 function multch_ai_client_log_provider_attempt( array &$attempt_log, string $model_id, WP_Error $error ): void {
@@ -1000,12 +1193,18 @@ function multch_ai_client_model_meta_from_result( array $result ): array {
 	$fallback_configured = (string) ( $result['fallback_configured'] ?? '' );
 	$google_auto_reroute = ! empty( $result['google_auto_reroute'] );
 
-	return array(
+	$meta = array(
 		'model'        => $model,
 		'modelPrimary' => $model_primary,
 		'usedFallback' => $used_fallback,
 		'modelLabel'   => multch_format_model_display( $model, $model_primary, $used_fallback, $fallback_configured, $google_auto_reroute ),
 	);
+
+	if ( ! empty( $result['model_trace'] ) && is_array( $result['model_trace'] ) ) {
+		$meta['modelTrace'] = $result['model_trace'];
+	}
+
+	return $meta;
 }
 
 /**

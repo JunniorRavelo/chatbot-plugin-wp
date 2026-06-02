@@ -9,7 +9,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 class Multch_Chat_History {
 
-	const DB_VERSION = '1.0';
+	const DB_VERSION = '1.1';
 
 	const IDLE_MINUTES = 30;
 
@@ -64,6 +64,7 @@ class Multch_Chat_History {
 			content text NOT NULL,
 			status varchar(32) NOT NULL DEFAULT '',
 			latency_ms int(11) NOT NULL DEFAULT 0,
+			meta_json longtext DEFAULT NULL,
 			created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
 			PRIMARY KEY  (id),
 			KEY conversation_id (conversation_id),
@@ -235,6 +236,14 @@ class Multch_Chat_History {
 		$role = 'assistant' === $role ? 'assistant' : 'user';
 		$now  = current_time( 'mysql', true );
 
+		$meta_json = '';
+		if ( ! empty( $extra['meta'] ) && is_array( $extra['meta'] ) ) {
+			$encoded = wp_json_encode( $extra['meta'] );
+			if ( is_string( $encoded ) ) {
+				$meta_json = $encoded;
+			}
+		}
+
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Custom messages table; no WP API for plugin chat history.
 		$wpdb->insert(
 			self::messages_table(),
@@ -244,9 +253,10 @@ class Multch_Chat_History {
 				'content'         => $content,
 				'status'          => isset( $extra['status'] ) ? sanitize_text_field( (string) $extra['status'] ) : '',
 				'latency_ms'      => isset( $extra['latency_ms'] ) ? (int) $extra['latency_ms'] : 0,
+				'meta_json'       => $meta_json,
 				'created_at'      => $now,
 			),
-			array( '%d', '%s', '%s', '%s', '%d', '%s' )
+			array( '%d', '%s', '%s', '%s', '%d', '%s', '%s' )
 		);
 
 		$conv_table = self::conversations_table();

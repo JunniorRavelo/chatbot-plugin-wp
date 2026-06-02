@@ -12,7 +12,7 @@ class Multch_Provider_WordPress_AI implements Multch_AI_Provider {
 	/**
 	 * @param array<int, array{role: string, content: string}> $messages
 	 * @param array<string, mixed>                             $settings
-	 * @return array{text: string, model: string, model_primary?: string, used_fallback?: bool}|WP_Error
+	 * @return array{text: string, model: string, model_primary?: string, used_fallback?: bool, model_trace?: array}|WP_Error
 	 */
 	public function complete( string $system, array $messages, array $settings ) {
 		if ( ! multch_ai_client_available() ) {
@@ -45,6 +45,11 @@ class Multch_Provider_WordPress_AI implements Multch_AI_Provider {
 		$model_primary    = isset( $chain[0] ) ? (string) $chain[0] : '';
 		$allow_google_any = multch_ai_client_allow_google_any_model( $settings );
 		$attempt_log      = array();
+		$model_trace      = array(
+			'steps'   => array(),
+			'outcome' => 'error',
+			'planned' => multch_ai_client_trace_planned_steps( $chain, $allow_google_any ),
+		);
 		$last_error       = null;
 		$last_result      = null;
 
@@ -54,6 +59,7 @@ class Multch_Provider_WordPress_AI implements Multch_AI_Provider {
 
 			if ( is_wp_error( $result ) ) {
 				multch_ai_client_log_provider_attempt( $attempt_log, $model_id, $result );
+				$this->trace_failed_step( $model_trace, $index, $model_id, $result, $chain );
 				$last_error = $result;
 				if ( $is_last || ! multch_ai_client_should_try_next_model( $result ) ) {
 					break;
@@ -63,7 +69,8 @@ class Multch_Provider_WordPress_AI implements Multch_AI_Provider {
 
 			$last_result = $result;
 			if ( is_array( $result ) ) {
-				return $result;
+				multch_ai_client_trace_record_success( $model_trace, $index, $model_id, $result, $chain, $allow_google_any );
+				return multch_ai_client_attach_trace_to_result( $result, $model_trace );
 			}
 		}
 
@@ -71,43 +78,106 @@ class Multch_Provider_WordPress_AI implements Multch_AI_Provider {
 			if ( multch_ai_client_is_gemma_model( $model_primary ) ) {
 				$gemma_retry = $this->run_model_attempt( $system, $split, $model_primary, $chain, 0, true, $model_primary, $allow_google_any );
 				if ( is_array( $gemma_retry ) ) {
-					return $gemma_retry;
+					multch_ai_client_trace_record_success( $model_trace, 0, $model_primary, $gemma_retry, $chain, $allow_google_any );
+					return multch_ai_client_attach_trace_to_result( $gemma_retry, $model_trace );
 				}
 				if ( $gemma_retry instanceof WP_Error ) {
 					multch_ai_client_log_provider_attempt( $attempt_log, $model_primary . '-retry', $gemma_retry );
+					$this->trace_failed_step( $model_trace, 0, $model_primary, $gemma_retry, $chain, 'primary' );
 					$last_error = $gemma_retry;
 				}
 			} else {
 				$automatic = $this->attempt_google_automatic( $system, $split, $model_primary, $chain );
 				if ( is_array( $automatic ) ) {
-					return $automatic;
+					multch_ai_client_trace_add_step(
+						$model_trace,
+						'google_automatic',
+						__( 'Any available text model', 'multiai-chatbot' ),
+						'success',
+						array(
+							'model_used' => (string) ( $automatic['model'] ?? '' ),
+						)
+					);
+					$model_trace['outcome']     = 'success';
+					$model_trace['model_final'] = (string) ( $automatic['model'] ?? '' );
+					return multch_ai_client_attach_trace_to_result( $automatic, $model_trace );
 				}
 				if ( $automatic instanceof WP_Error ) {
 					multch_ai_client_log_provider_attempt( $attempt_log, 'google-automatic', $automatic );
+					multch_ai_client_trace_add_step(
+						$model_trace,
+						'google_automatic',
+						__( 'Any available text model', 'multiai-chatbot' ),
+						'failed',
+						array(
+							'error_code' => multch_ai_client_extract_error_code( $automatic ),
+							'message'    => $automatic->get_error_message(),
+						)
+					);
 					$last_error = $automatic;
 				}
 			}
 		}
 
 		if ( is_array( $last_result ) && '' !== trim( (string) ( $last_result['text'] ?? '' ) ) ) {
-			return multch_ai_client_finalize_provider_result( $last_result, $model_primary, 0, $chain );
+			multch_ai_client_trace_record_success( $model_trace, 0, $model_primary, $last_result, $chain, $allow_google_any );
+			return multch_ai_client_attach_trace_to_result(
+				multch_ai_client_finalize_provider_result( $last_result, $model_primary, 0, $chain ),
+				$model_trace
+			);
 		}
 
 		if ( $last_error instanceof WP_Error ) {
-			if ( multch_ai_client_attempts_all_quota_only( $attempt_log ) ) {
-				return multch_ai_client_wrap_error_with_attempt_log(
-					multch_ai_client_quota_exhausted_error( $model_primary, $chain ),
-					$attempt_log
-				);
+			if ( empty( $model_trace['steps'] ) && ! empty( $attempt_log ) ) {
+				$model_trace = multch_ai_client_trace_from_attempt_log( $attempt_log, $chain, $allow_google_any );
 			}
+			$model_trace['planned'] = multch_ai_client_trace_planned_steps( $chain, $allow_google_any );
+			$model_trace['outcome']   = 'error';
 
-			return multch_ai_client_wrap_error_with_attempt_log( $last_error, $attempt_log );
+			return $this->wrap_error_with_trace( $last_error, $attempt_log, $model_trace );
 		}
 
 		return new WP_Error(
 			'model_temp_unavailable',
 			__( 'The model did not return a valid response. Check Settings → Connectors and the model ID in AI Model.', 'multiai-chatbot' ),
 			array( 'status' => 503, 'error_code' => 'MODEL_TEMP_UNAVAILABLE' )
+		);
+	}
+
+	/**
+	 * @param array{steps: list<array<string, mixed>>} $model_trace
+	 */
+	private function trace_failed_step( array &$model_trace, int $index, string $model_id, WP_Error $error, array $chain, string $slot_override = '' ): void {
+		$slot = '' !== $slot_override ? $slot_override : multch_ai_client_trace_slot_for_index( $index, $chain );
+		multch_ai_client_trace_add_step(
+			$model_trace,
+			$slot,
+			$model_id,
+			'failed',
+			array(
+				'error_code' => multch_ai_client_extract_error_code( $error ),
+				'message'    => $error->get_error_message(),
+			)
+		);
+	}
+
+	/**
+	 * @param list<array{model: string, error_code: string, message?: string}> $attempt_log
+	 * @param array{steps: list<array<string, mixed>>, outcome: string}      $model_trace
+	 * @return WP_Error
+	 */
+	private function wrap_error_with_trace( WP_Error $error, array $attempt_log, array $model_trace ): WP_Error {
+		$wrapped = multch_ai_client_wrap_error_with_attempt_log( $error, $attempt_log );
+		$data    = $wrapped->get_error_data();
+		if ( ! is_array( $data ) ) {
+			$data = array();
+		}
+		$data['model_trace'] = $model_trace;
+
+		return new WP_Error(
+			$wrapped->get_error_code(),
+			$wrapped->get_error_message(),
+			$data
 		);
 	}
 
@@ -157,7 +227,6 @@ class Multch_Provider_WordPress_AI implements Multch_AI_Provider {
 				return multch_ai_client_finalize_provider_result( $result, $model_primary, $actual_index, $chain );
 			}
 
-			// Connectors routed to a different text model — accept the response instead of retrying the chain.
 			if ( multch_ai_client_is_provider_text_substitute( $actual_model ) ) {
 				$result['fallback_configured'] = $model_id;
 				$result['provider_rerouted']   = true;
@@ -168,18 +237,6 @@ class Multch_Provider_WordPress_AI implements Multch_AI_Provider {
 		if ( multch_ai_client_response_matches_attempt( $actual_model, $model_id, $chain, $index ) ) {
 			if ( ! multch_ai_client_is_allowed_response_model( $actual_model, $requested_model, $chain ) ) {
 				return $this->model_not_allowed_error( $actual_model, $requested_model, $is_last, $allow_google_any );
-			}
-
-			if ( $substituted && ! $is_last ) {
-				return new WP_Error(
-					'model_substituted',
-					__( 'The configured model is unavailable; trying the next one.', 'multiai-chatbot' ),
-					array(
-						'status'     => 503,
-						'error_code' => 'MODEL_SUBSTITUTED',
-						'model'      => $model_id,
-					)
-				);
 			}
 
 			return multch_ai_client_finalize_provider_result( $result, $model_primary, $index, $chain );

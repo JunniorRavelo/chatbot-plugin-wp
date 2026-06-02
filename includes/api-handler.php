@@ -130,6 +130,12 @@ class Multch_Api_Handler {
 			$retry_after = is_array( $error_data ) && isset( $error_data['retry_after'] ) ? (int) $error_data['retry_after'] : 0;
 
 			self::record_provider_failure_events( $session_hash, $settings, $result, $latency, $conversation );
+
+			$failure_meta = array( 'errorCode' => $error_code );
+			if ( is_array( $error_data ) && ! empty( $error_data['model_trace'] ) && is_array( $error_data['model_trace'] ) ) {
+				$failure_meta['modelTrace'] = $error_data['model_trace'];
+			}
+
 			self::persist_history_exchange(
 				$conversation,
 				$parsed['message'],
@@ -138,7 +144,8 @@ class Multch_Api_Handler {
 				multch_ai_client_configured_models_summary( $settings ),
 				'error',
 				$latency,
-				$parsed
+				$parsed,
+				$failure_meta
 			);
 
 			$response = new WP_REST_Response(
@@ -636,6 +643,17 @@ class Multch_Api_Handler {
 		if ( ! empty( $model_meta['usedFallback'] ) && ! empty( $model_meta['modelPrimary'] ) ) {
 			$assistant_extra['model_primary']  = (string) $model_meta['modelPrimary'];
 			$assistant_extra['used_fallback'] = true;
+		}
+
+		$message_meta = array();
+		if ( ! empty( $model_meta['modelTrace'] ) && is_array( $model_meta['modelTrace'] ) ) {
+			$message_meta['model_trace'] = $model_meta['modelTrace'];
+		}
+		if ( ! empty( $model_meta['errorCode'] ) ) {
+			$message_meta['error_code'] = (string) $model_meta['errorCode'];
+		}
+		if ( ! empty( $message_meta ) ) {
+			$assistant_extra['meta'] = $message_meta;
 		}
 
 		Multch_Chat_History::add_message(

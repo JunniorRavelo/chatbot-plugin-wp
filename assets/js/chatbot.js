@@ -791,6 +791,7 @@
       try {
         let modelUsed = "";
         let streamConversationId = "";
+        let streamFailed = false;
         if (config.streaming) {
           try {
             const streamResult = await requestStream(body, (chunk) => {
@@ -814,13 +815,14 @@
             if (streamErr && streamErr.status === 404) {
               /* streaming disabled */
             } else {
+              streamFailed = true;
               throw streamErr;
             }
           }
         }
 
         const idx = messages.findIndex((m) => m.id === assistantId);
-        if (idx >= 0 && !messages[idx].content.trim()) {
+        if (idx >= 0 && !messages[idx].content.trim() && !streamFailed) {
           const data = await requestChat(body);
           messages[idx].content = data.answer || "";
           messages[idx].model =

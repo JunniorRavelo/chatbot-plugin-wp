@@ -4497,6 +4497,74 @@ private static function render_history_card_body( array $conv, array $messages )
 }
 
 /**
+ * @param array<string, mixed> $trace
+ */
+private static function render_history_model_trace( array $trace ): void {
+	$steps = isset( $trace['steps'] ) && is_array( $trace['steps'] ) ? $trace['steps'] : array();
+	if ( empty( $steps ) ) {
+		return;
+	}
+
+	$labels = multch_ai_client_trace_slot_labels();
+	?>
+	<div class="multch-admin-history-model-trace">
+		<p class="multch-admin-history-model-trace__title"><?php esc_html_e( 'Model route', 'multiai-chatbot' ); ?></p>
+		<ol class="multch-admin-history-model-trace__list">
+			<?php foreach ( $steps as $step ) : ?>
+				<?php
+				$slot   = (string) ( $step['slot'] ?? '' );
+				$status = (string) ( $step['status'] ?? '' );
+				$model  = (string) ( $step['model'] ?? '' );
+				$used   = (string) ( $step['model_used'] ?? '' );
+				$code   = (string) ( $step['error_code'] ?? '' );
+				$note   = (string) ( $step['message'] ?? '' );
+				$slot_label = $labels[ $slot ] ?? $slot;
+				$status_class = 'multch-admin-history-model-trace__step--' . sanitize_html_class( $status ?: 'unknown' );
+				?>
+				<li class="multch-admin-history-model-trace__step <?php echo esc_attr( $status_class ); ?>">
+					<span class="multch-admin-history-model-trace__slot"><?php echo esc_html( $slot_label ); ?></span>
+					<span class="multch-admin-history-model-trace__model"><code><?php echo esc_html( $model ); ?></code></span>
+					<span class="multch-admin-history-model-trace__status"><?php echo esc_html( self::format_model_trace_status_label( $status ) ); ?></span>
+					<?php if ( '' !== $used && ! multch_ai_client_models_match( $used, $model ) ) : ?>
+						<span class="multch-admin-history-model-trace__used">
+							→ <code><?php echo esc_html( $used ); ?></code>
+						</span>
+					<?php endif; ?>
+					<?php if ( '' !== $code ) : ?>
+						<code class="multch-admin-history-model-trace__code"><?php echo esc_html( $code ); ?></code>
+					<?php endif; ?>
+					<?php if ( '' !== $note ) : ?>
+						<span class="multch-admin-history-model-trace__note"><?php echo esc_html( $note ); ?></span>
+					<?php endif; ?>
+				</li>
+			<?php endforeach; ?>
+		</ol>
+		<?php if ( ! empty( $trace['model_final'] ) ) : ?>
+			<p class="multch-admin-history-model-trace__final description">
+				<?php
+				printf(
+					/* translators: %s: model ID that answered */
+					esc_html__( 'Final model: %s', 'multiai-chatbot' ),
+					esc_html( (string) $trace['model_final'] )
+				);
+				?>
+			</p>
+		<?php endif; ?>
+	</div>
+	<?php
+}
+
+private static function format_model_trace_status_label( string $status ): string {
+	$labels = array(
+		'success' => __( 'Success', 'multiai-chatbot' ),
+		'failed'  => __( 'Failed', 'multiai-chatbot' ),
+		'skipped' => __( 'Skipped', 'multiai-chatbot' ),
+	);
+
+	return $labels[ $status ] ?? $status;
+}
+
+/**
  * @param array<int, array<string, mixed>> $messages
  */
 private static function render_history_messages_list( array $messages ): void {
@@ -4515,6 +4583,13 @@ private static function render_history_messages_list( array $messages ): void {
 			$latency_ms   = (int) ( $msg['latency_ms'] ?? 0 );
 			$is_assistant = 'assistant' === $role;
 			$show_error   = $is_assistant && 'error' === $msg_status;
+			$msg_meta     = array();
+			if ( ! empty( $msg['meta_json'] ) ) {
+				$decoded = json_decode( (string) $msg['meta_json'], true );
+				if ( is_array( $decoded ) ) {
+					$msg_meta = $decoded;
+				}
+			}
 
 			$status_badge_class = 'multch-admin-status--err';
 			if ( 'cached' === $msg_status ) {
@@ -4549,6 +4624,11 @@ private static function render_history_messages_list( array $messages ): void {
 				</div>
 
 				<div class="multch-admin-history-msg__body"><?php echo nl2br( esc_html( $message_text ) ); ?></div>
+				<?php
+				if ( $is_assistant && ! empty( $msg_meta['model_trace'] ) && is_array( $msg_meta['model_trace'] ) ) {
+					self::render_history_model_trace( $msg_meta['model_trace'] );
+				}
+				?>
 				</div>
 			</div>
 		<?php endforeach; ?>
