@@ -78,6 +78,12 @@ class Multch_Provider_WordPress_AI implements Multch_AI_Provider {
 			}
 
 			if ( ! multch_ai_client_response_matches_attempt( $actual_model, $model_id, $chain, $index ) ) {
+				if ( $is_last && multch_ai_client_is_provider_text_substitute( $actual_model ) ) {
+					$result['fallback_configured'] = $model_id;
+					$result['provider_rerouted']   = true;
+					return multch_ai_client_finalize_provider_result( $result, $model_primary, max( 1, $index ) );
+				}
+
 				$last_error = new WP_Error(
 					'model_fallback_mismatch',
 					sprintf(

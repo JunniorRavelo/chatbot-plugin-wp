@@ -574,7 +574,26 @@ function multch_ai_client_response_matches_attempt( string $actual, string $mode
 }
 
 /**
- * @param array{text: string, model: string, model_primary?: string, used_fallback?: bool} $result
+ * Gemini/GPT/Claude text models the API may route to when the configured ID is unavailable.
+ */
+function multch_ai_client_is_provider_text_substitute( string $model ): bool {
+	$model = multch_ai_client_normalize_model_id( $model );
+	if ( '' === $model ) {
+		return false;
+	}
+
+	$blocked = array( '-image', '-tts', '-audio', '-vision', '-video', '-embedding' );
+	foreach ( $blocked as $marker ) {
+		if ( str_contains( $model, $marker ) ) {
+			return false;
+		}
+	}
+
+	return (bool) preg_match( '/^(gemini|gpt|claude|deepseek|llama)/', $model );
+}
+
+/**
+ * @param array{text: string, model: string, model_primary?: string, used_fallback?: bool, fallback_configured?: string, provider_rerouted?: bool} $result
  */
 function multch_ai_client_finalize_provider_result( array $result, string $model_primary, int $index ): array {
 	$result['model_primary'] = $model_primary;
@@ -715,9 +734,18 @@ function multch_ai_client_extract_model( $result, string $fallback ): string {
 /**
  * Human-readable model label for chat UI, history, and statistics.
  */
-function multch_format_model_display( string $model, string $model_primary = '', bool $used_fallback = false ): string {
+function multch_format_model_display( string $model, string $model_primary = '', bool $used_fallback = false, string $fallback_configured = '' ): string {
 	if ( '' === $model ) {
 		return '';
+	}
+
+	if ( '' !== $fallback_configured && ! multch_ai_client_models_match( $model, $fallback_configured ) ) {
+		return sprintf(
+			/* translators: 1: model the API actually used, 2: fallback model ID from plugin settings */
+			__( '%1$s (API used this; configured fallback: %2$s)', 'multiai-chatbot' ),
+			$model,
+			$fallback_configured
+		);
 	}
 
 	if ( ! $used_fallback || '' === $model_primary || multch_ai_client_models_match( $model, $model_primary ) ) {
@@ -737,15 +765,16 @@ function multch_format_model_display( string $model, string $model_primary = '',
  * @return array{model: string, modelPrimary: string, usedFallback: bool, modelLabel: string}
  */
 function multch_ai_client_model_meta_from_result( array $result ): array {
-	$model         = (string) ( $result['model'] ?? '' );
-	$model_primary = (string) ( $result['model_primary'] ?? '' );
-	$used_fallback = ! empty( $result['used_fallback'] );
+	$model               = (string) ( $result['model'] ?? '' );
+	$model_primary       = (string) ( $result['model_primary'] ?? '' );
+	$used_fallback       = ! empty( $result['used_fallback'] );
+	$fallback_configured = (string) ( $result['fallback_configured'] ?? '' );
 
 	return array(
 		'model'        => $model,
 		'modelPrimary' => $model_primary,
 		'usedFallback' => $used_fallback,
-		'modelLabel'   => multch_format_model_display( $model, $model_primary, $used_fallback ),
+		'modelLabel'   => multch_format_model_display( $model, $model_primary, $used_fallback, $fallback_configured ),
 	);
 }
 
