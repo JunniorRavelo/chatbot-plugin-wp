@@ -143,9 +143,34 @@
 .hero-widget-host #multch-style-preview .maicb-messages {
   flex: 1;
   min-height: 0;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
   padding: 0.55rem 0.65rem 0.5rem;
   gap: 0.6rem;
+  scroll-behavior: smooth;
+}
+
+.hero-widget-host #multch-style-preview .maicb-input {
+  pointer-events: none;
+  caret-color: transparent;
+}
+
+.hero-widget-host #multch-style-preview .maicb-input.maicb-hero-input-typing {
+  color: var(--maicb-fg);
+}
+
+.hero-widget-host #multch-style-preview .maicb-composer-inner.maicb-hero-composer-active,
+.hero-widget-host #multch-style-preview .maicb-input.maicb-hero-input-typing {
+  border-color: color-mix(in srgb, var(--maicb-primary) 42%, transparent);
+}
+
+.hero-widget-host #multch-style-preview.maicb-hero-preview--demo-busy .maicb-reset {
+  opacity: 0.55;
+  cursor: wait;
+}
+
+.hero-widget-host #multch-style-preview .maicb-hero-thinking-row .maicb-thinking {
+  min-height: 2.25rem;
 }
 
 /* Cabecera y pie más compactos (menos aire en bordes superior e inferior del panel) */
@@ -224,6 +249,7 @@
   margin: 0 !important;
   font-size: 0.75rem;
   line-height: 1.35;
+  pointer-events: none;
 }
 
 .hero-widget-host #multch-style-preview .maicb-send {
