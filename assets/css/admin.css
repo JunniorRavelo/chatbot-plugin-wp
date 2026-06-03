@@ -568,25 +568,17 @@
     0 2px 10px rgba(37, 99, 235, 0.35);
 }
 
-/* Fixed save dock (bottom) — full #wpcontent width (matches WP admin menu offsets) */
+/* Fixed save dock (bottom) — position synced to #wpcontent via admin-feedback.js */
 .multch-admin-save-dock {
   position: fixed;
   bottom: 0;
-  left: 160px;
-  right: 0;
   z-index: 100;
-  width: auto;
   margin: 0;
   padding: 0;
   border: none;
   background: transparent;
   box-shadow: none;
   box-sizing: border-box;
-}
-
-body.folded .multch-admin-save-dock,
-body.auto-fold .multch-admin-save-dock {
-  left: 36px;
 }
 
 .multch-admin-save-dock__inner {
@@ -1934,11 +1926,6 @@ button.multch-donation-footer__chip {
 
   .multch-admin-save-bar--top .multch-admin-save-bar__status {
     text-align: center;
-  }
-
-  .multch-admin-save-dock {
-    left: 0;
-    right: 0;
   }
 
   .multch-admin-save-dock__inner {

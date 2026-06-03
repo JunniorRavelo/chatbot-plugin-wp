@@ -137,18 +137,57 @@
 			return;
 		}
 
+		if (dock.parentNode !== document.body) {
+			document.body.appendChild(dock);
+		}
+
+		var layoutScheduled = false;
+
 		function layoutDock() {
+			var anchor = document.getElementById('wpcontent') || document.getElementById('wpbody-content');
+			if (!anchor) {
+				return;
+			}
+
+			var rect = anchor.getBoundingClientRect();
+			var left = Math.max(0, Math.round(rect.left));
+			var width = Math.max(0, Math.round(rect.width));
+
+			dock.style.left = left + 'px';
+			dock.style.width = width + 'px';
+			dock.style.right = 'auto';
 			wrap.style.setProperty('--multch-dock-h', dock.offsetHeight + 'px');
+		}
+
+		function scheduleLayoutDock() {
+			if (layoutScheduled) {
+				return;
+			}
+			layoutScheduled = true;
+			window.requestAnimationFrame(function () {
+				layoutScheduled = false;
+				layoutDock();
+			});
 		}
 
 		wrap.classList.add('is-dock-active');
 		layoutDock();
 
-		window.addEventListener('resize', layoutDock);
+		window.addEventListener('resize', scheduleLayoutDock);
+		window.addEventListener('scroll', scheduleLayoutDock, { passive: true });
 
 		if (typeof ResizeObserver !== 'undefined') {
-			var observer = new ResizeObserver(layoutDock);
-			observer.observe(dock);
+			var resizeTarget = document.getElementById('wpcontent') || document.body;
+			var observer = new ResizeObserver(scheduleLayoutDock);
+			observer.observe(resizeTarget);
+
+			if (document.body) {
+				var bodyObserver = new MutationObserver(scheduleLayoutDock);
+				bodyObserver.observe(document.body, {
+					attributes: true,
+					attributeFilter: ['class'],
+				});
+			}
 		}
 	}
 
