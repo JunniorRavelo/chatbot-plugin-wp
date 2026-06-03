@@ -8,7 +8,7 @@ The public widget uses the `maicb-*` class prefix and the `#multch-plugin-root` 
 
 ## Requirements
 
-- WordPress 6.2+ (7.0+ recommended for cloud AI via Connectors)
+- WordPress 6.2+ (**tested up to 7.0**; 7.0+ recommended for cloud AI via Connectors)
 - PHP 8.0+
 - For WordPress AI: providers connected under **Settings → Connectors**
 - For Google IA: a [Google AI (Gemini) API key](https://aistudio.google.com/apikey); WordPress 7.0+ recommended so the admin model list matches **Settings → Connectors**
@@ -48,8 +48,9 @@ This runs `./scripts/package-plugin`, confirms the ZIP excludes `scripts/`, `.gi
 
 | Tab | Contents |
 |-----|----------|
-| **General** | Global widget, welcome message, system prompt, streaming, rate limit |
+| **General** | Global widget, welcome message, system prompt, streaming, optional statistics/history |
 | **AI Model** | Provider (WordPress AI, Google IA, or Ollama), models, API key (Google IA), Ollama URL |
+| **Security** | Allowed origins, cache, telemetry, IP rate limits, and abuse suspension |
 | **Chat Style** | CSS presets, custom colors, and widget position |
 | **Statistics** | Totals, breakdown, and CSV export |
 | **History** | Conversations in cards (ID `CB-YYYY-MM-DD-HH-MM-SS`), filters, and message detail |
@@ -248,6 +249,7 @@ Before uploading to the plugin directory:
 1. Run `./scripts/verify-plugin-package` and [Plugin Check](https://wordpress.org/plugins/plugin-check/) on the **unzipped ZIP**, not the full Git repo.
 2. Ensure `readme.txt` documents all optional external services (Connectors providers, Google IA, Ollama), when data is sent, and privacy links — see == External services == and == Privacy ==.
 3. Confirm **Stable tag** and `Version` in `multiai-chatbot.php` match the release you submit.
+4. Set **Tested up to** in `readme.txt` to the latest stable WordPress major version (currently **7.0**). WordPress.org rejects values below the current minimum (for example, `6.8` when `6.9+` is required).
 
 ## Author
 
