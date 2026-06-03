@@ -2413,6 +2413,10 @@ msgstr "Google IA"
 msgid "Google AI (Gemini) API key used for chat requests. Model IDs come from the same list as WordPress Connectors."
 msgstr "Clave API de Google IA (Gemini) para las solicitudes de chat. Los ID de modelo son los mismos que en Conectores de WordPress."
 
+#: includes/admin-settings.php:2976
+msgid "Google AI (Gemini) API key used for chat requests."
+msgstr "Clave API de Google IA (Gemini) para las solicitudes de chat."
+
 #: includes/admin-settings.php:2979
 msgid "The API key is defined in server configuration and cannot be changed here."
 msgstr "La clave API está definida en la configuración del servidor y no puede cambiarse aquí."
@@ -2420,6 +2424,10 @@ msgstr "La clave API está definida en la configuración del servidor y no puede
 #: includes/admin-settings.php:449
 msgid "Primary Gemini model ID from the list (same IDs as WordPress Connectors)."
 msgstr "ID del modelo Gemini principal de la lista (los mismos ID que en Conectores de WordPress)."
+
+#: includes/admin-settings.php:449
+msgid "Primary Gemini model."
+msgstr "Modelo Gemini principal."
 
 #: includes/admin-settings.php:450
 msgid "Used if the primary model fails (quota, rate limits, or unavailability)."

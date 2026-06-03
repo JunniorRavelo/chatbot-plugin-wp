@@ -446,7 +446,7 @@ class Multch_Admin_Settings {
 				'candidates' => __( 'Used only if the primary model fails (not on timeout). Choose a different model than the primary.', 'multiai-chatbot' ),
 			),
 			'google_ia'    => array(
-				'model'      => __( 'Primary Gemini model ID from the list (same IDs as WordPress Connectors).', 'multiai-chatbot' ),
+				'model'      => __( 'Primary Gemini model.', 'multiai-chatbot' ),
 				'candidates' => __( 'Used if the primary model fails (quota, rate limits, or unavailability).', 'multiai-chatbot' ),
 			),
 			'ollama'       => array(
@@ -2973,7 +2973,7 @@ class Multch_Admin_Settings {
 						<?php disabled( ! $google_ia_active || $api_key_overridden ); ?>
 					/>
 					<p class="description">
-						<?php esc_html_e( 'Google AI (Gemini) API key used for chat requests. Model IDs come from the same list as WordPress Connectors.', 'multiai-chatbot' ); ?>
+						<?php esc_html_e( 'Google AI (Gemini) API key used for chat requests.', 'multiai-chatbot' ); ?>
 					</p>
 					<?php if ( $api_key_overridden ) : ?>
 						<p class="description"><?php esc_html_e( 'The API key is defined in server configuration and cannot be changed here.', 'multiai-chatbot' ); ?></p>
