@@ -57,12 +57,6 @@ class Multch_Plugin {
 		$domain = multch_text_domain();
 		$locale = determine_locale();
 
-		load_plugin_textdomain(
-			$domain,
-			false,
-			dirname( MULTCH_PLUGIN_BASENAME ) . '/languages'
-		);
-
 		$mofile = self::resolve_translation_file( $domain, $locale );
 		if ( $mofile ) {
 			load_textdomain( $domain, $mofile, $locale );
