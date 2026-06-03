@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 require_once __DIR__ . '/translations.php';
 
 if ( ! defined( 'PO_MAX_LINE_LEN' ) ) {
-	define( 'PO_MAX_LINE_LEN', 79 );
+	define( 'PO_MAX_LINE_LEN', 79 ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedConstantFound -- Vendored WordPress pomo; constant name must match core API.
 }
 
 /*
@@ -31,6 +31,7 @@ if ( ! defined( 'PO_MAX_LINE_LEN' ) ) {
  * Routines for working with PO files
  */
 if ( ! class_exists( 'PO', false ) ) :
+	// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedClassFound -- Vendored WordPress pomo; class name must match core API.
 	class PO extends Gettext_Translations {
 
 		public $comments_before_headers = '';

@@ -17,7 +17,7 @@ if ( ! function_exists( 'esc_html' ) ) {
 	 * @param string $text Text to escape.
 	 * @return string
 	 */
-	function esc_html( $text ) {
+	function esc_html( $text ) { // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedFunctionFound -- WordPress API polyfill for CLI POMO tooling.
 		return htmlspecialchars( (string) $text, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8' );
 	}
 }
