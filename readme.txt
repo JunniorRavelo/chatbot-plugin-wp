@@ -9,7 +9,7 @@ Stable tag: 1.0.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-AI chat widget for WordPress using the WordPress AI Client (Connectors), your own Google Gemini API key (Google IA), or optional local Ollama. Styles, history, and telemetry.
+AI chat widget for WordPress via Connectors, your Gemini API key, or Ollama. Custom styles, history, and telemetry.
 
 == Description ==
 
