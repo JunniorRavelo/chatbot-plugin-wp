@@ -637,8 +637,7 @@
 
       if (showThinking) {
         bubble.classList.add("maicb-msg-pending");
-        const thinkingLabel = i18n.thinking || "Thinking…";
-        bubble.setAttribute("aria-label", thinkingLabel);
+        bubble.setAttribute("aria-label", i18n.thinking || "Thinking…");
 
         const thinking = document.createElement("div");
         thinking.className = "maicb-thinking";
@@ -654,12 +653,7 @@
           dotsWrap.appendChild(dot);
         }
 
-        const label = document.createElement("span");
-        label.className = "maicb-thinking-label";
-        label.textContent = thinkingLabel;
-
         thinking.appendChild(dotsWrap);
-        thinking.appendChild(label);
         bubble.appendChild(thinking);
       } else {
         bubble.textContent = msg.content || "";
