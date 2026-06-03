@@ -48,6 +48,7 @@ class Multch_Admin_Settings {
 			'ip_suspend_seconds'             => 900,
 			'internal_chat_base_url'         => '',
 			'provider'                       => 'wordpress_ai',
+			'api_key'                        => '',
 			'model'                          => 'gemini-2.5-flash',
 			'model_candidates'               => 'gemini-2.5-flash-lite,gpt-4o-mini,claude-sonnet-4-6',
 			'allow_google_any_model'         => false,
@@ -444,6 +445,10 @@ class Multch_Admin_Settings {
 				'model'      => __( 'Primary model from your connected AI providers.', 'multiai-chatbot' ),
 				'candidates' => __( 'Used only if the primary model fails (not on timeout). Choose a different model than the primary.', 'multiai-chatbot' ),
 			),
+			'google_ia'    => array(
+				'model'      => __( 'Primary Gemini model ID from the list (same IDs as WordPress Connectors).', 'multiai-chatbot' ),
+				'candidates' => __( 'Used if the primary model fails (quota, rate limits, or unavailability).', 'multiai-chatbot' ),
+			),
 			'ollama'       => array(
 				'model'      => __( 'Name of the model installed in Ollama (e.g. llama3).', 'multiai-chatbot' ),
 				'candidates' => '',
@@ -637,7 +642,7 @@ class Multch_Admin_Settings {
 		if ( in_array( $provider, multch_legacy_cloud_provider_ids(), true ) ) {
 			$provider = 'wordpress_ai';
 		}
-		$out['provider'] = in_array( $provider, array( 'wordpress_ai', 'ollama' ), true )
+		$out['provider'] = in_array( $provider, array( 'wordpress_ai', 'google_ia', 'ollama' ), true )
 			? $provider
 			: (string) ( $current['provider'] ?? 'wordpress_ai' );
 
@@ -657,7 +662,16 @@ class Multch_Admin_Settings {
 			(bool) $defaults['allow_google_any_model']
 		);
 
-		unset( $out['api_key'], $out['openai_base_url'], $out['deepseek_base_url'] );
+		if ( 'google_ia' === $out['provider'] ) {
+			$new_key = isset( $input['api_key'] ) ? trim( (string) $input['api_key'] ) : '';
+			if ( '' !== $new_key ) {
+				$out['api_key'] = sanitize_text_field( $new_key );
+			}
+		} else {
+			unset( $out['api_key'] );
+		}
+
+		unset( $out['openai_base_url'], $out['deepseek_base_url'] );
 
 		delete_transient( 'multch_ai_models_cache' );
 	}
@@ -2861,14 +2875,18 @@ class Multch_Admin_Settings {
 		$ai_state       = multch_get_ai_connectors_admin_state( $refresh_models );
 		$current_model    = (string) ( $settings['model'] ?? '' );
 		$fallback_model   = multch_ai_client_fallback_model( $settings );
-		$wp_models_active = 'wordpress_ai' === $provider;
+		$wp_models_active    = 'wordpress_ai' === $provider;
+		$google_ia_active    = 'google_ia' === $provider;
+		$google_ia_state     = $ai_state;
+		$google_ia_state['models'] = multch_get_google_gemini_models_for_admin();
 		$candidates_raw        = (string) ( $settings['model_candidates'] ?? '' );
 		$legacy_multi          = str_contains( $candidates_raw, ',' );
 		$provider_descriptions = self::admin_model_provider_descriptions();
+		$api_key_overridden    = in_array( 'api_key', multch_ai_client_constant_overridden_keys(), true );
 
 		self::card_open(
 			__( 'AI provider', 'multiai-chatbot' ),
-			__( 'Use the WordPress AI Client (site-wide Connectors) or a local Ollama server.', 'multiai-chatbot' )
+			__( 'Use WordPress Connectors, your own Google AI API key, or a local Ollama server.', 'multiai-chatbot' )
 		);
 
 		$constant_overrides = multch_ai_client_constant_overridden_keys();
@@ -2882,6 +2900,7 @@ class Multch_Admin_Settings {
 				<td>
 					<select name="<?php echo esc_attr( self::OPTION_KEY ); ?>[provider]" id="multch-provider">
 						<option value="wordpress_ai" <?php selected( $provider, 'wordpress_ai' ); ?>><?php esc_html_e( 'WordPress AI (Connectors)', 'multiai-chatbot' ); ?></option>
+						<option value="google_ia" <?php selected( $provider, 'google_ia' ); ?>><?php esc_html_e( 'Google IA', 'multiai-chatbot' ); ?></option>
 						<option value="ollama" <?php selected( $provider, 'ollama' ); ?>>Ollama</option>
 					</select>
 				</td>
@@ -2938,6 +2957,65 @@ class Multch_Admin_Settings {
 							?>
 						</p>
 					<?php endif; ?>
+				</td>
+			</tr>
+			<tr class="multch-field-google-ia">
+				<th scope="row"><?php esc_html_e( 'API key', 'multiai-chatbot' ); ?></th>
+				<td>
+					<input
+						type="password"
+						class="regular-text"
+						name="<?php echo esc_attr( self::OPTION_KEY ); ?>[api_key]"
+						id="multch-google-api-key"
+						value=""
+						placeholder="<?php echo ! empty( $settings['api_key'] ) || $api_key_overridden ? '••••••••' : ''; ?>"
+						autocomplete="new-password"
+						<?php disabled( ! $google_ia_active || $api_key_overridden ); ?>
+					/>
+					<p class="description">
+						<?php esc_html_e( 'Google AI (Gemini) API key used for chat requests. Model IDs come from the same list as WordPress Connectors.', 'multiai-chatbot' ); ?>
+					</p>
+					<?php if ( $api_key_overridden ) : ?>
+						<p class="description"><?php esc_html_e( 'The API key is defined in server configuration and cannot be changed here.', 'multiai-chatbot' ); ?></p>
+					<?php endif; ?>
+				</td>
+			</tr>
+			<tr class="multch-field-google-ia">
+				<th scope="row"><?php esc_html_e( 'Primary model', 'multiai-chatbot' ); ?></th>
+				<td>
+					<?php
+					self::render_model_picker(
+						$google_ia_state,
+						$current_model,
+						array(
+							'name'            => self::OPTION_KEY . '[model]',
+							'id'              => 'multch-model-google-primary',
+							'enabled'         => $google_ia_active,
+							'allow_automatic' => false,
+							'empty_label'     => __( '— Select model —', 'multiai-chatbot' ),
+						)
+					);
+					?>
+					<p class="description" id="multch-model-desc-google"><?php echo esc_html( (string) ( $provider_descriptions['google_ia']['model'] ?? '' ) ); ?></p>
+				</td>
+			</tr>
+			<tr class="multch-field-google-ia">
+				<th scope="row"><?php esc_html_e( 'Fallback model', 'multiai-chatbot' ); ?></th>
+				<td>
+					<?php
+					self::render_model_picker(
+						$google_ia_state,
+						$fallback_model,
+						array(
+							'name'            => self::OPTION_KEY . '[model_fallback]',
+							'id'              => 'multch-model-google-fallback',
+							'enabled'         => $google_ia_active,
+							'allow_automatic' => false,
+							'empty_label'     => __( '— None —', 'multiai-chatbot' ),
+						)
+					);
+					?>
+					<p class="description" id="multch-model-candidates-desc-google"><?php echo esc_html( (string) ( $provider_descriptions['google_ia']['candidates'] ?? '' ) ); ?></p>
 				</td>
 			</tr>
 			<tr class="multch-field-wordpress-ai">

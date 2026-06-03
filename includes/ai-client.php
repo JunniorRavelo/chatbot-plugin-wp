@@ -332,6 +332,33 @@ function multch_get_available_text_models_for_admin(): array {
 }
 
 /**
+ * Gemini/Gemma models from WordPress Connectors (for Google IA provider admin pickers).
+ *
+ * @return list<array{id: string, name: string, provider_id: string, provider_name: string}>
+ */
+function multch_get_google_gemini_models_for_admin(): array {
+	$models   = multch_get_available_text_models_for_admin();
+	$filtered = array();
+
+	foreach ( $models as $row ) {
+		if ( ! is_array( $row ) ) {
+			continue;
+		}
+
+		$provider_id = strtolower( (string) ( $row['provider_id'] ?? '' ) );
+		$model_id    = multch_ai_client_normalize_model_id( (string) ( $row['id'] ?? '' ) );
+
+		if ( 'google' === $provider_id
+			|| str_starts_with( $model_id, 'gemini' )
+			|| str_starts_with( $model_id, 'gemma' ) ) {
+			$filtered[] = $row;
+		}
+	}
+
+	return $filtered;
+}
+
+/**
  * @param array<int, array{role: string, content: string}> $messages
  * @return array{latest: string, history: list<object>}
  */
@@ -1053,6 +1080,10 @@ function multch_ai_client_constant_overridden_keys(): array {
 
 	if ( '' !== multch_resolve_constant( 'MULTCH_PROVIDER', 'CHATBOT_PROVIDER' ) ) {
 		$overridden[] = 'provider';
+	}
+
+	if ( '' !== multch_resolve_constant( 'MULTCH_GEMINI_API_KEY', 'CHATBOT_GEMINI_API_KEY' ) ) {
+		$overridden[] = 'api_key';
 	}
 
 	return $overridden;

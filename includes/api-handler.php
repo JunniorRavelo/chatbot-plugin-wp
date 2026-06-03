@@ -116,6 +116,7 @@ class Multch_Api_Handler {
 			'model'                  => ! empty( $settings['model'] ) ? (string) $settings['model'] : '',
 			'model_candidates'       => ! empty( $settings['model_candidates'] ) ? (string) $settings['model_candidates'] : '',
 			'allow_google_any_model' => ! empty( $settings['allow_google_any_model'] ),
+			'api_key'                => ! empty( $settings['api_key'] ) ? (string) $settings['api_key'] : '',
 			'ollama_base_url'        => ! empty( $settings['ollama_base_url'] ) ? (string) $settings['ollama_base_url'] : 'http://127.0.0.1:11434',
 			'request_timeout'        => ! empty( $settings['request_timeout'] ) ? (int) $settings['request_timeout'] : 22,
 		);
@@ -509,6 +510,8 @@ class Multch_Api_Handler {
 		switch ( $id ) {
 			case 'wordpress_ai':
 				return new Multch_Provider_WordPress_AI();
+			case 'google_ia':
+				return new Multch_Provider_Google_IA();
 			case 'ollama':
 				return new Multch_Provider_Ollama();
 			default:

@@ -34,6 +34,7 @@ require_once MULTCH_PLUGIN_PATH . 'includes/ai-client.php';
 require_once MULTCH_PLUGIN_PATH . 'includes/providers/interface-provider.php';
 require_once MULTCH_PLUGIN_PATH . 'includes/providers/class-provider-wordpress-ai.php';
 require_once MULTCH_PLUGIN_PATH . 'includes/providers/class-provider-ollama.php';
+require_once MULTCH_PLUGIN_PATH . 'includes/providers/class-provider-google-ia.php';
 require_once MULTCH_PLUGIN_PATH . 'includes/api-handler.php';
 require_once MULTCH_PLUGIN_PATH . 'includes/rest-api.php';
 require_once MULTCH_PLUGIN_PATH . 'includes/widget-namespace.php';
