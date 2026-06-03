@@ -2,6 +2,43 @@
   "use strict";
 
   const cfg = window.multchHistoryAdmin || {};
+  const SEARCH_DEBOUNCE_MS = 400;
+
+  const filterForm = document.querySelector(".multch-admin-history-filters");
+  if (filterForm) {
+    let searchDebounceTimer = null;
+
+    function submitFilters() {
+      if (typeof filterForm.requestSubmit === "function") {
+        filterForm.requestSubmit();
+        return;
+      }
+      filterForm.submit();
+    }
+
+    function scheduleSearchSubmit() {
+      window.clearTimeout(searchDebounceTimer);
+      searchDebounceTimer = window.setTimeout(submitFilters, SEARCH_DEBOUNCE_MS);
+    }
+
+    const searchInput = filterForm.querySelector("#multch-history-search");
+    if (searchInput) {
+      searchInput.addEventListener("input", scheduleSearchSubmit);
+      searchInput.addEventListener("keydown", function (event) {
+        if (event.key !== "Enter") {
+          return;
+        }
+        event.preventDefault();
+        window.clearTimeout(searchDebounceTimer);
+        submitFilters();
+      });
+    }
+
+    filterForm.querySelectorAll("select").forEach(function (select) {
+      select.addEventListener("change", submitFilters);
+    });
+  }
+
   const list = document.getElementById("multch-history-list");
 
   if (!list) {

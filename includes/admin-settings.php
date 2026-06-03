@@ -4269,12 +4269,11 @@ class Multch_Admin_Settings {
 							<option value="cached"<?php selected( $status, 'cached' ); ?>><?php esc_html_e( 'Cached', 'multiai-chatbot' ); ?></option>
 						</select>
 					</div>
-					<div class="multch-admin-history-filters__actions">
-						<button type="submit" class="button button-primary"><?php esc_html_e( 'Filter', 'multiai-chatbot' ); ?></button>
-						<?php if ( $has_filters ) : ?>
+					<?php if ( $has_filters ) : ?>
+						<div class="multch-admin-history-filters__actions">
 							<a class="button" href="<?php echo esc_url( self::build_history_url( array( 'days' => $days ) ) ); ?>"><?php esc_html_e( 'Clear filters', 'multiai-chatbot' ); ?></a>
-						<?php endif; ?>
-					</div>
+						</div>
+					<?php endif; ?>
 				</form>
 			</div>
 		</div>

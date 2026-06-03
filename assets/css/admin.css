@@ -2205,7 +2205,7 @@ button.multch-donation-footer__chip {
   flex-wrap: wrap;
   gap: 0.5rem;
   align-items: center;
-  grid-column: 5 / 7;
+  grid-column: -2 / -1;
   justify-content: flex-end;
 }
 
