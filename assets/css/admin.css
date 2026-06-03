@@ -665,14 +665,86 @@ button.multch-donation-footer__chip {
   cursor: help;
 }
 
-@media (max-width: 600px) {
+/* Laptop / narrow admin column: compact block, hide secondary copy */
+@media (max-width: 960px) {
+  .multch-donation-footer {
+    margin-top: 1rem;
+    padding: 0.65rem 0.85rem;
+  }
+
   .multch-donation-footer__inner {
-    flex-direction: column;
-    align-items: flex-start;
+    gap: 0.5rem 0.75rem;
+  }
+
+  .multch-donation-footer__message {
+    flex: 1 1 10rem;
+  }
+
+  .multch-donation-footer__lead {
+    font-size: 0.8125rem;
+    line-height: 1.3;
+  }
+
+  .multch-donation-footer__sub {
+    display: none;
+  }
+
+  .multch-donation-footer__chips {
+    flex: 0 0 auto;
+  }
+}
+
+/* Mobile / folded WP menu: one row, icon-only chips */
+@media (max-width: 782px) {
+  .multch-donation-footer {
+    padding: 0.55rem 0.75rem;
+  }
+
+  .multch-donation-footer__inner {
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 0.45rem 0.55rem;
+  }
+
+  .multch-donation-footer__message {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .multch-donation-footer__chips {
+    flex-shrink: 0;
+    gap: 0.35rem;
+  }
+
+  .multch-donation-footer__chip {
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    justify-content: center;
+    gap: 0;
+  }
+
+  .multch-donation-footer__chip-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+}
+
+@media (max-width: 400px) {
+  .multch-donation-footer__inner {
+    flex-wrap: wrap;
   }
 
   .multch-donation-footer__chips {
     width: 100%;
+    justify-content: flex-start;
   }
 }
 
