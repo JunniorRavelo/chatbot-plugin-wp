@@ -54,6 +54,22 @@ This runs `./scripts/package-plugin`, confirms the ZIP excludes `scripts/`, `.gi
 | **Statistics** | Totals, breakdown, and CSV export |
 | **History** | Conversations in cards (ID `CB-YYYY-MM-DD-HH-MM-SS`), filters, and message detail |
 
+## Choosing WordPress AI vs Google IA (Gemini)
+
+You enable **one** provider at a time under **MultiAI ChatBot → AI Model**.
+
+| | **WordPress AI** | **Google IA** |
+|---|------------------|---------------|
+| **Best for** | Connectors already set up; multiple providers (OpenAI, Google, Anthropic, …) | Gemini only; key in this plugin or `wp-config.php` |
+| **API key** | **Settings → Connectors** (not stored in this plugin) | **AI Model** tab or `MULTCH_GEMINI_API_KEY` |
+| **Request path** | WordPress AI Client → Connectors | Direct HTTPS to `generativelanguage.googleapis.com` |
+| **WP version** | 7.0+ recommended | 6.2+ (7.0+ recommended for model list from Connectors) |
+| **Same Gemini model IDs** | Yes | Yes (catalog from Connectors when available) |
+
+**Data sent to third parties:** only when a visitor sends a chat message (message, recent context, system prompt). The API key is never sent to the browser. **Local** history and telemetry are optional (off by default). See [docs/AI-PROVIDERS.md](docs/AI-PROVIDERS.md) and `readme.txt` (== External services ==, == Privacy ==) for WordPress.org compliance detail.
+
+**Suggested site privacy policy text:** **Settings → Privacy** (registered by the plugin).
+
 ## AI providers
 
 ### WordPress AI (Connectors)
@@ -223,7 +239,15 @@ CSV export from the **Statistics** tab. On plugin uninstall, the table and optio
 - IP rate limiting uses WordPress transients.
 - Rotate keys if they were accidentally exposed.
 
-See [docs/env.example](docs/env.example) for a configuration reference.
+See [docs/env.example](docs/env.example) and [docs/AI-PROVIDERS.md](docs/AI-PROVIDERS.md) for configuration and provider choice.
+
+## WordPress.org submission
+
+Before uploading to the plugin directory:
+
+1. Run `./scripts/verify-plugin-package` and [Plugin Check](https://wordpress.org/plugins/plugin-check/) on the **unzipped ZIP**, not the full Git repo.
+2. Ensure `readme.txt` documents all optional external services (Connectors providers, Google IA, Ollama), when data is sent, and privacy links — see == External services == and == Privacy ==.
+3. Confirm **Stable tag** and `Version` in `multiai-chatbot.php` match the release you submit.
 
 ## Author
 

@@ -17,6 +17,19 @@ AI chat widget for WordPress using the WordPress AI Client (Connectors), your ow
 
 Connect the chat to AI models via **Settings → Connectors**, your own Gemini API key, or Ollama; customize appearance without code; and review conversations and statistics from the WordPress dashboard.
 
+= Choosing WordPress AI or Google IA for Gemini =
+
+If you want **Google Gemini**, pick **one** of these paths under **MultiAI ChatBot → AI Model** (you cannot combine both at once):
+
+* **WordPress AI** — Connect Google under **Settings → Connectors** (WordPress 7.0+). API keys live in WordPress core, shared with other AI plugins. The plugin calls models through the WordPress AI Client; it does not store your Gemini key.
+* **Google IA** — Enter your own [Google AI (Gemini) API key](https://aistudio.google.com/apikey) in this plugin (or `MULTCH_GEMINI_API_KEY` in `wp-config.php`). Requests go **directly** from your server to Google's Generative Language API. Model names in the admin still match the Connectors catalog when WordPress 7.0+ is available, but **credentials are yours**, not Connectors.
+
+**When to use WordPress AI:** you already use Connectors, want one place for OpenAI/Google/Anthropic keys, or run several AI plugins on the same site.
+
+**When to use Google IA:** you only need Gemini, already have a Google API key, or prefer storing the key in this plugin / `wp-config.php` instead of Connectors.
+
+**Data treatment:** in both cases, visitor messages are sent to generate a reply **only when someone uses the chat** (see == External services == and == Privacy ==). The difference is **where the API key is stored** and **whether WordPress core or this plugin calls Google**. Local conversation history and telemetry are optional and stay on your server unless you enable them under **General**.
+
 = Key features =
 
 * **WordPress AI Client:** Uses WordPress 7.0+ Connectors (OpenAI, Google, Anthropic, and other registered providers) with credentials managed by core—not in this plugin.
@@ -95,6 +108,22 @@ It depends on the provider you choose:
 
 No. All model requests go through the WordPress backend. The frontend only sends messages to the REST endpoint with the WordPress nonce.
 
+= Should I use WordPress AI or Google IA for Gemini? =
+
+Use **WordPress AI** if you want credentials in **Settings → Connectors** and may use OpenAI, Anthropic, or other connectors—not only Gemini.
+
+Use **Google IA** if you want Gemini with an API key stored in **MultiAI ChatBot → AI Model** or `wp-config.php`, with direct calls to Google's API from your server. You still pick model IDs from the same Gemini list as Connectors when WordPress 7.0+ is installed; only the **routing and key storage** change.
+
+Both options send the same kind of chat content to an AI service when a visitor messages the widget (message, context, system prompt). Neither sends your API key to the browser.
+
+= What personal data is processed? =
+
+* **To AI providers (when the chat is used):** visitor messages, recent context, and your system prompt—only for the provider you selected (Connectors path, Google IA, or Ollama).
+* **On your server (optional):** if **Store statistics and history** is enabled under **General**, messages, anonymous session IDs, page URL, and technical telemetry are stored locally. Rate limiting uses hashed IP-derived transients.
+* **Not collected by the plugin author:** no chat or telemetry is sent to the plugin developer.
+
+Update your site privacy policy accordingly; suggested text is available under **Settings → Privacy**.
+
 = How do I show the chat on only one page? =
 
 Disable the global widget under **General** and insert the shortcode `[multch_widget]` on the desired page or post.
@@ -138,17 +167,19 @@ By installing the plugin, configuring an AI provider (Connectors, Google IA, or 
 
 = WordPress AI Client (optional) =
 
-* **Service:** AI models from providers you connect under **Settings → Connectors** in WordPress 7.0+ (for example OpenAI, Google, or Anthropic, depending on which connector plugins you install).
-* **Used for:** Generating chat replies when **WordPress AI** is selected in plugin settings.
-* **Data sent:** Chat messages, conversation context, and system prompt when a visitor sends a message. Routing and credentials are handled by WordPress core, not stored in this plugin.
+* **Service:** AI models from providers you connect under **Settings → Connectors** in WordPress 7.0+ (for example OpenAI, Google Gemini, or Anthropic, depending on which connector plugins you install).
+* **Used for:** Generating chat replies when **WordPress AI** is selected in plugin settings—not when **Google IA** is selected.
+* **Data sent:** Chat messages, conversation context, and system prompt when a visitor sends a message. Routing and credentials are handled by WordPress core; this plugin does not store Connectors API keys.
+* **Gemini via Connectors:** If you connect Google in Connectors and choose a Gemini model here, data is sent according to Google's policies through the WordPress AI Client, not through the separate **Google IA** code path.
 * **Terms and privacy:** Apply the terms and privacy policies of whichever provider and model you configure in Connectors.
 
 = Google IA / Gemini API (optional) =
 
 * **Service:** [Google Generative Language API](https://ai.google.dev/) (Gemini models).
-* **Used for:** Generating chat replies when **Google IA** is selected in plugin settings.
+* **Used for:** Generating chat replies when **Google IA** is selected in plugin settings—not when **WordPress AI** is selected, even if both would use the same Gemini model name.
 * **Data sent:** Chat messages, conversation context, and system prompt to `generativelanguage.googleapis.com` when a visitor sends a message, using the API key you configure in the plugin or `wp-config.php`.
-* **Model IDs:** The admin UI lists Gemini model names from **Settings → Connectors**; only the model ID is reused—the request still uses your API key, not Connectors.
+* **Credentials:** Stored in plugin settings and/or `MULTCH_GEMINI_API_KEY` (recommended in `wp-config.php` for production). Never exposed to the visitor's browser.
+* **Model IDs:** The admin UI lists Gemini model names from **Settings → Connectors** when available; only the model ID string is reused—the HTTP request uses **your** API key and does not use Connectors credentials.
 * **Google terms:** https://ai.google.dev/gemini-api/terms
 * **Google privacy:** https://policies.google.com/privacy
 
@@ -206,7 +237,7 @@ Chat history uses anonymous session identifiers and is not linked to visitor ema
 
 = 1.0.4 =
 * New **Google IA** provider: own Gemini API key, primary and fallback models; model IDs from the WordPress Connectors catalog.
-* Documentation updated for WordPress AI, Google IA, and Ollama.
+* Documentation: how to choose **WordPress AI (Connectors)** vs **Google IA (direct Gemini API)**, data sent, and privacy (readme, README, `docs/AI-PROVIDERS.md`).
 
 = 1.0.3 =
 * Text domain aligned with plugin slug (`multiai-chatbot`) via `MULTCH_TEXT_DOMAIN` constant.

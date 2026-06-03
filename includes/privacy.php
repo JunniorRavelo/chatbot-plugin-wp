@@ -61,8 +61,15 @@ class Multch_Privacy {
 			'<li>' . esc_html__( 'Temporary rate-limit data derived from the visitor IP address (hashed in transients).', 'multiai-chatbot' ) . '</li>',
 			'</ul>',
 
+			'<h2>' . esc_html__( 'AI provider choice (Gemini)', 'multiai-chatbot' ) . '</h2>',
+			'<p>' . esc_html__( 'If you use Google Gemini, the site administrator selects exactly one path in MultiAI ChatBot → AI Model:', 'multiai-chatbot' ) . '</p>',
+			'<ul>',
+			'<li>' . esc_html__( 'WordPress AI — API keys in Settings → Connectors; requests go through the WordPress AI Client. This plugin does not store Connectors credentials.', 'multiai-chatbot' ) . '</li>',
+			'<li>' . esc_html__( 'Google IA — your own Gemini API key in this plugin or wp-config.php; requests go directly to Google’s Generative Language API. Model names may match the Connectors list, but Connectors credentials are not used.', 'multiai-chatbot' ) . '</li>',
+			'</ul>',
+
 			'<h2>' . esc_html__( 'Data sent to third-party AI services', 'multiai-chatbot' ) . '</h2>',
-			'<p>' . esc_html__( 'To generate responses, the plugin sends chat content through the WordPress AI Client (using providers configured under Settings → Connectors), the Google Generative Language API when Google IA is configured, or to a self-hosted Ollama server you specify. This typically includes:', 'multiai-chatbot' ) . '</p>',
+			'<p>' . esc_html__( 'To generate responses, the plugin sends chat content only when a visitor sends a message—not on page load. Depending on your setting, content goes through the WordPress AI Client (Connectors), the Google Generative Language API (Google IA), or a self-hosted Ollama server. This typically includes:', 'multiai-chatbot' ) . '</p>',
 			'<ul>',
 			'<li>' . esc_html__( 'The visitor message and recent conversation context.', 'multiai-chatbot' ) . '</li>',
 			'<li>' . esc_html__( 'The system prompt configured in the plugin settings.', 'multiai-chatbot' ) . '</li>',

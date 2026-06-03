@@ -9,7 +9,9 @@
 
 ### Documentation
 
-- README, `readme.txt`, and `docs/env.example` updated for the three providers (WordPress AI, Google IA, Ollama).
+- README, `readme.txt`, `docs/env.example`, and new `docs/AI-PROVIDERS.md`: choose **WordPress AI (Connectors)** vs **Google IA (direct Gemini)**, when data is sent, and privacy for WordPress.org.
+- `readme.txt`: FAQ and External services clarify both Gemini paths and credential storage.
+- Suggested privacy policy text under **Settings → Privacy** explains the two Gemini options.
 
 ## 1.0.3
 
