@@ -58,7 +58,7 @@
 
   function buildPanelHtml() {
     return (
-      '<section class="maicb-panel maicb-position-bottom-right" aria-label="Agente IA">' +
+      '<section class="maicb-panel maicb-position-bottom-center" aria-label="Agente IA">' +
       buildHeaderHtml() +
       '<div class="maicb-messages" role="log">' +
       buildMessageRow(
