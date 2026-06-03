@@ -2882,7 +2882,7 @@ class Multch_Admin_Settings {
 		}
 
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Refresh link only; form save uses options.php nonce.
-		$refresh_models = isset( $_GET['multch_refresh_models'] ) && '1' === (string) $_GET['multch_refresh_models'];
+		$refresh_models = isset( $_GET['multch_refresh_models'] ) && '1' === sanitize_text_field( wp_unslash( (string) $_GET['multch_refresh_models'] ) );
 		$ai_state       = multch_get_ai_connectors_admin_state( $refresh_models );
 		$current_model    = (string) ( $settings['model'] ?? '' );
 		$fallback_model   = multch_ai_client_fallback_model( $settings );
