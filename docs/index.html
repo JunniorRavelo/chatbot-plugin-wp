@@ -531,6 +531,138 @@
 
     .footer-bottom a { color: #94a3b8; }
 
+    /* Apoyo al proyecto */
+    .support-section {
+      padding: 4.5rem 0;
+      background:
+        radial-gradient(ellipse 70% 50% at 20% 50%, rgba(124, 58, 237, 0.14), transparent),
+        radial-gradient(ellipse 60% 45% at 85% 30%, rgba(37, 99, 235, 0.16), transparent),
+        linear-gradient(160deg, #0f172a 0%, #1e293b 55%, #0f172a 100%);
+      color: #cbd5e1;
+    }
+
+    .support-panel {
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      border-radius: calc(var(--radius) + 4px);
+      padding: clamp(1.75rem, 4vw, 2.5rem);
+      background: rgba(15, 23, 42, 0.55);
+      box-shadow: 0 24px 48px -20px rgba(0, 0, 0, 0.45);
+    }
+
+    .support-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.35rem 0.75rem;
+      border-radius: 999px;
+      background: rgba(236, 72, 153, 0.15);
+      color: #fbcfe8;
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      margin-bottom: 1rem;
+    }
+
+    .support-section h2 {
+      color: #f8fafc;
+      font-size: clamp(1.65rem, 3.5vw, 2.25rem);
+      margin: 0 0 0.85rem;
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+    }
+
+    .support-lead {
+      margin: 0 0 1.75rem;
+      font-size: 1.05rem;
+      line-height: 1.65;
+      max-width: 42rem;
+      color: #94a3b8;
+    }
+
+    .support-lead strong { color: #e2e8f0; }
+
+    .support-grid {
+      display: grid;
+      grid-template-columns: 1.15fr 1fr 1fr;
+      gap: 1rem;
+    }
+
+    .support-card {
+      border-radius: var(--radius);
+      padding: 1.35rem 1.4rem;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      background: rgba(30, 41, 59, 0.65);
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+    }
+
+    .support-card--primary {
+      border-color: rgba(236, 72, 153, 0.45);
+      background: linear-gradient(145deg, rgba(124, 58, 237, 0.22), rgba(37, 99, 235, 0.18));
+      box-shadow: 0 0 0 1px rgba(236, 72, 153, 0.12);
+    }
+
+    .support-card-tag {
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #f9a8d4;
+    }
+
+    .support-card h3 {
+      margin: 0;
+      font-size: 1.05rem;
+      color: #f1f5f9;
+    }
+
+    .support-card p {
+      margin: 0;
+      flex: 1;
+      font-size: 0.9rem;
+      line-height: 1.55;
+      color: #94a3b8;
+    }
+
+    .support-card .btn {
+      width: 100%;
+      margin-top: 0.35rem;
+    }
+
+    .btn-sponsor {
+      background: linear-gradient(135deg, #db2777, #7c3aed);
+      color: #fff;
+      box-shadow: 0 10px 28px -10px rgba(219, 39, 119, 0.55);
+    }
+
+    .btn-sponsor:hover {
+      color: #fff;
+      box-shadow: 0 14px 32px -8px rgba(219, 39, 119, 0.65);
+    }
+
+    .btn-support-outline {
+      background: transparent;
+      color: #e2e8f0;
+      border: 1px solid rgba(148, 163, 184, 0.35);
+    }
+
+    .btn-support-outline:hover {
+      color: #fff;
+      border-color: rgba(148, 163, 184, 0.55);
+      background: rgba(51, 65, 85, 0.5);
+    }
+
+    .support-note {
+      margin: 1.5rem 0 0;
+      font-size: 0.9rem;
+      color: #64748b;
+      text-align: center;
+    }
+
+    .support-note a { color: #93c5fd; }
+
     /* Responsive */
     @media (max-width: 900px) {
       .hero-grid,
@@ -539,7 +671,8 @@
       .themes-grid,
       .install-steps,
       .admin-desc,
-      .footer-grid {
+      .footer-grid,
+      .support-grid {
         grid-template-columns: 1fr;
       }
 
@@ -566,6 +699,7 @@
         <a href="#proveedores">Proveedores IA</a>
         <a href="#estilos">Estilos</a>
         <a href="#instalacion">Instalación</a>
+        <a href="#apoyo">Apoyar</a>
         <a href="https://github.com/JunniorRavelo/multiai-chatbot" target="_blank" rel="noopener">GitHub</a>
       </nav>
       <a class="btn btn-primary" href="https://wordpress.org/plugins/multiai-chatbot/" target="_blank" rel="noopener">Instalar gratis</a>
@@ -833,11 +967,63 @@
             <div class="card">
               <h3 style="margin:0 0 0.5rem;">¿Te resulta útil?</h3>
               <p style="margin:0 0 1rem;color:var(--muted);font-size:0.925rem;">
-                Si el plugin te ayuda en tu sitio, puedes dejar una reseña en WordPress.org. Ayuda a otros usuarios a descubrirlo.
+                MultiAI ChatBot es gratuito y de código abierto. Si puedes, apoya el desarrollo con GitHub Sponsors; si no, una reseña o compartir el plugin también ayuda mucho.
               </p>
-              <a class="btn btn-outline" href="https://wordpress.org/support/plugin/multiai-chatbot/reviews/#new-post" target="_blank" rel="noopener" style="width:100%;">Escribir una reseña</a>
+              <a class="btn btn-outline" href="#apoyo" style="width:100%;">Ver formas de apoyar</a>
             </div>
           </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="apoyo" class="support-section" aria-labelledby="apoyo-heading">
+      <div class="container">
+        <div class="support-panel">
+          <span class="support-badge">♥ Código abierto · GPL-2.0+</span>
+          <h2 id="apoyo-heading">Ayuda a mantener MultiAI ChatBot</h2>
+          <p class="support-lead">
+            Este plugin es <strong>gratuito</strong> y se desarrolla en tiempo libre. Si te aporta valor en tu sitio,
+            <strong>para quien pueda, una donación vía GitHub Sponsors</strong> financia mejoras, correcciones y compatibilidad con nuevas versiones de WordPress.
+            <strong>Si no puedes donar, no pasa nada:</strong> dejar una reseña en WordPress.org o compartir el enlace del plugin con tu comunidad también es una ayuda real.
+          </p>
+
+          <div class="support-grid">
+            <article class="support-card support-card--primary">
+              <span class="support-card-tag">Recomendado si puedes</span>
+              <h3>GitHub Sponsors</h3>
+              <p>
+                Donación recurrente o puntual para sostener el desarrollo. Cada aporte, por pequeño que sea, permite dedicar más tiempo al plugin y responder antes en soporte.
+              </p>
+              <a class="btn btn-sponsor" href="https://github.com/sponsors/JunniorRavelo" target="_blank" rel="noopener noreferrer">
+                Hacer una donación
+              </a>
+            </article>
+
+            <article class="support-card">
+              <h3>Escribir una reseña</h3>
+              <p>
+                Cuéntanos tu experiencia en el directorio oficial. Las reseñas ayudan a que otros administradores descubran y confíen en el plugin.
+              </p>
+              <a class="btn btn-support-outline" href="https://wordpress.org/support/plugin/multiai-chatbot/reviews/#new-post" target="_blank" rel="noopener noreferrer">
+                Dejar reseña en WordPress.org
+              </a>
+            </article>
+
+            <article class="support-card">
+              <h3>Compartir el plugin</h3>
+              <p>
+                Recomiéndalo en tu blog, newsletter, redes o con colegas que gestionen WordPress. El enlace oficial del directorio es el más útil para instalarlo en un clic.
+              </p>
+              <a class="btn btn-support-outline" href="https://wordpress.org/plugins/multiai-chatbot/" target="_blank" rel="noopener noreferrer">
+                Enlace oficial para compartir
+              </a>
+            </article>
+          </div>
+
+          <p class="support-note">
+            Gracias por usar MultiAI ChatBot — sponsor, reseña o difusión, <strong>cualquier gesto cuenta</strong>.
+            También puedes seguir el proyecto en <a href="https://github.com/JunniorRavelo/multiai-chatbot" target="_blank" rel="noopener noreferrer">GitHub</a>.
+          </p>
         </div>
       </div>
     </section>
@@ -866,11 +1052,13 @@
           </ul>
         </div>
         <div>
-          <h3>Autor</h3>
+          <h3>Apoyar el proyecto</h3>
           <ul class="footer-links">
+            <li><a href="#apoyo">Formas de colaborar</a></li>
+            <li><a href="https://github.com/sponsors/JunniorRavelo" target="_blank" rel="noopener noreferrer">Donar (GitHub Sponsors)</a></li>
+            <li><a href="https://wordpress.org/support/plugin/multiai-chatbot/reviews/#new-post" target="_blank" rel="noopener noreferrer">Escribir reseña</a></li>
             <li><a href="https://github.com/JunniorRavelo" target="_blank" rel="noopener">J. Santiago Ravelo Velasco</a></li>
             <li><a href="https://www.linkedin.com/in/jsravelo/" target="_blank" rel="noopener">LinkedIn</a></li>
-            <li><a href="https://github.com/sponsors/JunniorRavelo" target="_blank" rel="noopener">GitHub Sponsors</a></li>
           </ul>
         </div>
       </div>
