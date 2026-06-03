@@ -62,7 +62,7 @@ class Multch_Privacy {
 			'</ul>',
 
 			'<h2>' . esc_html__( 'Data sent to third-party AI services', 'multiai-chatbot' ) . '</h2>',
-			'<p>' . esc_html__( 'To generate responses, the plugin sends chat content through the WordPress AI Client (using providers configured under Settings → Connectors) or to a self-hosted Ollama server you specify. This typically includes:', 'multiai-chatbot' ) . '</p>',
+			'<p>' . esc_html__( 'To generate responses, the plugin sends chat content through the WordPress AI Client (using providers configured under Settings → Connectors), the Google Generative Language API when Google IA is configured, or to a self-hosted Ollama server you specify. This typically includes:', 'multiai-chatbot' ) . '</p>',
 			'<ul>',
 			'<li>' . esc_html__( 'The visitor message and recent conversation context.', 'multiai-chatbot' ) . '</li>',
 			'<li>' . esc_html__( 'The system prompt configured in the plugin settings.', 'multiai-chatbot' ) . '</li>',

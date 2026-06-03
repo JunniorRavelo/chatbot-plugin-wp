@@ -9,17 +9,18 @@ Stable tag: 1.0.3
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-AI chat widget for WordPress using the WordPress AI Client (Connectors) and optional local Ollama. Styles, history, and telemetry.
+AI chat widget for WordPress using the WordPress AI Client (Connectors), your own Google Gemini API key (Google IA), or optional local Ollama. Styles, history, and telemetry.
 
 == Description ==
 
 **MultiAI ChatBot** adds an AI assistant to your WordPress site with a floating or embedded widget, a full admin panel, and usage analytics.
 
-Connect the chat to AI models configured site-wide under **Settings → Connectors**, customize appearance without code, and review conversations and statistics from the WordPress dashboard.
+Connect the chat to AI models via **Settings → Connectors**, your own Gemini API key, or Ollama; customize appearance without code; and review conversations and statistics from the WordPress dashboard.
 
 = Key features =
 
 * **WordPress AI Client:** Uses WordPress 7.0+ Connectors (OpenAI, Google, Anthropic, and other registered providers) with credentials managed by core—not in this plugin.
+* **Google IA (optional):** Your own Google Gemini API key; primary and fallback models use the same model IDs as the Connectors catalog, with direct calls to Google's API from your server.
 * **Ollama (optional):** Local models on your own server without cloud API keys in the plugin.
 * **Global widget or shortcode:** Show the chat site-wide or only where you insert `[multch_widget]`.
 * **Floating and inline modes:** Floating button with slide-out panel or embedded chat in page content.
@@ -29,12 +30,12 @@ Connect the chat to AI models configured site-wide under **Settings → Connecto
 * **Live preview:** Preview theme, position, and styles from the admin panel.
 * **Conversation history (opt-in):** Enable under General to browse messages, status, provider, and source page locally.
 * **Telemetry and CSV export (opt-in):** Latency, errors, models used, and period summaries when statistics and history are enabled.
-* **Security:** IP rate limiting; provider credentials stay in WordPress Connectors (never in the browser).
+* **Security:** IP rate limiting; Connectors credentials and Google IA API keys stay on the server (never in the browser).
 
 = Admin panel =
 
 * **General** — Enable widget, welcome message, system prompt, streaming, and optional statistics/history collection (off by default).
-* **AI Model** — Provider (WordPress AI or Ollama), preferred model, and fallback model preferences.
+* **AI Model** — Provider (WordPress AI, Google IA, or Ollama), primary/fallback models, Gemini API key (Google IA), and Ollama URL.
 * **Security** — Allowed origins, cache, telemetry, and abuse suspension.
 * **Chat Style** — Presets, colors, position, and interactive preview.
 * **Statistics** — Totals, provider breakdown, and CSV export.
@@ -43,6 +44,7 @@ Connect the chat to AI models configured site-wide under **Settings → Connecto
 = Supported providers =
 
 * **WordPress AI (recommended)** — Any model available through **Settings → Connectors** on WordPress 7.0+ (e.g. OpenAI, Google Gemini, Anthropic Claude). Configure API keys once for all compatible plugins.
+* **Google IA** — Gemini with your own API key stored in this plugin (or `wp-config.php`). Model pickers list Gemini IDs from Connectors; chat requests use the Google Generative Language API, not Connectors credentials.
 * **Ollama** — Local models on your infrastructure (no Connectors key required).
 
 = Shortcodes =
@@ -65,6 +67,7 @@ Provider credentials are never sent to the browser; the frontend only uses the W
 * WordPress 6.2 or higher (WordPress **7.0+** recommended for cloud AI via Connectors)
 * PHP 8.0 or higher
 * For WordPress AI: at least one provider connected under **Settings → Connectors**
+* For Google IA: a Google AI (Gemini) API key; WordPress 7.0+ recommended to populate the model list from Connectors
 * For Ollama: a server reachable from the WordPress host
 
 == Installation ==
@@ -72,7 +75,7 @@ Provider credentials are never sent to the browser; the frontend only uses the W
 1. Upload the `multiai-chatbot` folder to `/wp-content/plugins/` or install the ZIP from **Plugins → Add New → Upload Plugin**.
 2. Activate the plugin from **Plugins**.
 3. Go to **MultiAI ChatBot** in the admin menu.
-4. Under **AI Model**, choose **WordPress AI** or **Ollama**. For cloud AI, connect providers under **Settings → Connectors** first.
+4. Under **AI Model**, choose **WordPress AI**, **Google IA**, or **Ollama**. For WordPress AI, connect providers under **Settings → Connectors** first. For Google IA, enter your Gemini API key and select primary and fallback models.
 5. Under **General**, enable the widget and adjust the welcome message.
 6. Save changes. The chat will appear on the frontend when the widget is enabled.
 
@@ -82,7 +85,11 @@ Provider credentials are never sent to the browser; the frontend only uses the W
 
 = Do I need an API key in this plugin? =
 
-No. Cloud provider API keys are configured under **Settings → Connectors** in WordPress 7.0+. Ollama does not require a key, but your WordPress host must reach the Ollama server.
+It depends on the provider you choose:
+
+* **WordPress AI** — No. API keys are configured under **Settings → Connectors** in WordPress 7.0+.
+* **Google IA** — Yes. You need a Google AI (Gemini) API key, entered in **MultiAI ChatBot → AI Model** or defined as `MULTCH_GEMINI_API_KEY` in `wp-config.php`.
+* **Ollama** — No API key in the plugin, but your WordPress host must reach the Ollama server.
 
 = Are provider credentials visible in the browser? =
 
@@ -127,7 +134,7 @@ The plugin also stores conversations and technical telemetry **on your WordPress
 
 = Administrator consent =
 
-By installing the plugin, connecting AI providers under **Settings → Connectors** (or configuring Ollama), and enabling the widget, the site administrator authorizes the plugin to forward visitor messages to generate replies. Visitors should be informed through your site's privacy policy; the plugin adds suggested privacy policy text under **Settings → Privacy**.
+By installing the plugin, configuring an AI provider (Connectors, Google IA, or Ollama), and enabling the widget, the site administrator authorizes the plugin to forward visitor messages to generate replies. Visitors should be informed through your site's privacy policy; the plugin adds suggested privacy policy text under **Settings → Privacy**.
 
 = WordPress AI Client (optional) =
 
@@ -135,6 +142,15 @@ By installing the plugin, connecting AI providers under **Settings → Connector
 * **Used for:** Generating chat replies when **WordPress AI** is selected in plugin settings.
 * **Data sent:** Chat messages, conversation context, and system prompt when a visitor sends a message. Routing and credentials are handled by WordPress core, not stored in this plugin.
 * **Terms and privacy:** Apply the terms and privacy policies of whichever provider and model you configure in Connectors.
+
+= Google IA / Gemini API (optional) =
+
+* **Service:** [Google Generative Language API](https://ai.google.dev/) (Gemini models).
+* **Used for:** Generating chat replies when **Google IA** is selected in plugin settings.
+* **Data sent:** Chat messages, conversation context, and system prompt to `generativelanguage.googleapis.com` when a visitor sends a message, using the API key you configure in the plugin or `wp-config.php`.
+* **Model IDs:** The admin UI lists Gemini model names from **Settings → Connectors**; only the model ID is reused—the request still uses your API key, not Connectors.
+* **Google terms:** https://ai.google.dev/gemini-api/terms
+* **Google privacy:** https://policies.google.com/privacy
 
 = Ollama (optional) =
 
@@ -160,7 +176,7 @@ This plugin does **not** contact the plugin author's servers for analytics, lice
 
 = What data is sent to third parties? =
 
-When a visitor sends a chat message, the plugin forwards content through the WordPress AI Client (Connectors) or to your configured Ollama server. This typically includes the visitor message, recent conversation context, and the system prompt from plugin settings. See == External services == for details, timing of transmission, and links to terms and privacy policies where applicable.
+When a visitor sends a chat message, the plugin forwards content through the WordPress AI Client (Connectors), the Google Generative Language API (Google IA), or your configured Ollama server. This typically includes the visitor message, recent conversation context, and the system prompt from plugin settings. See == External services == for details, timing of transmission, and links to terms and privacy policies where applicable.
 
 = Who is responsible for compliance? =
 
@@ -187,6 +203,10 @@ Chat history uses anonymous session identifiers and is not linked to visitor ema
 5. Conversation history with filters and message detail.
 
 == Changelog ==
+
+= 1.0.4 =
+* New **Google IA** provider: own Gemini API key, primary and fallback models; model IDs from the WordPress Connectors catalog.
+* Documentation updated for WordPress AI, Google IA, and Ollama.
 
 = 1.0.3 =
 * Text domain aligned with plugin slug (`multiai-chatbot`) via `MULTCH_TEXT_DOMAIN` constant.
@@ -215,8 +235,11 @@ Chat history uses anonymous session identifiers and is not linked to visitor ema
 
 == Upgrade Notice ==
 
+= 1.0.4 =
+You can use **Google IA** with your own Gemini API key without moving that key to Connectors. Model names still come from the Connectors list when available.
+
 = 1.0.3 =
-Cloud AI now uses WordPress Connectors. Configure providers under **Settings → Connectors** and choose **WordPress AI** under **MultiAI ChatBot → AI Model**. Previous API keys saved in this plugin are no longer used.
+Cloud AI now uses WordPress Connectors. Configure providers under **Settings → Connectors** and choose **WordPress AI** under **MultiAI ChatBot → AI Model**. API keys from older plugin versions were cleared on migration; use **Google IA** if you prefer storing a Gemini key in this plugin again.
 
 = 1.0.1 =
 Readme update: third-party AI service documentation for WordPress.org compliance. No code changes required for existing installations.

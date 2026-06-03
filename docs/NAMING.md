@@ -9,7 +9,8 @@ Prefijo único del plugin: **`multch`** (PHP/hooks/opciones) y **`MULTCH_`** (co
 | Clases PHP | `Multch_*` | `Multch_Plugin`, `Multch_Api_Handler` |
 | Funciones PHP | `multch_*` | `multch_plugin_allocate_root_id()` |
 | Constantes plugin | `MULTCH_PLUGIN_*` | `MULTCH_PLUGIN_PATH` |
-| Constantes wp-config | `MULTCH_*` | `MULTCH_GEMINI_API_KEY` |
+| Constantes wp-config | `MULTCH_*` | `MULTCH_GEMINI_API_KEY`, `MULTCH_PROVIDER` (`google_ia`) |
+| Proveedor IA (settings) | `wordpress_ai`, `google_ia`, `ollama` | `provider` en `multch_plugin_settings` |
 | Opciones WP | `multch_plugin_*` | `multch_plugin_settings` |
 | Hooks / cron | `multch_*` | `multch_purge_history` |
 | AJAX / admin_post | `multch_*` | `wp_ajax_multch_history_detail` |

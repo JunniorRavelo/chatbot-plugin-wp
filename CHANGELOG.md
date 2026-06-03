@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- **Google IA** provider (`google_ia`): use your own Google Gemini API key with **primary** and **fallback** models. Model IDs are taken from the WordPress Connectors catalog (same Gemini names as **Settings → Connectors**); requests call the Google Generative Language API directly.
+- Admin **AI Model** tab: API key field, primary/fallback model pickers, and `MULTCH_GEMINI_API_KEY` / `MULTCH_PROVIDER` wp-config overrides for Google IA.
+
+### Documentation
+
+- README, `readme.txt`, and `docs/env.example` updated for the three providers (WordPress AI, Google IA, Ollama).
+
 ## 1.0.3
 
 ### Changed

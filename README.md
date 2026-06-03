@@ -1,6 +1,6 @@
 # MultiAI ChatBot
 
-**Version 1.0.3** · WordPress plugin that adds an AI chat widget via the WordPress AI Client (Connectors) or Ollama, plus admin panel and usage telemetry.
+**Version 1.0.3** · WordPress plugin that adds an AI chat widget via the WordPress AI Client (Connectors), your own Google Gemini API key (**Google IA**), or Ollama, plus admin panel and usage telemetry.
 
 ## Naming conventions (namespace)
 
@@ -11,6 +11,7 @@ The public widget uses the `maicb-*` class prefix and the `#multch-plugin-root` 
 - WordPress 6.2+ (7.0+ recommended for cloud AI via Connectors)
 - PHP 8.0+
 - For WordPress AI: providers connected under **Settings → Connectors**
+- For Google IA: a [Google AI (Gemini) API key](https://aistudio.google.com/apikey); WordPress 7.0+ recommended so the admin model list matches **Settings → Connectors**
 - For Ollama: a server reachable from the WordPress host (e.g. `http://127.0.0.1:11434`)
 
 ## Installation
@@ -40,7 +41,7 @@ This runs `./scripts/package-plugin`, confirms the ZIP excludes `scripts/`, `.gi
 1. Copy the `multiai-chatbot` folder to `wp-content/plugins/` (or use the ZIP above).
 2. Activate the plugin under **Plugins**.
 3. Go to **MultiAI ChatBot** in the admin menu.
-4. Connect AI providers under **Settings → Connectors**, then configure model preferences and styles in **MultiAI ChatBot**.
+4. Under **AI Model**, choose **WordPress AI**, **Google IA**, or **Ollama**. For WordPress AI, connect providers under **Settings → Connectors** first. For Google IA, enter your Gemini API key and pick primary/fallback models from the Connectors catalog.
 5. After activation, streaming rewrite rules are registered automatically. If the stream does not respond, visit **Settings → Permalinks** and save again.
 
 ## Admin panel
@@ -48,7 +49,7 @@ This runs `./scripts/package-plugin`, confirms the ZIP excludes `scripts/`, `.gi
 | Tab | Contents |
 |-----|----------|
 | **General** | Global widget, welcome message, system prompt, streaming, rate limit |
-| **AI Model** | Provider (WordPress AI or Ollama), model preferences, Ollama URL |
+| **AI Model** | Provider (WordPress AI, Google IA, or Ollama), models, API key (Google IA), Ollama URL |
 | **Chat Style** | CSS presets, custom colors, and widget position |
 | **Statistics** | Totals, breakdown, and CSV export |
 | **History** | Conversations in cards (ID `CB-YYYY-MM-DD-HH-MM-SS`), filters, and message detail |
@@ -60,13 +61,31 @@ This runs `./scripts/package-plugin`, confirms the ZIP excludes `scripts/`, `.gi
 - Provider ID: `wordpress_ai`
 - Requires WordPress 7.0+ with the built-in AI Client
 - Configure API keys and provider plugins under **Settings → Connectors**
-- Set a **preferred model** and optional comma-separated **fallback models** in **MultiAI ChatBot → AI Model**
+- Set a **primary model** and optional **fallback model** in **MultiAI ChatBot → AI Model**
+- Optional **Google automatic fallback** when the configured models fail
 - Optional `wp-config.php` overrides for model preference:
 
 ```php
 define( 'MULTCH_MODEL', 'gemini-2.5-flash' );
 define( 'MULTCH_MODEL_CANDIDATES', 'gpt-4o-mini,claude-sonnet-4-6' );
 ```
+
+### Google IA (own Gemini API key)
+
+- Provider ID: `google_ia`
+- Uses the [Google Generative Language API](https://ai.google.dev/) with an API key you supply (not WordPress Connectors credentials)
+- **Primary model** and **fallback model** are chosen from the same Gemini model IDs listed by WordPress Connectors (Connectors is used as a catalog only; requests go to Google with your key)
+- If the primary model fails (quota, rate limit, or unavailability), the plugin tries the fallback model
+- Configure in admin under **MultiAI ChatBot → AI Model**, or in `wp-config.php`:
+
+```php
+define( 'MULTCH_PROVIDER', 'google_ia' );
+define( 'MULTCH_GEMINI_API_KEY', 'your-api-key' );
+define( 'MULTCH_GEMINI_MODEL', 'gemini-2.5-flash' );
+define( 'MULTCH_GEMINI_MODEL_CANDIDATES', 'gemini-2.5-flash-lite' );
+```
+
+Legacy names `CHATBOT_PROVIDER`, `CHATBOT_GEMINI_API_KEY`, `CHATBOT_GEMINI_MODEL`, and `CHATBOT_GEMINI_MODEL_CANDIDATES` are also supported.
 
 ### Ollama
 
@@ -166,6 +185,9 @@ includes/
   telemetry.php
   enqueue.php
   providers/
+    class-provider-wordpress-ai.php
+    class-provider-google-ia.php
+    class-provider-ollama.php
 assets/
   css/
     admin.css
@@ -196,9 +218,12 @@ CSV export from the **Statistics** tab. On plugin uninstall, the table and optio
 ## Security
 
 - Do not commit API keys to the repository.
-- Use constants in `wp-config.php` in production instead of storing keys only in the database.
+- For **Google IA**, prefer `MULTCH_GEMINI_API_KEY` in `wp-config.php` in production instead of storing the key only in the database.
+- **WordPress AI** keys stay in **Settings → Connectors**; they are never sent to the browser.
 - IP rate limiting uses WordPress transients.
 - Rotate keys if they were accidentally exposed.
+
+See [docs/env.example](docs/env.example) for a configuration reference.
 
 ## Author
 
