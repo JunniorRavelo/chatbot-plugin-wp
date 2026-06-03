@@ -45,6 +45,179 @@
 
   injectThinkingAnimationStyles();
 
+  function escapeHtml(text) {
+    return String(text)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+
+  function sanitizeLinkUrl(url) {
+    const raw = String(url || "").trim();
+    if (!raw) {
+      return "";
+    }
+    try {
+      const parsed = new URL(raw, window.location.href);
+      if (
+        parsed.protocol === "http:" ||
+        parsed.protocol === "https:" ||
+        parsed.protocol === "mailto:"
+      ) {
+        return parsed.href;
+      }
+    } catch (_) {
+      return "";
+    }
+    return "";
+  }
+
+  function formatInlineMarkdown(raw) {
+    let text = escapeHtml(raw);
+    const tokens = [];
+
+    function stash(html) {
+      const index = tokens.length;
+      tokens.push(html);
+      return "\uE000" + index + "\uE001";
+    }
+
+    text = text.replace(/`([^`\n]+)`/g, function (_, code) {
+      return stash("<code>" + code + "</code>");
+    });
+    text = text.replace(/\*\*([^*]+)\*\*/g, function (_, inner) {
+      return stash("<strong>" + inner + "</strong>");
+    });
+    text = text.replace(/__([^_]+)__/g, function (_, inner) {
+      return stash("<strong>" + inner + "</strong>");
+    });
+    text = text.replace(/\*([^*\n]+)\*/g, function (_, inner) {
+      return stash("<em>" + inner + "</em>");
+    });
+    text = text.replace(/_([^_\n]+)_/g, function (_, inner) {
+      return stash("<em>" + inner + "</em>");
+    });
+    text = text.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, function (_, label, url) {
+      const safeUrl = sanitizeLinkUrl(url);
+      if (!safeUrl) {
+        return label;
+      }
+      return stash(
+        '<a href="' +
+          escapeHtml(safeUrl) +
+          '" target="_blank" rel="noopener noreferrer">' +
+          label +
+          "</a>"
+      );
+    });
+    text = text.replace(/\uE000(\d+)\uE001/g, function (_, index) {
+      return tokens[Number(index)] || "";
+    });
+    return text;
+  }
+
+  function isBlockStarter(line) {
+    const trimmed = line.trim();
+    if (!trimmed) {
+      return false;
+    }
+    if (/^```/.test(trimmed)) {
+      return true;
+    }
+    if (/^#{1,3}\s+/.test(trimmed)) {
+      return true;
+    }
+    if (/^[*+\-]\s+/.test(line)) {
+      return true;
+    }
+    if (/^\d+\.\s+/.test(line)) {
+      return true;
+    }
+    return false;
+  }
+
+  function renderMarkdown(text) {
+    const lines = String(text || "").replace(/\r\n/g, "\n").split("\n");
+    const blocks = [];
+    let index = 0;
+
+    while (index < lines.length) {
+      const line = lines[index];
+      if (!line.trim()) {
+        index += 1;
+        continue;
+      }
+
+      const fence = line.trim().match(/^```(\w*)$/);
+      if (fence) {
+        index += 1;
+        const codeLines = [];
+        while (index < lines.length && !/^```\s*$/.test(lines[index].trim())) {
+          codeLines.push(lines[index]);
+          index += 1;
+        }
+        if (index < lines.length) {
+          index += 1;
+        }
+        blocks.push("<pre><code>" + escapeHtml(codeLines.join("\n")) + "</code></pre>");
+        continue;
+      }
+
+      if (/^[*+\-]\s+/.test(line)) {
+        const items = [];
+        while (index < lines.length && /^[*+\-]\s+/.test(lines[index])) {
+          const match = lines[index].match(/^[*+\-]\s+(.+)$/);
+          items.push("<li>" + formatInlineMarkdown(match ? match[1] : "") + "</li>");
+          index += 1;
+        }
+        blocks.push("<ul>" + items.join("") + "</ul>");
+        continue;
+      }
+
+      if (/^\d+\.\s+/.test(line)) {
+        const items = [];
+        while (index < lines.length && /^\d+\.\s+/.test(lines[index])) {
+          const match = lines[index].match(/^\d+\.\s+(.+)$/);
+          items.push("<li>" + formatInlineMarkdown(match ? match[1] : "") + "</li>");
+          index += 1;
+        }
+        blocks.push("<ol>" + items.join("") + "</ol>");
+        continue;
+      }
+
+      const heading = line.trim().match(/^(#{1,3})\s+(.+)$/);
+      if (heading) {
+        const level = heading[1].length;
+        blocks.push(
+          "<h" + level + ">" + formatInlineMarkdown(heading[2]) + "</h" + level + ">"
+        );
+        index += 1;
+        continue;
+      }
+
+      const paragraph = [];
+      while (index < lines.length && lines[index].trim() && !isBlockStarter(lines[index])) {
+        paragraph.push(lines[index]);
+        index += 1;
+      }
+      blocks.push(
+        "<p>" + paragraph.map((part) => formatInlineMarkdown(part)).join("<br>") + "</p>"
+      );
+    }
+
+    return blocks.join("");
+  }
+
+  function setAssistantBubbleContent(bubble, content) {
+    bubble.classList.add("maicb-msg-rich");
+    const body = document.createElement("div");
+    body.className = "maicb-msg-body";
+    body.innerHTML = renderMarkdown(content);
+    bubble.appendChild(body);
+  }
+
   function q(scope, name) {
     return scope.querySelector('[data-maicb="' + name + '"]');
   }
@@ -655,19 +828,19 @@
 
         thinking.appendChild(dotsWrap);
         bubble.appendChild(thinking);
+      } else if (role === "assistant") {
+        setAssistantBubbleContent(bubble, msg.content || "");
+        const meta = document.createElement("span");
+        meta.className = "maicb-msg-meta";
+        if (msg.id === "welcome") {
+          meta.textContent = i18n.welcomeLabel || "Welcome message";
+          bubble.appendChild(meta);
+        } else if (msg.model && msg.model !== "system") {
+          meta.textContent = msg.model;
+          bubble.appendChild(meta);
+        }
       } else {
         bubble.textContent = msg.content || "";
-        if (role === "assistant") {
-          const meta = document.createElement("span");
-          meta.className = "maicb-msg-meta";
-          if (msg.id === "welcome") {
-            meta.textContent = i18n.welcomeLabel || "Welcome message";
-            bubble.appendChild(meta);
-          } else if (msg.model && msg.model !== "system") {
-            meta.textContent = msg.model;
-            bubble.appendChild(meta);
-          }
-        }
       }
 
       row.appendChild(bubble);

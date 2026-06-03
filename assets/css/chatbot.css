@@ -1130,6 +1130,111 @@
   border-bottom-left-radius: 0.35rem;
 }
 
+#multch-plugin-root .maicb-msg-rich,
+#multch-style-preview .maicb-msg-rich {
+  white-space: normal;
+}
+
+#multch-plugin-root .maicb-msg-body,
+#multch-style-preview .maicb-msg-body {
+  overflow-wrap: anywhere;
+}
+
+#multch-plugin-root .maicb-msg-body > :first-child,
+#multch-style-preview .maicb-msg-body > :first-child {
+  margin-top: 0;
+}
+
+#multch-plugin-root .maicb-msg-body > :last-child,
+#multch-style-preview .maicb-msg-body > :last-child {
+  margin-bottom: 0;
+}
+
+#multch-plugin-root .maicb-msg-body p,
+#multch-style-preview .maicb-msg-body p {
+  margin: 0 0 0.55em;
+}
+
+#multch-plugin-root .maicb-msg-body h1,
+#multch-plugin-root .maicb-msg-body h2,
+#multch-plugin-root .maicb-msg-body h3,
+#multch-style-preview .maicb-msg-body h1,
+#multch-style-preview .maicb-msg-body h2,
+#multch-style-preview .maicb-msg-body h3 {
+  margin: 0 0 0.45em;
+  font-size: inherit;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+#multch-plugin-root .maicb-msg-body ul,
+#multch-plugin-root .maicb-msg-body ol,
+#multch-style-preview .maicb-msg-body ul,
+#multch-style-preview .maicb-msg-body ol {
+  margin: 0.35em 0 0.6em;
+  padding-left: 1.2rem;
+}
+
+#multch-plugin-root .maicb-msg-body li,
+#multch-style-preview .maicb-msg-body li {
+  margin: 0.2em 0;
+}
+
+#multch-plugin-root .maicb-msg-body li::marker,
+#multch-style-preview .maicb-msg-body li::marker {
+  color: color-mix(in srgb, var(--maicb-fg) 55%, var(--maicb-muted));
+}
+
+#multch-plugin-root .maicb-msg-body strong,
+#multch-style-preview .maicb-msg-body strong {
+  font-weight: 650;
+}
+
+#multch-plugin-root .maicb-msg-body em,
+#multch-style-preview .maicb-msg-body em {
+  font-style: italic;
+}
+
+#multch-plugin-root .maicb-msg-body code,
+#multch-style-preview .maicb-msg-body code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
+  font-size: 0.84em;
+  padding: 0.1em 0.35em;
+  border-radius: 0.35rem;
+  background: color-mix(in srgb, var(--maicb-fg) 8%, transparent);
+}
+
+#multch-plugin-root .maicb-msg-body pre,
+#multch-style-preview .maicb-msg-body pre {
+  margin: 0.45em 0 0.6em;
+  padding: 0.55rem 0.65rem;
+  overflow-x: auto;
+  border-radius: 0.5rem;
+  background: color-mix(in srgb, var(--maicb-fg) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--maicb-border) 85%, transparent);
+}
+
+#multch-plugin-root .maicb-msg-body pre code,
+#multch-style-preview .maicb-msg-body pre code {
+  padding: 0;
+  background: transparent;
+  font-size: 0.8em;
+  white-space: pre;
+}
+
+#multch-plugin-root .maicb-msg-body a,
+#multch-style-preview .maicb-msg-body a {
+  color: var(--maicb-primary);
+  text-decoration: underline;
+  text-underline-offset: 0.12em;
+}
+
+#multch-plugin-root .maicb-msg-body a:hover,
+#multch-style-preview .maicb-msg-body a:hover {
+  opacity: 0.88;
+}
+
 #multch-plugin-root .maicb-msg-system,
 #multch-style-preview .maicb-msg-system {
   align-self: center;
