@@ -11,6 +11,8 @@
   <meta property="og:url" content="https://junniorravelo.github.io/multiai-chatbot/">
   <title>MultiAI ChatBot — Plugin de WordPress</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%232563eb'/><path d='M28 52c0-12 10-22 22-22s22 10 22 22-10 22-22 22' fill='none' stroke='white' stroke-width='7' stroke-linecap='round'/><circle cx='72' cy='72' r='8' fill='%237c3aed'/></svg>">
+  <link rel="stylesheet" href="assets/css/chatbot.css">
+  <link rel="stylesheet" href="assets/css/hero-widget.css">
   <style>
     :root {
       --primary: #2563eb;
@@ -206,79 +208,6 @@
     }
 
     .hero-meta strong { color: var(--fg); }
-
-    /* Widget preview mockup */
-    .widget-preview {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 1.25rem;
-      box-shadow: var(--shadow);
-      overflow: hidden;
-      max-width: 380px;
-      margin-inline: auto;
-    }
-
-    .widget-preview-header {
-      padding: 1rem 1.15rem;
-      background: linear-gradient(135deg, rgba(37, 99, 235, 0.12), rgba(99, 102, 241, 0.06));
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      gap: 0.65rem;
-    }
-
-    .widget-preview-dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      background: var(--primary);
-    }
-
-    .widget-preview-title {
-      font-weight: 600;
-      font-size: 0.95rem;
-    }
-
-    .widget-preview-body {
-      padding: 1.15rem;
-      min-height: 220px;
-      display: flex;
-      flex-direction: column;
-      gap: 0.75rem;
-      background: linear-gradient(180deg, #eef2ff 0%, #f8fafc 55%, #f1f5f9 100%);
-    }
-
-    .bubble {
-      max-width: 85%;
-      padding: 0.65rem 0.9rem;
-      border-radius: 1rem;
-      font-size: 0.875rem;
-      line-height: 1.45;
-    }
-
-    .bubble-user {
-      align-self: flex-end;
-      background: var(--primary);
-      color: #fff;
-      border-bottom-right-radius: 0.25rem;
-    }
-
-    .bubble-bot {
-      align-self: flex-start;
-      background: #fff;
-      border: 1px solid var(--border);
-      border-bottom-left-radius: 0.25rem;
-    }
-
-    .widget-preview-input {
-      margin: 0 1rem 1rem;
-      padding: 0.65rem 0.9rem;
-      border: 1px solid var(--border);
-      border-radius: 999px;
-      font-size: 0.85rem;
-      color: var(--muted);
-      background: #fff;
-    }
 
     /* Sections */
     section {
@@ -615,7 +544,6 @@
       }
 
       .hero { padding-top: 3rem; }
-      .widget-preview { max-width: 100%; }
 
       .nav { display: none; }
     }
@@ -640,7 +568,7 @@
         <a href="#instalacion">Instalación</a>
         <a href="https://github.com/JunniorRavelo/multiai-chatbot" target="_blank" rel="noopener">GitHub</a>
       </nav>
-      <a class="btn btn-primary" href="https://github.com/JunniorRavelo/multiai-chatbot" target="_blank" rel="noopener">Ver repositorio</a>
+      <a class="btn btn-primary" href="https://wordpress.org/plugins/multiai-chatbot/" target="_blank" rel="noopener">Instalar gratis</a>
     </div>
   </header>
 
@@ -656,11 +584,10 @@
             Personaliza la apariencia, revisa conversaciones y exporta estadísticas — todo desde el panel de WordPress.
           </p>
           <div class="hero-actions">
-            <a class="btn btn-primary" href="https://github.com/JunniorRavelo/multiai-chatbot" target="_blank" rel="noopener">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
-              Descargar en GitHub
+            <a class="btn btn-primary" href="https://wordpress.org/plugins/multiai-chatbot/" target="_blank" rel="noopener">
+              Instalar en WordPress.org
             </a>
-            <a class="btn btn-outline" href="#instalacion">Guía de instalación</a>
+            <a class="btn btn-outline" href="https://github.com/JunniorRavelo/multiai-chatbot" target="_blank" rel="noopener">Ver en GitHub</a>
           </div>
           <div class="hero-meta">
             <span><strong>GPL-2.0+</strong> · Código abierto</span>
@@ -670,17 +597,9 @@
           </div>
         </div>
 
-        <div class="widget-preview" aria-hidden="true">
-          <div class="widget-preview-header">
-            <span class="widget-preview-dot"></span>
-            <span class="widget-preview-title">Asistente IA</span>
-          </div>
-          <div class="widget-preview-body">
-            <div class="bubble bubble-bot">¡Hola! Soy el asistente de tu sitio. ¿En qué puedo ayudarte hoy?</div>
-            <div class="bubble bubble-user">¿Qué plugins de IA recomiendas para WordPress?</div>
-            <div class="bubble bubble-bot">MultiAI ChatBot integra Connectors, Gemini y Ollama con un panel completo de administración.</div>
-          </div>
-          <div class="widget-preview-input">Escribe tu mensaje…</div>
+        <div class="hero-widget-column">
+          <div class="hero-widget-host" id="hero-widget-host" aria-label="Vista previa del widget MultiAI ChatBot"></div>
+          <p class="hero-widget-note">Vista previa interactiva · respuestas de demostración (sin conexión a IA)</p>
         </div>
       </div>
     </section>
@@ -884,32 +803,40 @@
     <section id="instalacion">
       <div class="container">
         <div class="section-header">
-          <h2>Instalación rápida</h2>
-          <p>Genera el ZIP de producción sin archivos de desarrollo y súbelo a WordPress.</p>
+          <h2>Cómo instalarlo</h2>
+          <p>Disponible gratis en el directorio oficial de plugins de WordPress. No necesitas clonar el repositorio ni generar archivos ZIP.</p>
         </div>
 
         <div class="install-steps">
           <div>
             <ol class="steps-list">
-              <li><strong>Genera el paquete:</strong> ejecuta <code>./scripts/package-plugin</code> en el repositorio.</li>
-              <li><strong>Sube el ZIP</strong> en Plugins → Añadir nuevo → Subir plugin (<code>multiai-chatbot.zip</code>).</li>
-              <li><strong>Activa</strong> el plugin desde la lista de plugins.</li>
-              <li>Ve a <strong>MultiAI ChatBot</strong> y elige tu proveedor en la pestaña AI Model.</li>
-              <li>Para WordPress AI, conecta proveedores en <strong>Ajustes → Connectors</strong> primero.</li>
-              <li>Activa el widget en General y guarda. Si el streaming no responde, visita Ajustes → Enlaces permanentes y guarda de nuevo.</li>
+              <li>Entra en el panel de tu sitio WordPress y ve a <strong>Plugins → Añadir nuevo plugin</strong>.</li>
+              <li>Busca <strong>MultiAI ChatBot</strong> o abre la <a href="https://wordpress.org/plugins/multiai-chatbot/" target="_blank" rel="noopener">página del plugin en WordPress.org</a>.</li>
+              <li>Pulsa <strong>Instalar ahora</strong> y, cuando termine, <strong>Activar</strong>.</li>
+              <li>En el menú lateral aparecerá <strong>MultiAI ChatBot</strong>. En la pestaña <strong>AI Model</strong>, elige tu proveedor (WordPress AI, Google IA u Ollama).</li>
+              <li>Si usas <strong>WordPress AI</strong>, conecta tus proveedores en <strong>Ajustes → Connectors</strong> (WordPress 7.0+).</li>
+              <li>En la pestaña <strong>General</strong>, activa el widget, personaliza el mensaje de bienvenida y guarda los cambios.</li>
+              <li>El chat aparecerá en tu sitio. También puedes insertarlo con el shortcode <code>[multch_widget]</code> en cualquier página.</li>
             </ol>
+            <p style="margin-top:1.25rem;color:var(--muted);font-size:0.95rem;">
+              ¿Problemas con el streaming? Ve a <strong>Ajustes → Enlaces permanentes</strong> y pulsa Guardar cambios una vez.
+            </p>
           </div>
           <div>
-            <pre class="code-block"><span class="comment"># Generar ZIP listo para WordPress</span>
-./scripts/package-plugin
-
-<span class="comment"># Verificar antes de publicar en WordPress.org</span>
-./scripts/verify-plugin-package
-
-<span class="comment"># Configuración opcional en wp-config.php</span>
-<span class="keyword">define</span>( <span class="string">'MULTCH_PROVIDER'</span>, <span class="string">'google_ia'</span> );
-<span class="keyword">define</span>( <span class="string">'MULTCH_GEMINI_API_KEY'</span>, <span class="string">'tu-clave'</span> );
-<span class="keyword">define</span>( <span class="string">'MULTCH_GEMINI_MODEL'</span>, <span class="string">'gemini-2.5-flash'</span> );</pre>
+            <div class="card" style="margin-bottom:1rem;">
+              <h3 style="margin:0 0 0.5rem;">Descargar desde WordPress.org</h3>
+              <p style="margin:0 0 1rem;color:var(--muted);font-size:0.925rem;">
+                Instalación en un clic, actualizaciones automáticas y soporte en el foro oficial del plugin.
+              </p>
+              <a class="btn btn-primary" href="https://wordpress.org/plugins/multiai-chatbot/" target="_blank" rel="noopener" style="width:100%;">Ir a WordPress.org</a>
+            </div>
+            <div class="card">
+              <h3 style="margin:0 0 0.5rem;">¿Te resulta útil?</h3>
+              <p style="margin:0 0 1rem;color:var(--muted);font-size:0.925rem;">
+                Si el plugin te ayuda en tu sitio, puedes dejar una reseña en WordPress.org. Ayuda a otros usuarios a descubrirlo.
+              </p>
+              <a class="btn btn-outline" href="https://wordpress.org/support/plugin/multiai-chatbot/reviews/#new-post" target="_blank" rel="noopener" style="width:100%;">Escribir una reseña</a>
+            </div>
           </div>
         </div>
       </div>
@@ -930,7 +857,9 @@
         <div>
           <h3>Enlaces</h3>
           <ul class="footer-links">
+            <li><a href="https://wordpress.org/plugins/multiai-chatbot/" target="_blank" rel="noopener">WordPress.org</a></li>
             <li><a href="https://github.com/JunniorRavelo/multiai-chatbot" target="_blank" rel="noopener">Repositorio GitHub</a></li>
+            <li><a href="https://wordpress.org/support/plugin/multiai-chatbot/" target="_blank" rel="noopener">Foro de soporte</a></li>
             <li><a href="https://github.com/JunniorRavelo/multiai-chatbot/blob/main/README.md" target="_blank" rel="noopener">Documentación (README)</a></li>
             <li><a href="https://github.com/JunniorRavelo/multiai-chatbot/blob/main/docs/AI-PROVIDERS.md" target="_blank" rel="noopener">Guía de proveedores IA</a></li>
             <li><a href="https://github.com/JunniorRavelo/multiai-chatbot/blob/main/CHANGELOG.md" target="_blank" rel="noopener">Changelog</a></li>
@@ -952,5 +881,6 @@
     </div>
   </footer>
 
+  <script src="assets/js/hero-widget.js"></script>
 </body>
 </html>
