@@ -714,7 +714,7 @@
           <h1>Asistente de IA para <span>WordPress</span></h1>
           <p class="hero-lead">
             <strong>MultiAI ChatBot</strong> añade un widget de chat inteligente a tu sitio web.
-            Conecta modelos de IA mediante WordPress Connectors, tu propia clave de Google Gemini u Ollama local.
+            Conecta modelos de IA mediante Conectores de WordPress, tu propia clave de Google Gemini u Ollama local.
             Personaliza la apariencia, revisa conversaciones y exporta estadísticas — todo desde el panel de WordPress.
           </p>
           <div class="hero-actions">
@@ -749,7 +749,7 @@
           <article class="card">
             <div class="card-icon" style="background:rgba(37,99,235,0.12);">🤖</div>
             <h3>Múltiples proveedores IA</h3>
-            <p>WordPress AI (Connectors), Google IA con tu clave Gemini, o modelos locales con Ollama. Un proveedor activo a la vez.</p>
+            <p>IA de WordPress (Conectores), Google IA con tu clave Gemini u Ollama local. Un proveedor activo a la vez.</p>
           </article>
           <article class="card">
             <div class="card-icon" style="background:rgba(124,58,237,0.12);">🎨</div>
@@ -759,7 +759,7 @@
           <article class="card">
             <div class="card-icon" style="background:rgba(5,150,105,0.12);">📊</div>
             <h3>Estadísticas e historial</h3>
-            <p>Telemetría de latencia, errores y modelos usados. Historial de conversaciones con filtros y exportación CSV (opt-in).</p>
+            <p>Telemetría de latencia, errores y modelos usados. Historial de conversaciones con filtros y exportación CSV (opcional; desactivado por defecto).</p>
           </article>
           <article class="card">
             <div class="card-icon" style="background:rgba(217,119,6,0.12);">⚡</div>
@@ -769,12 +769,12 @@
           <article class="card">
             <div class="card-icon" style="background:rgba(220,38,38,0.1);">🔒</div>
             <h3>Seguridad integrada</h3>
-            <p>Límite de peticiones por IP, orígenes permitidos, suspensión por abuso. Las claves API nunca llegan al frontend.</p>
+            <p>Límite de peticiones por IP, orígenes permitidos, suspensión por abuso. Las claves API nunca llegan al navegador del visitante.</p>
           </article>
           <article class="card">
             <div class="card-icon" style="background:rgba(99,102,241,0.12);">🧩</div>
             <h3>Widget global o shortcode</h3>
-            <p>Activa el chat en todo el sitio o inserta <code>[multch_widget]</code> solo donde lo necesites, en modo flotante o inline.</p>
+            <p>Activa el chat en todo el sitio o inserta <code>[multch_widget]</code> solo donde lo necesites, en modo flotante o en línea.</p>
           </article>
         </div>
 
@@ -782,7 +782,7 @@
           <div class="req-item"><strong>WordPress 6.2+</strong>Probado hasta 7.0</div>
           <div class="req-item"><strong>PHP 8.0+</strong>Requerido</div>
           <div class="req-item"><strong>REST API</strong><code>/multch/v1/</code></div>
-          <div class="req-item"><strong>i18n</strong>es_ES · es_CO</div>
+          <div class="req-item"><strong>Traducciones</strong>es_ES · es_CO</div>
         </div>
       </div>
     </section>
@@ -791,20 +791,20 @@
       <div class="container">
         <div class="section-header">
           <h2>Elige tu proveedor de IA</h2>
-          <p>Configura un proveedor en <strong>MultiAI ChatBot → AI Model</strong>. Los datos del visitante solo se envían cuando alguien usa el chat.</p>
+          <p>Configura un proveedor en <strong>MultiAI ChatBot → Modelo de IA</strong>. Los datos del visitante solo se envían cuando alguien usa el chat.</p>
         </div>
 
         <div class="providers-grid">
           <article class="provider-card recommended">
             <span class="provider-tag">Recomendado</span>
-            <h3>WordPress AI</h3>
+            <h3>IA de WordPress</h3>
             <p class="provider-id">wordpress_ai</p>
             <ul>
-              <li>Usa el AI Client de WordPress 7.0+</li>
-              <li>OpenAI, Google Gemini o Anthropic vía Connectors</li>
-              <li>Claves en <strong>Ajustes → Connectors</strong></li>
-              <li>Modelo principal y fallback configurables</li>
-              <li>Fallback automático a Google si falla</li>
+              <li>Usa el cliente de IA de WordPress 7.0+</li>
+              <li>OpenAI, Google Gemini o Anthropic vía Conectores</li>
+              <li>Claves en <strong>Ajustes → Conectores</strong></li>
+              <li>Modelo principal y de respaldo configurables</li>
+              <li>Respaldo automático a Google si falla</li>
             </ul>
           </article>
 
@@ -814,9 +814,9 @@
             <ul>
               <li>Tu propia clave de Google Gemini</li>
               <li>Llamadas directas a la API de Google</li>
-              <li>Modelos del catálogo Connectors</li>
-              <li>Clave en admin o <code>wp-config.php</code></li>
-              <li>Modelo principal y fallback</li>
+              <li>Modelos del catálogo de Conectores</li>
+              <li>Clave en el administrador o en <code>wp-config.php</code></li>
+              <li>Modelo principal y de respaldo</li>
             </ul>
           </article>
 
@@ -839,13 +839,13 @@
       <div class="container">
         <div class="section-header">
           <h2>Personaliza la apariencia</h2>
-          <p>8 presets con vista previa en vivo en el admin. Exporta e importa temas JSON. Sobrescribe estilos por shortcode.</p>
+          <p>8 plantillas con vista previa en vivo en el administrador. Exporta e importa temas JSON. Sobrescribe estilos con el shortcode.</p>
         </div>
 
         <div class="themes-grid">
           <div class="theme-swatch">
             <div class="theme-color" style="background:linear-gradient(135deg,#2563eb,#6366f1);"></div>
-            <div class="theme-label">Sapphire <small>(default)</small></div>
+            <div class="theme-label">Sapphire <small>(predeterminado)</small></div>
           </div>
           <div class="theme-swatch">
             <div class="theme-color" style="background:linear-gradient(135deg,#1e293b,#334155);"></div>
@@ -882,7 +882,7 @@
         </div>
 
         <div style="margin-top:2rem;">
-          <pre class="code-block"><span class="comment">// Shortcode con estilo personalizado</span>
+          <pre class="code-block"><span class="comment">// Shortcode con estilo personalizado (atributos en inglés)</span>
 [multch_widget preset=<span class="string">"ocean"</span> position=<span class="string">"bottom-left"</span>]
 [multch_widget mode=<span class="string">"inline"</span> primary=<span class="string">"#059669"</span>]</pre>
         </div>
@@ -896,39 +896,39 @@
           <p>Gestiona todo desde el menú <strong>MultiAI ChatBot</strong> en el escritorio de WordPress.</p>
         </div>
 
-        <div class="admin-tabs" aria-label="Pestañas del admin">
+        <div class="admin-tabs" aria-label="Pestañas del administrador">
           <span class="admin-tab">General</span>
-          <span class="admin-tab">AI Model</span>
-          <span class="admin-tab">Security</span>
-          <span class="admin-tab">Chat Style</span>
-          <span class="admin-tab">Statistics</span>
-          <span class="admin-tab">History</span>
+          <span class="admin-tab">Modelo de IA</span>
+          <span class="admin-tab">Seguridad</span>
+          <span class="admin-tab">Estilo del chat</span>
+          <span class="admin-tab">Estadísticas</span>
+          <span class="admin-tab">Historial</span>
         </div>
 
         <div class="admin-desc">
           <div class="admin-desc-item">
             <strong>General</strong>
-            <span>Widget global, mensaje de bienvenida, system prompt, streaming e historial/estadísticas (desactivado por defecto).</span>
+            <span>Widget global, mensaje de bienvenida, instrucciones del sistema, respuesta en streaming y guardar estadísticas e historial (desactivado por defecto).</span>
           </div>
           <div class="admin-desc-item">
-            <strong>AI Model</strong>
-            <span>Proveedor, modelos principal/fallback, clave Gemini (Google IA) y URL de Ollama.</span>
+            <strong>Modelo de IA</strong>
+            <span>Proveedor, modelos principal y de respaldo, clave Gemini (Google IA) y URL de Ollama.</span>
           </div>
           <div class="admin-desc-item">
-            <strong>Security</strong>
+            <strong>Seguridad</strong>
             <span>Orígenes permitidos, caché, telemetría, límites por IP y suspensión por abuso.</span>
           </div>
           <div class="admin-desc-item">
-            <strong>Chat Style</strong>
-            <span>Presets visuales, colores personalizados, posición del widget y vista previa interactiva.</span>
+            <strong>Estilo del chat</strong>
+            <span>Plantillas visuales, colores personalizados, posición del widget y vista previa interactiva.</span>
           </div>
           <div class="admin-desc-item">
-            <strong>Statistics</strong>
+            <strong>Estadísticas</strong>
             <span>Totales, desglose por proveedor, latencia y exportación CSV.</span>
           </div>
           <div class="admin-desc-item">
-            <strong>History</strong>
-            <span>Conversaciones con ID <code>CB-YYYY-MM-DD-HH-MM-SS</code>, filtros y detalle de mensajes.</span>
+            <strong>Historial</strong>
+            <span>Conversaciones con ID <code>CB-AAAA-MM-DD-HH-MM-SS</code>, filtros y detalle de mensajes.</span>
           </div>
         </div>
       </div>
@@ -947,13 +947,13 @@
               <li>Entra en el panel de tu sitio WordPress y ve a <strong>Plugins → Añadir nuevo plugin</strong>.</li>
               <li>Busca <strong>MultiAI ChatBot</strong> o abre la <a href="https://wordpress.org/plugins/multiai-chatbot/" target="_blank" rel="noopener">página del plugin en WordPress.org</a>.</li>
               <li>Pulsa <strong>Instalar ahora</strong> y, cuando termine, <strong>Activar</strong>.</li>
-              <li>En el menú lateral aparecerá <strong>MultiAI ChatBot</strong>. En la pestaña <strong>AI Model</strong>, elige tu proveedor (WordPress AI, Google IA u Ollama).</li>
-              <li>Si usas <strong>WordPress AI</strong>, conecta tus proveedores en <strong>Ajustes → Connectors</strong> (WordPress 7.0+).</li>
+              <li>En el menú lateral aparecerá <strong>MultiAI ChatBot</strong>. En la pestaña <strong>Modelo de IA</strong>, elige tu proveedor (IA de WordPress, Google IA u Ollama).</li>
+              <li>Si usas <strong>IA de WordPress</strong>, conecta tus proveedores en <strong>Ajustes → Conectores</strong> (WordPress 7.0+).</li>
               <li>En la pestaña <strong>General</strong>, activa el widget, personaliza el mensaje de bienvenida y guarda los cambios.</li>
               <li>El chat aparecerá en tu sitio. También puedes insertarlo con el shortcode <code>[multch_widget]</code> en cualquier página.</li>
             </ol>
             <p style="margin-top:1.25rem;color:var(--muted);font-size:0.95rem;">
-              ¿Problemas con el streaming? Ve a <strong>Ajustes → Enlaces permanentes</strong> y pulsa Guardar cambios una vez.
+              ¿Problemas con la respuesta en streaming? Ve a <strong>Ajustes → Enlaces permanentes</strong> y pulsa Guardar cambios una vez.
             </p>
           </div>
           <div>
@@ -1037,7 +1037,7 @@
           <p>
             Plugin de WordPress que añade un widget de chat con IA configurable.
             Compatible con WordPress.org, GPL-2.0-or-later.
-            Las credenciales permanecen en el servidor; el frontend solo usa el nonce de WordPress.
+            Las credenciales permanecen en el servidor; la interfaz pública solo usa el nonce de WordPress.
           </p>
         </div>
         <div>
