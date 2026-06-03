@@ -1585,6 +1585,203 @@ button.multch-donation-footer__chip {
   margin: 0.5rem 0 0;
 }
 
+/* General tab (+ shared admin form) — mobile */
+@media (max-width: 782px) {
+  .multch-admin-wrap {
+    margin-top: 8px;
+  }
+
+  .multch-admin-header {
+    padding: 0.55rem 0.75rem;
+    gap: 0.5rem;
+  }
+
+  .multch-admin-header h1 {
+    font-size: 1rem;
+  }
+
+  .multch-admin-nav.nav-tab-wrapper {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin-bottom: 1rem;
+    padding: 0.3rem;
+    scrollbar-width: thin;
+  }
+
+  .multch-admin-nav .nav-tab {
+    flex: 0 0 auto;
+    margin: 0 0.1rem;
+    padding: 0.45rem 0.7rem;
+    font-size: 0.8125rem;
+    white-space: nowrap;
+  }
+
+  .multch-admin-layout--split {
+    gap: 1rem;
+  }
+
+  .multch-admin-layout--split > * {
+    min-width: 0;
+  }
+
+  .multch-admin-general-fields {
+    gap: 1rem;
+  }
+
+  .multch-admin-card__head {
+    padding: 0.75rem 0.85rem;
+  }
+
+  .multch-admin-card__head h2 {
+    font-size: 0.9375rem;
+  }
+
+  .multch-admin-card__head p {
+    margin-top: 0.2rem;
+    font-size: 0.75rem;
+    line-height: 1.35;
+  }
+
+  .multch-admin-card__body {
+    padding: 0.85rem;
+  }
+
+  .multch-admin-card__body .form-table,
+  .multch-admin-card__body .form-table tbody,
+  .multch-admin-card__body .form-table tr {
+    display: block;
+    width: 100%;
+  }
+
+  .multch-admin-card__body .form-table th,
+  .multch-admin-card__body .form-table td {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .multch-admin-card__body .form-table th {
+    padding: 0 0 0.35rem;
+    font-weight: 600;
+  }
+
+  .multch-admin-card__body .form-table td {
+    padding: 0 0 0.9rem;
+  }
+
+  .multch-admin-card__body .form-table tr:last-child td {
+    padding-bottom: 0;
+  }
+
+  .multch-admin-card__body .form-table tr:first-child th,
+  .multch-admin-card__body .form-table tr:first-child td {
+    padding-top: 0;
+  }
+
+  .multch-admin-card__body input.regular-text,
+  .multch-admin-card__body input.large-text,
+  .multch-admin-card__body input.code,
+  .multch-admin-card__body textarea.large-text,
+  .multch-admin-card__body select {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  .multch-admin-card__body .description {
+    overflow-wrap: anywhere;
+  }
+
+  .multch-admin-toggle {
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .multch-admin-toggle span {
+    line-height: 1.4;
+    word-break: break-word;
+  }
+
+  .multch-admin-embed-box {
+    margin-top: 0.65rem;
+    padding: 0.65rem 0.75rem;
+  }
+
+  .multch-admin-embed-box__row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.45rem;
+  }
+
+  .multch-admin-embed-box__row input {
+    flex: 1 1 auto;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .multch-admin-embed-box__row .button {
+    width: 100%;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .multch-admin-field-actions .button {
+    width: 100%;
+    text-align: center;
+  }
+
+  .multch-admin-preview-card {
+    position: static;
+  }
+
+  .multch-admin-preview__head {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.45rem;
+  }
+
+  .multch-admin-preview__head .button {
+    width: 100%;
+    text-align: center;
+  }
+
+  .multch-admin-preview__viewport {
+    min-height: 240px;
+    height: min(320px, 42vh);
+  }
+
+  .multch-admin-preview__hint {
+    font-size: 0.75rem;
+    line-height: 1.35;
+  }
+
+  .multch-admin-wrap form.multch-admin-form > .multch-admin-footer {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.6rem;
+    padding: 0.85rem 1rem;
+  }
+
+  .multch-admin-footer .button-primary {
+    width: 100%;
+    text-align: center;
+  }
+
+  .multch-admin-footer__hint {
+    text-align: center;
+    line-height: 1.35;
+  }
+}
+
+@media (max-width: 480px) {
+  .multch-admin-preview__viewport {
+    min-height: 200px;
+    height: min(280px, 38vh);
+  }
+}
+
 .multch-admin-preview__disabled-overlay {
   position: absolute;
   inset: 0;
