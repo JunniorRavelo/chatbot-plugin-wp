@@ -26,7 +26,7 @@ Multch_Chat_History::drop_tables();
 Multch_Telemetry::delete_plugin_transients();
 Multch_Telemetry::delete_upload_log_files();
 
-$options = array(
+$multch_options = array(
 	'multch_plugin_settings',
 	'multch_plugin_db_version',
 	'multch_plugin_telemetry_db_version',
@@ -38,21 +38,21 @@ $options = array(
 	'chatbot_plugin_history_db_version',
 );
 
-foreach ( $options as $option ) {
-	delete_option( $option );
+foreach ( $multch_options as $multch_option ) {
+	delete_option( $multch_option );
 }
 
 global $wpdb;
 
-$legacy_tables = array(
+$multch_legacy_tables = array(
 	$wpdb->prefix . 'chatbot_events',
 	$wpdb->prefix . 'chatbot_conversations',
 	$wpdb->prefix . 'chatbot_messages',
 );
 
-foreach ( $legacy_tables as $table ) {
+foreach ( $multch_legacy_tables as $multch_table ) {
 	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
-	$wpdb->query( $wpdb->prepare( 'DROP TABLE IF EXISTS %i', $table ) );
+	$wpdb->query( $wpdb->prepare( 'DROP TABLE IF EXISTS %i', $multch_table ) );
 }
 
 // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
