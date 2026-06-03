@@ -340,36 +340,100 @@
 
     .provider-card li { margin-bottom: 0.35rem; }
 
-    /* Themes */
-    .themes-grid {
+    /* Temas visuales (como en el admin: Tema visual) */
+    .theme-panel {
+      max-width: 720px;
+      margin-inline: auto;
+    }
+
+    .theme-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 0.85rem;
+      gap: 0.65rem;
+      margin-bottom: 1rem;
     }
 
-    .theme-swatch {
-      border-radius: 0.75rem;
-      overflow: hidden;
-      border: 1px solid var(--border);
-      transition: transform 0.15s ease;
-    }
-
-    .theme-swatch:hover { transform: scale(1.03); }
-
-    .theme-color {
-      height: 64px;
-    }
-
-    .theme-label {
-      padding: 0.55rem 0.75rem;
-      font-size: 0.82rem;
-      font-weight: 600;
+    .theme-card {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.35rem;
+      padding: 0.65rem 0.75rem;
+      border: 2px solid var(--border);
+      border-radius: 10px;
       background: var(--surface);
+      text-align: left;
+    }
+
+    section:nth-child(even) .theme-card {
+      background: var(--bg);
+    }
+
+    .theme-card.is-featured {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 1px var(--primary);
+    }
+
+    .theme-card__swatches {
+      display: flex;
+      gap: 0.25rem;
+      width: 100%;
+    }
+
+    .theme-card__swatch {
+      flex: 1;
+      height: 1.25rem;
+      border-radius: 4px;
+      border: 1px solid rgba(15, 23, 42, 0.12);
+    }
+
+    .theme-card__label {
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: var(--fg);
+    }
+
+    .theme-card__badge {
+      font-size: 0.6875rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      padding: 0.1rem 0.35rem;
+      border-radius: 4px;
+    }
+
+    .theme-card__badge--light {
+      background: #eff6ff;
+      color: #1d4ed8;
+    }
+
+    .theme-card__badge--dark {
+      background: #1e293b;
+      color: #e2e8f0;
+    }
+
+    .theme-card__badge--neutral {
+      background: #f4f4f5;
+      color: #52525b;
+    }
+
+    .theme-sample-desc {
+      margin: 0 0 1.25rem;
+      font-size: 0.9rem;
+      color: var(--muted);
       text-align: center;
     }
 
-    section:nth-child(even) .theme-label {
-      background: var(--bg);
+    .theme-extras {
+      margin: 0 0 1.5rem;
+      font-size: 0.875rem;
+      color: var(--muted);
+      text-align: center;
+      line-height: 1.65;
+    }
+
+    .theme-shortcode {
+      margin-top: 0;
     }
 
     /* Admin tabs */
@@ -668,7 +732,6 @@
       .hero-grid,
       .grid-3,
       .providers-grid,
-      .themes-grid,
       .install-steps,
       .admin-desc,
       .footer-grid,
@@ -676,9 +739,21 @@
         grid-template-columns: 1fr;
       }
 
+      .theme-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
       .hero { padding-top: 3rem; }
 
       .nav { display: none; }
+    }
+
+    @media (max-width: 420px) {
+      .theme-grid {
+        grid-template-columns: 1fr;
+        max-width: 220px;
+        margin-inline: auto;
+      }
     }
   </style>
 </head>
@@ -726,7 +801,7 @@
           <div class="hero-meta">
             <span><strong>GPL-2.0+</strong> · Código abierto</span>
             <span><strong>3</strong> proveedores de IA</span>
-            <span><strong>8</strong> temas visuales</span>
+            <span><strong>9</strong> temas visuales</span>
             <span>Traducción <strong>ES</strong></span>
           </div>
         </div>
@@ -753,8 +828,8 @@
           </article>
           <article class="card">
             <div class="card-icon" style="background:rgba(124,58,237,0.12);">🎨</div>
-            <h3>8 temas visuales</h3>
-            <p>Sapphire, Midnight, Obsidian, Monochrome, Aqua, Ember, Emerald, Amethyst y Plum. Colores, posición y radio personalizables.</p>
+            <h3>9 temas visuales</h3>
+            <p>Zafiro, Medianoche, Obsidiana, Monocromo, Aqua, Brasa, Esmeralda, Amatista y Ciruela. Colores, posición y radio personalizables.</p>
           </article>
           <article class="card">
             <div class="card-icon" style="background:rgba(5,150,105,0.12);">📊</div>
@@ -839,50 +914,101 @@
       <div class="container">
         <div class="section-header">
           <h2>Personaliza la apariencia</h2>
-          <p>8 plantillas con vista previa en vivo en el administrador. Exporta e importa temas JSON. Sobrescribe estilos con el shortcode.</p>
+          <p>Los mismos <strong>9 temas visuales</strong> que en el plugin, en <strong>MultiAI ChatBot → Estilo del chat → Tema visual</strong>.</p>
         </div>
 
-        <div class="themes-grid">
-          <div class="theme-swatch">
-            <div class="theme-color" style="background:linear-gradient(135deg,#2563eb,#6366f1);"></div>
-            <div class="theme-label">Sapphire <small>(predeterminado)</small></div>
+        <div class="theme-panel">
+          <div class="theme-grid" role="list" aria-label="Temas visuales disponibles">
+            <article class="theme-card is-featured" role="listitem" aria-label="Zafiro, tema predeterminado">
+              <span class="theme-card__swatches" aria-hidden="true">
+                <span class="theme-card__swatch" style="background:#2563eb"></span>
+                <span class="theme-card__swatch" style="background:#6366f1"></span>
+                <span class="theme-card__swatch" style="background:#ffffff"></span>
+              </span>
+              <span class="theme-card__label">Zafiro</span>
+              <span class="theme-card__badge theme-card__badge--light">Claro</span>
+            </article>
+            <article class="theme-card" role="listitem">
+              <span class="theme-card__swatches" aria-hidden="true">
+                <span class="theme-card__swatch" style="background:#38bdf8"></span>
+                <span class="theme-card__swatch" style="background:#a78bfa"></span>
+                <span class="theme-card__swatch" style="background:#0f172a"></span>
+              </span>
+              <span class="theme-card__label">Medianoche</span>
+              <span class="theme-card__badge theme-card__badge--dark">Oscuro</span>
+            </article>
+            <article class="theme-card" role="listitem">
+              <span class="theme-card__swatches" aria-hidden="true">
+                <span class="theme-card__swatch" style="background:#34d399"></span>
+                <span class="theme-card__swatch" style="background:#2dd4bf"></span>
+                <span class="theme-card__swatch" style="background:#0c1117"></span>
+              </span>
+              <span class="theme-card__label">Obsidiana</span>
+              <span class="theme-card__badge theme-card__badge--dark">Oscuro</span>
+            </article>
+            <article class="theme-card" role="listitem">
+              <span class="theme-card__swatches" aria-hidden="true">
+                <span class="theme-card__swatch" style="background:#27272a"></span>
+                <span class="theme-card__swatch" style="background:#71717a"></span>
+                <span class="theme-card__swatch" style="background:#ffffff"></span>
+              </span>
+              <span class="theme-card__label">Monocromo</span>
+              <span class="theme-card__badge theme-card__badge--neutral">Neutro</span>
+            </article>
+            <article class="theme-card" role="listitem">
+              <span class="theme-card__swatches" aria-hidden="true">
+                <span class="theme-card__swatch" style="background:#0e7490"></span>
+                <span class="theme-card__swatch" style="background:#22d3ee"></span>
+                <span class="theme-card__swatch" style="background:#f0fdff"></span>
+              </span>
+              <span class="theme-card__label">Aqua</span>
+              <span class="theme-card__badge theme-card__badge--light">Claro</span>
+            </article>
+            <article class="theme-card" role="listitem">
+              <span class="theme-card__swatches" aria-hidden="true">
+                <span class="theme-card__swatch" style="background:#ea580c"></span>
+                <span class="theme-card__swatch" style="background:#f43f5e"></span>
+                <span class="theme-card__swatch" style="background:#fff7ed"></span>
+              </span>
+              <span class="theme-card__label">Brasa</span>
+              <span class="theme-card__badge theme-card__badge--light">Claro</span>
+            </article>
+            <article class="theme-card" role="listitem">
+              <span class="theme-card__swatches" aria-hidden="true">
+                <span class="theme-card__swatch" style="background:#059669"></span>
+                <span class="theme-card__swatch" style="background:#34d399"></span>
+                <span class="theme-card__swatch" style="background:#ecfdf5"></span>
+              </span>
+              <span class="theme-card__label">Esmeralda</span>
+              <span class="theme-card__badge theme-card__badge--light">Claro</span>
+            </article>
+            <article class="theme-card" role="listitem">
+              <span class="theme-card__swatches" aria-hidden="true">
+                <span class="theme-card__swatch" style="background:#7c3aed"></span>
+                <span class="theme-card__swatch" style="background:#a855f7"></span>
+                <span class="theme-card__swatch" style="background:#faf5ff"></span>
+              </span>
+              <span class="theme-card__label">Amatista</span>
+              <span class="theme-card__badge theme-card__badge--light">Claro</span>
+            </article>
+            <article class="theme-card" role="listitem">
+              <span class="theme-card__swatches" aria-hidden="true">
+                <span class="theme-card__swatch" style="background:#c084fc"></span>
+                <span class="theme-card__swatch" style="background:#e879f9"></span>
+                <span class="theme-card__swatch" style="background:#1e1b4b"></span>
+              </span>
+              <span class="theme-card__label">Ciruela</span>
+              <span class="theme-card__badge theme-card__badge--dark">Oscuro</span>
+            </article>
           </div>
-          <div class="theme-swatch">
-            <div class="theme-color" style="background:linear-gradient(135deg,#1e293b,#334155);"></div>
-            <div class="theme-label">Midnight</div>
-          </div>
-          <div class="theme-swatch">
-            <div class="theme-color" style="background:linear-gradient(135deg,#0f0f0f,#262626);"></div>
-            <div class="theme-label">Obsidian</div>
-          </div>
-          <div class="theme-swatch">
-            <div class="theme-color" style="background:linear-gradient(135deg,#fafafa,#e5e5e5);"></div>
-            <div class="theme-label">Monochrome</div>
-          </div>
-          <div class="theme-swatch">
-            <div class="theme-color" style="background:linear-gradient(135deg,#0891b2,#06b6d4);"></div>
-            <div class="theme-label">Aqua</div>
-          </div>
-          <div class="theme-swatch">
-            <div class="theme-color" style="background:linear-gradient(135deg,#ea580c,#f97316);"></div>
-            <div class="theme-label">Ember</div>
-          </div>
-          <div class="theme-swatch">
-            <div class="theme-color" style="background:linear-gradient(135deg,#059669,#10b981);"></div>
-            <div class="theme-label">Emerald</div>
-          </div>
-          <div class="theme-swatch">
-            <div class="theme-color" style="background:linear-gradient(135deg,#7c3aed,#a78bfa);"></div>
-            <div class="theme-label">Amethyst</div>
-          </div>
-          <div class="theme-swatch">
-            <div class="theme-color" style="background:linear-gradient(135deg,#9333ea,#c026d3);"></div>
-            <div class="theme-label">Plum</div>
-          </div>
-        </div>
 
-        <div style="margin-top:2rem;">
-          <pre class="code-block"><span class="comment">// Shortcode con estilo personalizado (atributos en inglés)</span>
+          <p class="theme-sample-desc">Azul índigo con violeta suave — el tema <strong>Zafiro</strong> viene seleccionado por defecto.</p>
+
+          <p class="theme-extras">
+            Vista previa en vivo · Exportar e importar JSON · Colores y posición personalizables · Shortcode <code>[multch_widget]</code>
+          </p>
+
+          <pre class="code-block theme-shortcode"><span class="comment">// Shortcode (atributos en inglés)</span>
 [multch_widget preset=<span class="string">"ocean"</span> position=<span class="string">"bottom-left"</span>]
 [multch_widget mode=<span class="string">"inline"</span> primary=<span class="string">"#059669"</span>]</pre>
         </div>
