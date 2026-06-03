@@ -5,12 +5,49 @@
     welcome:
       "Hola. Soy un agente de IA. Puedo cometer errores; verifique la información importante antes de tomar decisiones. ¿En qué puedo ayudarle?",
     welcomeMeta: "Mensaje de bienvenida",
-    userQuestion: "¿Cuál es su horario de atención?",
-    assistantReply: "Estamos abiertos de lunes a viernes, de 9:00 a 18:00.",
-    assistantMeta:
-      "gemini-3.5-flash (la API usó este; respaldo configurado: gemini-3.1-flash-lite)",
     placeholder: "Escribe tu mensaje…",
   };
+
+  var DEMO_SCENARIOS = [
+    {
+      question: "¿Cuál es su horario de atención?",
+      reply: "Estamos abiertos de lunes a viernes, de 9:00 a 18:00.",
+      meta: "gemini-3.5-flash (la API usó este; respaldo configurado: gemini-3.1-flash-lite)",
+    },
+    {
+      question: "¿Se integra con mi sitio WordPress?",
+      reply:
+        "Sí. Activa el widget global desde el panel o inserta el shortcode en cualquier página o entrada.",
+      meta: "gemini-3.1-flash-lite",
+    },
+    {
+      question: "¿Qué proveedores de IA admite?",
+      reply:
+        "Puede usar WordPress AI, Google Gemini u Ollama local; el plugin enruta la conversación al conector configurado.",
+      meta: "gemini-3.5-flash",
+    },
+    {
+      question: "¿Puedo cambiar el aspecto del chat?",
+      reply:
+        "Sí. Hay varios temas visuales, colores personalizables y posición del botón flotante desde Ajustes.",
+      meta: "gemini-3.5-flash (respaldo: gemini-3.1-flash-lite)",
+    },
+    {
+      question: "¿Las respuestas se transmiten en tiempo real?",
+      reply:
+        "Sí. Las respuestas pueden mostrarse en streaming, igual que en un chat en vivo.",
+      meta: "gemini-3.1-flash-lite (respaldo: gemini-3.5-flash)",
+    },
+    {
+      question: "¿Guarda el historial de conversaciones?",
+      reply:
+        "Opcionalmente. Puede activar el historial en el panel para revisar sesiones anteriores y estadísticas.",
+      meta: "gemini-3.5-flash",
+    },
+  ];
+
+  var AUTO_LOOP_PAUSE_MS = 4800;
+  var RESET_PULSE_MS = 620;
 
   var ROBOT_SVG =
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">' +
@@ -139,13 +176,15 @@
     );
   }
 
-  function createDemoRunner(panel, wrap) {
+  function createDemoRunner(panel, wrap, isPanelOpen) {
     var messagesEl = panel.querySelector(".maicb-messages");
     var input = panel.querySelector(".maicb-input");
     var composerInner = panel.querySelector(".maicb-composer-inner");
     var resetBtn = panel.querySelector(".maicb-reset");
     var generation = 0;
-    var busy = false;
+    var scenarioIndex = 0;
+    var autoLoopTimer = null;
+    var resetPulseTimer = null;
 
     function scrollMessages() {
       if (!messagesEl) return;
@@ -162,8 +201,22 @@
       }
     }
 
+    function clearAutoLoopTimer() {
+      if (autoLoopTimer !== null) {
+        window.clearTimeout(autoLoopTimer);
+        autoLoopTimer = null;
+      }
+    }
+
+    function getScenario() {
+      return DEMO_SCENARIOS[scenarioIndex % DEMO_SCENARIOS.length];
+    }
+
+    function advanceScenario() {
+      scenarioIndex = (scenarioIndex + 1) % DEMO_SCENARIOS.length;
+    }
+
     function setBusy(on) {
-      busy = on;
       wrap.classList.toggle("maicb-hero-preview--demo-busy", on);
       if (resetBtn) {
         resetBtn.disabled = on;
@@ -185,6 +238,20 @@
           resolve(!isCancelled(gen));
         }, ms);
       });
+    }
+
+    function pulseResetButton() {
+      if (!resetBtn) return;
+      resetBtn.classList.remove("maicb-hero-reset-pulse");
+      void resetBtn.offsetWidth;
+      resetBtn.classList.add("maicb-hero-reset-pulse");
+      if (resetPulseTimer !== null) {
+        window.clearTimeout(resetPulseTimer);
+      }
+      resetPulseTimer = window.setTimeout(function () {
+        resetBtn.classList.remove("maicb-hero-reset-pulse");
+        resetPulseTimer = null;
+      }, RESET_PULSE_MS);
     }
 
     function typeIntoInput(text, gen) {
@@ -224,11 +291,22 @@
       });
     }
 
+    function scheduleAutoLoop(gen) {
+      clearAutoLoopTimer();
+      autoLoopTimer = window.setTimeout(function () {
+        autoLoopTimer = null;
+        if (isCancelled(gen) || !isPanelOpen()) return;
+        autoRestart();
+      }, AUTO_LOOP_PAUSE_MS);
+    }
+
     async function runSequence() {
       if (!messagesEl || !input) return;
 
+      clearAutoLoopTimer();
       generation += 1;
       var gen = generation;
+      var scenario = getScenario();
       setBusy(true);
 
       messagesEl.innerHTML = "";
@@ -241,11 +319,11 @@
 
       if (!(await wait(900, gen))) return;
 
-      if (!(await typeIntoInput(COPY.userQuestion, gen))) return;
+      if (!(await typeIntoInput(scenario.question, gen))) return;
       if (!(await wait(450, gen))) return;
 
       clearComposer();
-      messagesEl.appendChild(createMessageRow("user", COPY.userQuestion, ""));
+      messagesEl.appendChild(createMessageRow("user", scenario.question, ""));
       scrollMessages();
 
       if (!(await wait(500, gen))) return;
@@ -261,19 +339,34 @@
       }
 
       messagesEl.appendChild(
-        createMessageRow("assistant", COPY.assistantReply, COPY.assistantMeta)
+        createMessageRow("assistant", scenario.reply, scenario.meta)
       );
       scrollMessages();
 
-      if (!isCancelled(gen)) {
-        setBusy(false);
-      }
+      if (isCancelled(gen)) return;
+
+      advanceScenario();
+      setBusy(false);
+      scheduleAutoLoop(gen);
     }
 
     function cancel() {
       generation += 1;
+      clearAutoLoopTimer();
       setBusy(false);
       clearComposer();
+    }
+
+    function autoRestart() {
+      if (!isPanelOpen()) return;
+      pulseResetButton();
+      generation += 1;
+      setBusy(false);
+      clearComposer();
+      window.setTimeout(function () {
+        if (!isPanelOpen()) return;
+        runSequence();
+      }, RESET_PULSE_MS);
     }
 
     function restart() {
@@ -289,7 +382,13 @@
     var panel = wrap.querySelector(".maicb-panel");
     if (!launcher || !panel) return;
 
-    var demo = createDemoRunner(panel, wrap);
+    var panelOpen = true;
+
+    function isPanelOpen() {
+      return panelOpen;
+    }
+
+    var demo = createDemoRunner(panel, wrap, isPanelOpen);
     var input = panel.querySelector(".maicb-input");
 
     if (input) {
@@ -302,6 +401,7 @@
     }
 
     function setOpen(open) {
+      panelOpen = open;
       panel.hidden = !open;
       launcher.hidden = open;
       wrap.setAttribute("data-panel-open", open ? "true" : "false");
@@ -314,6 +414,8 @@
       );
       if (open) {
         demo.runSequence();
+      } else {
+        demo.cancel();
       }
     }
 
@@ -322,12 +424,10 @@
     });
 
     panel.querySelector(".maicb-minimize").addEventListener("click", function () {
-      demo.cancel();
       setOpen(false);
     });
 
     panel.querySelector(".maicb-close").addEventListener("click", function () {
-      demo.cancel();
       setOpen(false);
     });
 

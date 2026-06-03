@@ -169,6 +169,47 @@
   cursor: wait;
 }
 
+@keyframes maicb-hero-reset-click {
+  0% {
+    transform: scale(1);
+    background: color-mix(in srgb, var(--maicb-card) 88%, var(--maicb-primary) 4%);
+    color: var(--maicb-muted);
+  }
+
+  40% {
+    transform: scale(0.9);
+    background: color-mix(in srgb, var(--maicb-primary) 22%, transparent);
+    border-color: color-mix(in srgb, var(--maicb-primary) 45%, transparent);
+    color: var(--maicb-primary);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--maicb-primary) 18%, transparent);
+  }
+
+  100% {
+    transform: scale(1);
+    background: color-mix(in srgb, var(--maicb-card) 88%, var(--maicb-primary) 4%);
+    color: var(--maicb-muted);
+    box-shadow: none;
+  }
+}
+
+@keyframes maicb-hero-reset-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(-360deg);
+  }
+}
+
+.hero-widget-host #multch-style-preview .maicb-reset.maicb-hero-reset-pulse {
+  animation: maicb-hero-reset-click 0.62s ease;
+}
+
+.hero-widget-host #multch-style-preview .maicb-reset.maicb-hero-reset-pulse svg {
+  animation: maicb-hero-reset-spin 0.62s ease;
+}
+
 .hero-widget-host #multch-style-preview .maicb-hero-thinking-row .maicb-thinking {
   min-height: 2.25rem;
 }
