@@ -101,13 +101,21 @@
 			return;
 		}
 
-		var dock = form.querySelector('.multch-admin-footer--dock');
+		var wrap = form.closest('.multch-admin-wrap');
+		var dock = wrap ? wrap.querySelector('.multch-admin-save-dock') : null;
 		var topStatus = form.querySelector('.multch-admin-save-bar--top .multch-admin-save-bar__status');
+		var dockStatus = wrap ? wrap.querySelector('.multch-admin-save-dock__status') : null;
 
 		function markDirty() {
 			form.classList.add('is-dirty');
+			if (wrap) {
+				wrap.classList.add('is-dirty');
+			}
 			if (topStatus) {
 				topStatus.hidden = false;
+			}
+			if (dockStatus) {
+				dockStatus.hidden = false;
 			}
 		}
 
@@ -125,26 +133,20 @@
 			}
 		});
 
-		if (!dock) {
+		if (!dock || !wrap) {
 			return;
 		}
 
-		var spacer = document.createElement('div');
-		spacer.className = 'multch-admin-footer-spacer';
-		spacer.setAttribute('aria-hidden', 'true');
-		dock.parentNode.insertBefore(spacer, dock);
-
 		function layoutDock() {
-			var anchor = document.getElementById('wpbody-content') || form.closest('.wrap') || form;
+			var anchor = document.getElementById('wpbody-content') || wrap;
 			var rect = anchor.getBoundingClientRect();
 
 			dock.style.left = rect.left + 'px';
 			dock.style.width = rect.width + 'px';
-			spacer.style.height = dock.offsetHeight + 'px';
+			wrap.style.setProperty('--multch-dock-h', dock.offsetHeight + 'px');
 		}
 
-		dock.classList.add('is-docked');
-		form.classList.add('is-dock-active');
+		wrap.classList.add('is-dock-active');
 		layoutDock();
 
 		window.addEventListener('resize', layoutDock);

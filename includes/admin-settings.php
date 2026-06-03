@@ -1565,7 +1565,7 @@ class Multch_Admin_Settings {
 					?>
 				</div>
 			<?php else : ?>
-				<form method="post" action="options.php" class="multch-admin-form">
+				<form method="post" action="options.php" class="multch-admin-form" id="multch-admin-settings-form">
 					<?php settings_fields( 'multch_plugin_group' ); ?>
 					<input type="hidden" name="multch_admin_tab" value="<?php echo esc_attr( $tab ); ?>" />
 
@@ -1582,16 +1582,9 @@ class Multch_Admin_Settings {
 							<?php self::render_style_fields( $settings ); ?>
 						<?php endif; ?>
 					</div>
-
-					<div
-						class="multch-admin-form-divider"
-						role="presentation"
-						aria-hidden="true"
-						style="display:block;height:1.25rem;min-height:1.25rem;margin-top:1rem;border-top:1px solid #e2e8f0;box-sizing:border-box;"
-					></div>
-
-					<?php self::render_admin_save_bar( 'dock' ); ?>
 				</form>
+
+				<?php self::render_admin_save_bar( 'dock' ); ?>
 			<?php endif; ?>
 
 			<?php Multch_Donation_Footer::render(); ?>
@@ -1607,34 +1600,65 @@ class Multch_Admin_Settings {
 	 */
 	private static function render_admin_save_bar( string $variant ): void {
 		$is_top = 'top' === $variant;
-		$classes = $is_top
-			? 'multch-admin-save-bar multch-admin-save-bar--top'
-			: 'multch-admin-save-bar multch-admin-footer multch-admin-footer--dock';
 
-		$button_id = $is_top ? 'multch-submit-top' : 'multch-submit-bottom';
-		?>
-		<div
-			class="<?php echo esc_attr( $classes ); ?>"
-			role="region"
-			aria-label="<?php esc_attr_e( 'Save settings', 'multiai-chatbot' ); ?>"
-		>
-			<?php if ( $is_top ) : ?>
+		if ( $is_top ) {
+			?>
+			<div
+				class="multch-admin-save-bar multch-admin-save-bar--top"
+				role="region"
+				aria-label="<?php esc_attr_e( 'Save settings', 'multiai-chatbot' ); ?>"
+			>
 				<span class="multch-admin-save-bar__status" hidden>
 					<?php esc_html_e( 'Unsaved changes', 'multiai-chatbot' ); ?>
 				</span>
-			<?php endif; ?>
+				<?php
+				submit_button(
+					__( 'Save changes', 'multiai-chatbot' ),
+					'primary',
+					'submit',
+					false,
+					array( 'id' => 'multch-submit-top' )
+				);
+				?>
+				<span class="multch-admin-footer__hint multch-admin-save-bar__hint">
+					<?php esc_html_e( 'Changes apply immediately on the public site.', 'multiai-chatbot' ); ?>
+				</span>
+			</div>
 			<?php
-			submit_button(
-				__( 'Save changes', 'multiai-chatbot' ),
-				'primary',
-				'submit',
-				false,
-				array( 'id' => $button_id )
-			);
-			?>
-			<span class="multch-admin-footer__hint multch-admin-save-bar__hint">
-				<?php esc_html_e( 'Changes apply immediately on the public site.', 'multiai-chatbot' ); ?>
-			</span>
+			return;
+		}
+
+		?>
+		<div
+			class="multch-admin-save-dock"
+			role="region"
+			aria-label="<?php esc_attr_e( 'Save settings', 'multiai-chatbot' ); ?>"
+			aria-live="polite"
+		>
+			<div class="multch-admin-save-dock__inner">
+				<p class="multch-admin-save-dock__meta">
+					<span class="multch-admin-save-dock__status" hidden>
+						<?php esc_html_e( 'Unsaved changes', 'multiai-chatbot' ); ?>
+					</span>
+					<span class="multch-admin-save-dock__shortcut" aria-hidden="true">
+						<?php esc_html_e( 'Ctrl+S to save', 'multiai-chatbot' ); ?>
+					</span>
+				</p>
+				<div class="multch-admin-save-dock__actions">
+					<?php
+					submit_button(
+						__( 'Save changes', 'multiai-chatbot' ),
+						'primary',
+						'submit',
+						false,
+						array(
+							'id'   => 'multch-submit-bottom',
+							'form' => 'multch-admin-settings-form',
+						)
+					);
+					?>
+				</div>
+			</div>
 		</div>
 		<?php
 	}

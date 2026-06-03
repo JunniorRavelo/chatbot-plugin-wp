@@ -557,54 +557,135 @@
   display: none !important;
 }
 
-.multch-admin-form.is-dirty .multch-admin-save-bar__status {
+.multch-admin-wrap.is-dirty .multch-admin-save-bar__status {
   display: block !important;
 }
 
-.multch-admin-form.is-dirty .multch-admin-save-bar .button-primary {
+.multch-admin-wrap.is-dirty .multch-admin-save-bar--top .button-primary,
+.multch-admin-wrap.is-dirty .multch-admin-save-dock .button-primary {
   box-shadow:
     0 0 0 2px rgba(37, 99, 235, 0.2),
     0 2px 10px rgba(37, 99, 235, 0.35);
 }
 
-.multch-admin-footer--dock.is-docked {
+/* Fixed save dock (bottom) */
+.multch-admin-save-dock {
   position: fixed;
   bottom: 0;
   z-index: 100;
   margin: 0;
-  border-radius: var(--cb-admin-radius) var(--cb-admin-radius) 0 0;
-  border-bottom: none;
-  box-shadow: 0 -8px 28px rgba(15, 23, 42, 0.12);
+  padding: 0;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  box-sizing: border-box;
 }
 
-.multch-admin-footer-spacer {
+.multch-admin-save-dock__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 1rem;
+  padding: 0.55rem 1rem;
+  padding-bottom: max(0.55rem, env(safe-area-inset-bottom, 0px));
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-top: 1px solid rgba(226, 232, 240, 0.95);
+  box-shadow: 0 -6px 22px rgba(15, 23, 42, 0.1);
+}
+
+.multch-admin-save-dock__meta {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+  margin: 0;
+}
+
+.multch-admin-save-dock__status {
+  display: none;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--cb-admin-warning);
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.multch-admin-save-dock__status::before {
+  content: "";
   flex-shrink: 0;
-  height: 0;
-  pointer-events: none;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.2);
 }
 
-.multch-admin-wrap:has(form.multch-admin-form) .multch-donation-footer {
-  margin-bottom: 0.5rem;
+.multch-admin-wrap.is-dirty .multch-admin-save-dock__status {
+  display: inline-flex;
 }
 
-.multch-admin-wrap:has(form.multch-admin-form.is-dock-active) .multch-donation-footer {
-  margin-bottom: 5.5rem;
+.multch-admin-save-dock__shortcut {
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: var(--cb-admin-muted);
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.multch-admin-wrap.is-dirty .multch-admin-save-dock__shortcut {
+  display: none;
+}
+
+.multch-admin-save-dock__actions {
+  flex: 0 0 auto;
+}
+
+.multch-admin-save-dock__actions .submit {
+  margin: 0;
+  padding: 0;
+}
+
+.multch-admin-save-dock__actions .button-primary {
+  min-height: 40px;
+  margin: 0;
+  padding: 0 1.35rem;
+  font-size: 0.875rem;
+  line-height: 1.2;
+}
+
+.multch-admin-wrap.is-dock-active {
+  padding-bottom: var(--multch-dock-h, 0);
+}
+
+.multch-admin-wrap.is-dock-active .multch-admin-form .multch-admin-body {
+  padding-bottom: 0.75rem;
 }
 
 .multch-admin-save-bar .button-primary,
-.multch-admin-footer .button-primary {
+.multch-admin-save-dock .button-primary {
   background: linear-gradient(135deg, var(--cb-admin-primary), var(--cb-admin-primary-dark));
   border-color: var(--cb-admin-primary-dark);
-  border-radius: 8px;
+  border-radius: 10px;
   padding: 0.35rem 1.25rem;
   font-weight: 600;
-  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.28);
+  transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease;
 }
 
 .multch-admin-save-bar .button-primary:hover,
-.multch-admin-footer .button-primary:hover {
+.multch-admin-save-dock .button-primary:hover {
   background: var(--cb-admin-primary-dark);
   border-color: var(--cb-admin-primary-dark);
+}
+
+.multch-admin-save-dock .button-primary:active {
+  transform: translateY(1px);
 }
 
 .multch-admin-footer__hint,
@@ -1823,35 +1904,61 @@ button.multch-donation-footer__chip {
 
   .multch-admin-save-bar--top {
     top: 8px;
-  }
-
-  .multch-admin-save-bar,
-  .multch-admin-footer--dock.is-docked {
     flex-direction: column;
     align-items: stretch;
     gap: 0.5rem;
     padding: 0.65rem 0.85rem;
   }
 
-  .multch-admin-save-bar .button-primary,
-  .multch-admin-footer--dock .button-primary {
+  .multch-admin-save-bar--top .button-primary {
     width: 100%;
     text-align: center;
+    min-height: 44px;
   }
 
-  .multch-admin-save-bar__hint,
-  .multch-admin-footer__hint {
+  .multch-admin-save-bar--top .multch-admin-save-bar__hint {
     flex: none;
     text-align: center;
     line-height: 1.35;
   }
 
-  .multch-admin-save-bar__status {
+  .multch-admin-save-bar--top .multch-admin-save-bar__status {
     text-align: center;
   }
 
-  .multch-admin-wrap:has(form.multch-admin-form.is-dock-active) .multch-donation-footer {
-    margin-bottom: 6.5rem;
+  .multch-admin-save-dock__inner {
+    padding: 0.5rem 0.75rem;
+    padding-bottom: max(0.5rem, env(safe-area-inset-bottom, 0px));
+    gap: 0.5rem;
+  }
+
+  .multch-admin-save-dock__shortcut {
+    display: none;
+  }
+
+  .multch-admin-save-dock__actions {
+    flex: 1 1 auto;
+    min-width: 0;
+    width: 100%;
+  }
+
+  .multch-admin-save-dock__actions .button-primary {
+    width: 100%;
+    min-height: 44px;
+    text-align: center;
+  }
+
+  .multch-admin-wrap.is-dirty .multch-admin-save-dock__inner {
+    flex-wrap: wrap;
+  }
+
+  .multch-admin-wrap.is-dirty .multch-admin-save-dock__meta {
+    flex: 1 1 100%;
+    justify-content: center;
+  }
+
+  .multch-admin-wrap.is-dirty .multch-admin-save-dock__actions {
+    flex: 1 1 100%;
   }
 }
 
