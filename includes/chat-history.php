@@ -337,8 +337,15 @@ class Multch_Chat_History {
 
 		$provider = isset( $args['provider'] ) ? sanitize_key( (string) $args['provider'] ) : '';
 		if ( '' !== $provider && 'all' !== $provider ) {
-			$where[]  = "{$alias}.provider = %s";
-			$params[] = $provider;
+			if ( 'wordpress_ai' === $provider ) {
+				$wp_providers = array_merge( array( 'wordpress_ai' ), multch_legacy_cloud_provider_ids() );
+				$placeholders = implode( ', ', array_fill( 0, count( $wp_providers ), '%s' ) );
+				$where[]      = "{$alias}.provider IN ({$placeholders})";
+				$params       = array_merge( $params, $wp_providers );
+			} else {
+				$where[]  = "{$alias}.provider = %s";
+				$params[] = $provider;
+			}
 		}
 
 		$status = isset( $args['status'] ) ? sanitize_key( (string) $args['status'] ) : '';

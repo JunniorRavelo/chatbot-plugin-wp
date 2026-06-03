@@ -3808,15 +3808,23 @@ class Multch_Admin_Settings {
 			? max( 0, min( 365, (int) $_GET['days'] ) )
 			: 30;
 
+		$provider = isset( $_GET['provider'] ) ? sanitize_key( wp_unslash( (string) $_GET['provider'] ) ) : 'all';
+		if ( in_array( $provider, multch_legacy_cloud_provider_ids(), true ) ) {
+			$provider = 'wordpress_ai';
+		}
+		if ( ! in_array( $provider, array( 'all', 'wordpress_ai', 'ollama' ), true ) ) {
+			$provider = 'all';
+		}
+
 		return array(
 			'days'       => $days > 0 ? $days : 0,
 			'search'     => isset( $_GET['s'] ) ? sanitize_text_field( wp_unslash( (string) $_GET['s'] ) ) : '',
 			'search_in'  => isset( $_GET['search_in'] ) ? sanitize_key( wp_unslash( (string) $_GET['search_in'] ) ) : 'all',
-			'provider'   => isset( $_GET['provider'] ) ? sanitize_key( wp_unslash( (string) $_GET['provider'] ) ) : 'all',
+			'provider'   => $provider,
 			'status'     => isset( $_GET['status'] ) ? sanitize_key( wp_unslash( (string) $_GET['status'] ) ) : 'all',
 			'page_path'  => isset( $_GET['page_path'] ) ? sanitize_text_field( wp_unslash( (string) $_GET['page_path'] ) ) : 'all',
-			'orderby'    => isset( $_GET['orderby'] ) && 'started_at' === $_GET['orderby'] ? 'started_at' : 'updated_at',
-			'order'      => isset( $_GET['order'] ) && 'asc' === $_GET['order'] ? 'asc' : 'desc',
+			'orderby'    => 'updated_at',
+			'order'      => 'desc',
 		);
 		// phpcs:enable WordPress.Security.NonceVerification.Recommended
 	}
@@ -3895,8 +3903,6 @@ class Multch_Admin_Settings {
 		$search  = (string) $filters['search'];
 		$provider = (string) $filters['provider'];
 		$status  = (string) $filters['status'];
-		$orderby = (string) $filters['orderby'];
-		$order   = (string) $filters['order'];
 
 		if ( $expanded_id > 0 ) {
 			$target_conv = Multch_Chat_History::get_conversation( $expanded_id );
@@ -4114,11 +4120,8 @@ class Multch_Admin_Settings {
 						<label for="multch-history-provider"><?php esc_html_e( 'Provider', 'multiai-chatbot' ); ?></label>
 						<select id="multch-history-provider" name="provider">
 							<option value="all"<?php selected( $provider, 'all' ); ?>><?php esc_html_e( 'All', 'multiai-chatbot' ); ?></option>
-							<option value="wordpress_ai"<?php selected( $provider, 'wordpress_ai' ); ?>><?php esc_html_e( 'WordPress AI', 'multiai-chatbot' ); ?></option>
-							<option value="gemini"<?php selected( $provider, 'gemini' ); ?>>Gemini</option>
-							<option value="deepseek"<?php selected( $provider, 'deepseek' ); ?>>DeepSeek</option>
+							<option value="wordpress_ai"<?php selected( $provider, 'wordpress_ai' ); ?>><?php esc_html_e( 'WordPress AI (Connectors)', 'multiai-chatbot' ); ?></option>
 							<option value="ollama"<?php selected( $provider, 'ollama' ); ?>>Ollama</option>
-							<option value="openai_compatible"<?php selected( $provider, 'openai_compatible' ); ?>>OpenAI-compatible</option>
 						</select>
 					</div>
 					<div class="multch-admin-history-filters__field">
@@ -4129,20 +4132,6 @@ class Multch_Admin_Settings {
 							<option value="success"<?php selected( $status, 'success' ); ?>><?php esc_html_e( 'Success', 'multiai-chatbot' ); ?></option>
 							<option value="error"<?php selected( $status, 'error' ); ?>><?php esc_html_e( 'Error', 'multiai-chatbot' ); ?></option>
 							<option value="cached"<?php selected( $status, 'cached' ); ?>><?php esc_html_e( 'Cached', 'multiai-chatbot' ); ?></option>
-						</select>
-					</div>
-					<div class="multch-admin-history-filters__field">
-						<label for="multch-history-orderby"><?php esc_html_e( 'Sort by', 'multiai-chatbot' ); ?></label>
-						<select id="multch-history-orderby" name="orderby">
-							<option value="updated_at"<?php selected( $orderby, 'updated_at' ); ?>><?php esc_html_e( 'Last activity', 'multiai-chatbot' ); ?></option>
-							<option value="started_at"<?php selected( $orderby, 'started_at' ); ?>><?php esc_html_e( 'Start', 'multiai-chatbot' ); ?></option>
-						</select>
-					</div>
-					<div class="multch-admin-history-filters__field">
-						<label for="multch-history-order"><?php esc_html_e( 'Direction', 'multiai-chatbot' ); ?></label>
-						<select id="multch-history-order" name="order">
-							<option value="desc"<?php selected( $order, 'desc' ); ?>><?php esc_html_e( 'Newest first', 'multiai-chatbot' ); ?></option>
-							<option value="asc"<?php selected( $order, 'asc' ); ?>><?php esc_html_e( 'Oldest first', 'multiai-chatbot' ); ?></option>
 						</select>
 					</div>
 					<div class="multch-admin-history-filters__actions">
@@ -4343,6 +4332,7 @@ private static function render_history_card( array $item, bool $expanded = false
 	$title      = (string) ( $item['title'] ?? '' );
 	$status     = (string) ( $item['status'] ?? '' );
 	$provider   = (string) ( $item['provider'] ?? '' );
+	$provider   = self::normalize_history_provider_id( $provider );
 	$model      = (string) ( $item['model'] ?? '' );
 	$msg_count  = (int) ( $item['message_count'] ?? 0 );
 	$page_path  = (string) ( $item['page_path'] ?? '' );
@@ -4771,13 +4761,19 @@ private static function format_history_status_label( string $status ): string {
 	return $labels[ $status ] ?? $status;
 }
 
+private static function normalize_history_provider_id( string $provider ): string {
+	if ( in_array( $provider, multch_legacy_cloud_provider_ids(), true ) ) {
+		return 'wordpress_ai';
+	}
+
+	return $provider;
+}
+
 private static function format_history_provider_label( string $provider, string $model = '' ): string {
-	$labels = array(
-		'wordpress_ai'      => __( 'WordPress AI', 'multiai-chatbot' ),
-		'gemini'            => 'Gemini',
-		'deepseek'          => 'DeepSeek',
-		'ollama'            => 'Ollama',
-		'openai_compatible' => 'OpenAI-compatible',
+	$provider = self::normalize_history_provider_id( $provider );
+	$labels   = array(
+		'wordpress_ai' => __( 'WordPress AI (Connectors)', 'multiai-chatbot' ),
+		'ollama'       => 'Ollama',
 	);
 
 	$label = $labels[ $provider ] ?? $provider;
@@ -4789,24 +4785,20 @@ private static function format_history_provider_label( string $provider, string 
 }
 
 private static function format_history_provider_name( string $provider ): string {
-	$labels = array(
-		'wordpress_ai'      => __( 'WordPress AI', 'multiai-chatbot' ),
-		'gemini'            => 'Gemini',
-		'deepseek'          => 'DeepSeek',
-		'ollama'            => 'Ollama',
-		'openai_compatible' => 'OpenAI-compatible',
+	$provider = self::normalize_history_provider_id( $provider );
+	$labels   = array(
+		'wordpress_ai' => __( 'WordPress AI', 'multiai-chatbot' ),
+		'ollama'       => 'Ollama',
 	);
 
 	return $labels[ $provider ] ?? $provider;
 }
 
 private static function format_history_provider_avatar( string $provider ): string {
-	$labels = array(
-		'wordpress_ai'      => 'WP',
-		'gemini'            => 'G',
-		'deepseek'          => 'DS',
-		'ollama'            => 'O',
-		'openai_compatible' => 'AI',
+	$provider = self::normalize_history_provider_id( $provider );
+	$labels   = array(
+		'wordpress_ai' => 'WP',
+		'ollama'       => 'O',
 	);
 
 	if ( isset( $labels[ $provider ] ) ) {
