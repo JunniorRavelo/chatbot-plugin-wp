@@ -27,7 +27,14 @@ Prefijo único del plugin: **`multch`** (PHP/hooks/opciones) y **`MULTCH_`** (co
 
 ## Compatibilidad legacy
 
-En actualización desde versiones con prefijo `chatbot_*`, `includes/class-migration.php` migra opciones, tablas y cron. Las constantes `CHATBOT_*` en `wp-config.php` siguen leyéndose como respaldo de `MULTCH_*`.
+En actualización desde versiones con prefijo `chatbot_*`, `includes/class-migration.php` migra de forma idempotente:
+
+- Opciones: `chatbot_plugin_*` → `multch_plugin_*`
+- Tablas: `{prefix}chatbot_*` → `{prefix}multch_*`
+- Cron: `chatbot_purge_*` → `multch_purge_*`
+- Transients: solo se purgan claves `_transient_chatbot_*` (nunca `multch_*`)
+
+La migración se repite hasta que no queden artefactos `chatbot_*` y entonces marca `multch_legacy_migration_done`. Las constantes `CHATBOT_*` en `wp-config.php` siguen leyéndose como respaldo de `MULTCH_*`.
 
 ## CSS del widget
 
