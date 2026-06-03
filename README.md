@@ -1,6 +1,6 @@
 # MultiAI ChatBot
 
-**Version 1.0.3** · WordPress plugin that adds an AI chat widget via the WordPress AI Client (Connectors), your own Google Gemini API key (**Google IA**), or Ollama, plus admin panel and usage telemetry.
+**Version 1.0.4** · WordPress plugin that adds an AI chat widget via the WordPress AI Client (Connectors), your own Google Gemini API key (**Google IA**), or Ollama, plus admin panel and usage telemetry.
 
 ## Naming conventions (namespace)
 

@@ -3,7 +3,7 @@
  * Plugin Name: MultiAI ChatBot
  * Plugin URI: https://github.com/JunniorRavelo/multiai-chatbot
  * Description: AI chat widget using WordPress Connectors, your own Google Gemini API (Google IA), or Ollama, with configurable styles and telemetry.
- * Version: 1.0.3
+ * Version: 1.0.4
  * Requires at least: 6.2
  * Requires PHP: 8.0
  * Author: J. Santiago Ravelo Velasco
@@ -21,7 +21,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'MULTCH_PLUGIN_VERSION', '1.0.3' );
+define( 'MULTCH_PLUGIN_VERSION', '1.0.4' );
 define( 'MULTCH_TEXT_DOMAIN', 'multiai-chatbot' );
 define( 'MULTCH_PLUGIN_FILE', __FILE__ );
 define( 'MULTCH_PLUGIN_PATH', plugin_dir_path( __FILE__ ) );
