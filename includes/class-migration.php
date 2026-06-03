@@ -59,26 +59,61 @@ class Multch_Migration {
 	}
 
 	private static function migrate_tables(): void {
+		self::rename_table_if_needed( 'events' );
+		self::rename_table_if_needed( 'conversations' );
+		self::rename_table_if_needed( 'messages' );
+	}
+
+	/**
+	 * Rename a legacy table when the canonical name does not exist yet.
+	 *
+	 * @param 'events'|'conversations'|'messages' $which Whitelisted legacy table key.
+	 */
+	private static function rename_table_if_needed( string $which ): void {
 		global $wpdb;
 
-		$renames = array(
-			$wpdb->prefix . 'multch_events'         => Multch_Telemetry::table_name(),
-			$wpdb->prefix . 'multch_conversations'  => Multch_Chat_History::conversations_table(),
-			$wpdb->prefix . 'multch_messages'       => Multch_Chat_History::messages_table(),
-		);
+		switch ( $which ) {
+			case 'events':
+				$legacy_table    = $wpdb->prefix . 'multch_events';
+				$canonical_table = Multch_Telemetry::table_name();
+				break;
+			case 'conversations':
+				$legacy_table    = $wpdb->prefix . 'multch_conversations';
+				$canonical_table = Multch_Chat_History::conversations_table();
+				break;
+			case 'messages':
+				$legacy_table    = $wpdb->prefix . 'multch_messages';
+				$canonical_table = Multch_Chat_History::messages_table();
+				break;
+			default:
+				return;
+		}
 
-		foreach ( $renames as $old => $new ) {
-			if ( $old === $new ) {
-				continue;
-			}
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange -- One-time rename; table names from fixed plugin suffixes.
-			$exists_old = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $old ) );
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
-			$exists_new = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $new ) );
-			if ( $exists_old === $old && $exists_new !== $new ) {
+		if ( $legacy_table === $canonical_table ) {
+			return;
+		}
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange -- One-time rename; table names from fixed plugin suffixes.
+		$exists_legacy = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $legacy_table ) );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
+		$exists_canonical = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $canonical_table ) );
+		if ( $exists_legacy !== $legacy_table || $exists_canonical === $canonical_table ) {
+			return;
+		}
+
+		switch ( $which ) {
+			case 'events':
 				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange -- One-time rename; table names from plugin helpers via %i.
-				$wpdb->query( $wpdb->prepare( 'RENAME TABLE %i TO %i', $old, $new ) );
-			}
+				$wpdb->query( $wpdb->prepare( 'RENAME TABLE %i TO %i', $wpdb->prefix . 'multch_events', Multch_Telemetry::table_name() ) );
+				break;
+			case 'conversations':
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange -- One-time rename; table names from plugin helpers via %i.
+				$wpdb->query( $wpdb->prepare( 'RENAME TABLE %i TO %i', $wpdb->prefix . 'multch_conversations', Multch_Chat_History::conversations_table() ) );
+				break;
+			case 'messages':
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange -- One-time rename; table names from plugin helpers via %i.
+				$wpdb->query( $wpdb->prepare( 'RENAME TABLE %i TO %i', $wpdb->prefix . 'multch_messages', Multch_Chat_History::messages_table() ) );
+				break;
 		}
 	}
 
