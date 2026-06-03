@@ -480,49 +480,301 @@
       margin-top: 0;
     }
 
-    /* Admin tabs */
-    .admin-tabs {
+    /* Admin showcase */
+    #admin {
+      background:
+        radial-gradient(ellipse 85% 60% at 50% -5%, rgba(37, 99, 235, 0.14), transparent 62%),
+        radial-gradient(ellipse 45% 35% at 95% 85%, rgba(124, 58, 237, 0.1), transparent),
+        var(--bg);
+    }
+
+    .admin-showcase {
+      position: relative;
+      max-width: 980px;
+      margin-inline: auto;
+      padding: 3px;
+      border-radius: calc(var(--radius) + 8px);
+      background: linear-gradient(135deg, rgba(37, 99, 235, 0.55), rgba(124, 58, 237, 0.42));
+      box-shadow:
+        0 28px 64px -32px rgba(37, 99, 235, 0.55),
+        0 16px 36px -20px rgba(124, 58, 237, 0.35);
+    }
+
+    .admin-showcase__meta {
       display: flex;
       flex-wrap: wrap;
-      gap: 0.5rem;
-      margin-bottom: 1.5rem;
+      justify-content: center;
+      gap: 0.5rem 0.65rem;
+      margin-bottom: 1rem;
     }
 
-    .admin-tab {
-      padding: 0.45rem 0.85rem;
-      border-radius: 0.5rem;
-      font-size: 0.85rem;
+    .admin-showcase__pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.35rem 0.75rem;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      color: var(--primary-dark);
+      background: rgba(255, 255, 255, 0.82);
+      border: 1px solid rgba(37, 99, 235, 0.18);
+      box-shadow: 0 6px 18px -12px rgba(37, 99, 235, 0.35);
+    }
+
+    .admin-showcase__pill-dot {
+      width: 0.45rem;
+      height: 0.45rem;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      flex-shrink: 0;
+    }
+
+    .admin-showcase__frame {
+      border: none;
+      border-radius: calc(var(--radius) + 5px);
+      background: var(--surface);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65);
+      overflow: hidden;
+    }
+
+    .admin-showcase__chrome {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 0.75rem 1.1rem;
+      background: linear-gradient(135deg, #1d4ed8 0%, #4338ca 52%, #6d28d9 100%);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    .admin-showcase__chrome-dots {
+      display: flex;
+      gap: 0.35rem;
+    }
+
+    .admin-showcase__chrome-dots span {
+      width: 0.55rem;
+      height: 0.55rem;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.28);
+    }
+
+    .admin-showcase__chrome-dots span:first-child { background: #fca5a5; }
+    .admin-showcase__chrome-dots span:nth-child(2) { background: #fde68a; }
+    .admin-showcase__chrome-dots span:nth-child(3) { background: #6ee7b7; }
+
+    .admin-showcase__chrome-title {
+      flex: 1;
+      text-align: center;
+      font-size: 0.82rem;
       font-weight: 600;
+      color: rgba(255, 255, 255, 0.94);
+      letter-spacing: 0.02em;
+    }
+
+    .admin-showcase__chrome-badge {
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      padding: 0.25rem 0.55rem;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.16);
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.22);
+    }
+
+    .admin-showcase__layout {
+      display: grid;
+      grid-template-columns: 232px 1fr;
+      min-height: 360px;
+    }
+
+    .admin-showcase__nav {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      padding: 0.9rem 0.7rem;
+      border-right: 1px solid var(--border);
+      background: linear-gradient(180deg, #f1f5f9 0%, #f8fafc 100%);
+    }
+
+    .admin-nav-item {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      width: 100%;
+      padding: 0.7rem 0.8rem 0.7rem 0.95rem;
+      border: 1px solid transparent;
+      border-radius: 0.7rem;
+      background: transparent;
+      color: var(--muted);
+      font: inherit;
+      font-size: 0.875rem;
+      font-weight: 600;
+      text-align: left;
+      cursor: pointer;
+      transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+    }
+
+    .admin-nav-item::before {
+      content: "";
+      position: absolute;
+      left: 0.35rem;
+      top: 0.45rem;
+      bottom: 0.45rem;
+      width: 3px;
+      border-radius: 999px;
+      background: linear-gradient(180deg, var(--primary), var(--accent));
+      opacity: 0;
+      transform: scaleY(0.4);
+      transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+
+    .admin-nav-item:hover {
+      color: var(--fg);
+      background: rgba(255, 255, 255, 0.85);
+      border-color: rgba(37, 99, 235, 0.14);
+    }
+
+    .admin-nav-item.is-active {
+      color: var(--primary-dark);
+      background: #fff;
+      border-color: rgba(37, 99, 235, 0.28);
+      box-shadow: 0 10px 26px -16px rgba(37, 99, 235, 0.55);
+      transform: translateX(2px);
+    }
+
+    .admin-nav-item.is-active::before {
+      opacity: 1;
+      transform: scaleY(1);
+    }
+
+    .admin-nav-item.is-active .admin-nav-item__icon {
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      color: #fff;
+      box-shadow: 0 8px 18px -10px rgba(37, 99, 235, 0.65);
+    }
+
+    .admin-nav-item__icon {
+      flex-shrink: 0;
+      width: 2.15rem;
+      height: 2.15rem;
+      border-radius: 0.55rem;
+      display: grid;
+      place-items: center;
+      background: rgba(37, 99, 235, 0.1);
+      color: var(--primary-dark);
+      transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .admin-nav-item__icon svg {
+      width: 1.05rem;
+      height: 1.05rem;
+    }
+
+    .admin-showcase__content {
+      padding: 1.5rem 1.65rem 1.65rem;
+      background:
+        radial-gradient(ellipse 75% 60% at 100% 0%, rgba(124, 58, 237, 0.09), transparent 58%),
+        radial-gradient(ellipse 65% 55% at 0% 100%, rgba(37, 99, 235, 0.08), transparent 58%),
+        linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+    }
+
+    .admin-panel {
+      animation: admin-panel-in 0.28s ease;
+    }
+
+    .admin-panel[hidden] {
+      display: none !important;
+    }
+
+    @keyframes admin-panel-in {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .admin-panel__head {
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .admin-panel__icon {
+      flex-shrink: 0;
+      width: 3.25rem;
+      height: 3.25rem;
+      border-radius: 0.95rem;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      color: #fff;
+      box-shadow: 0 14px 32px -14px rgba(37, 99, 235, 0.6);
+    }
+
+    .admin-panel__icon svg {
+      width: 1.4rem;
+      height: 1.4rem;
+    }
+
+    .admin-panel__title {
+      margin: 0 0 0.35rem;
+      font-size: 1.28rem;
+      letter-spacing: -0.02em;
+    }
+
+    .admin-panel__kicker {
+      margin: 0;
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--accent);
+    }
+
+    .admin-panel__desc {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.98rem;
+      line-height: 1.65;
+      max-width: 36rem;
+    }
+
+    .admin-panel__desc code {
+      font-size: 0.84em;
+      padding: 0.1rem 0.35rem;
+      border-radius: 0.35rem;
       background: rgba(37, 99, 235, 0.08);
       color: var(--primary-dark);
-      border: 1px solid transparent;
     }
 
-    .admin-desc {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1rem;
+    .admin-panel__highlights {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+      margin-top: 1.25rem;
+      padding: 0;
+      list-style: none;
     }
 
-    .admin-desc-item {
-      padding: 1rem 1.15rem;
-      border-radius: 0.75rem;
-      border: 1px solid var(--border);
-      background: var(--bg);
+    .admin-panel__highlights li {
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 0.4rem 0.72rem;
+      border-radius: 999px;
+      background: linear-gradient(135deg, rgba(37, 99, 235, 0.1), rgba(124, 58, 237, 0.08));
+      color: var(--primary-dark);
+      border: 1px solid rgba(37, 99, 235, 0.16);
     }
 
-    section:nth-child(even) .admin-desc-item {
-      background: var(--surface);
-    }
-
-    .admin-desc-item strong {
-      display: block;
-      margin-bottom: 0.25rem;
-    }
-
-    .admin-desc-item span {
-      font-size: 0.9rem;
-      color: var(--muted);
+    @media (prefers-reduced-motion: reduce) {
+      .admin-panel { animation: none; }
+      .admin-nav-item { transition: none; }
+      .admin-nav-item.is-active { transform: none; }
     }
 
     /* Code */
@@ -777,7 +1029,6 @@
       .grid-3,
       .providers-grid,
       .install-steps,
-      .admin-desc,
       .footer-grid,
       .support-grid {
         grid-template-columns: 1fr;
@@ -790,6 +1041,194 @@
       .hero { padding-top: 3rem; }
 
       .nav { display: none; }
+
+      /* Admin showcase — tablet / laptop narrow */
+      .admin-showcase {
+        max-width: none;
+      }
+
+      .admin-showcase__meta {
+        margin-bottom: 0.85rem;
+      }
+
+      .admin-showcase__layout {
+        grid-template-columns: 1fr;
+        min-height: 0;
+      }
+
+      .admin-showcase__nav {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 0.45rem;
+        padding: 0.75rem;
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+        background: linear-gradient(180deg, #eef2ff 0%, #f8fafc 100%);
+      }
+
+      .admin-nav-item {
+        width: 100%;
+        min-width: 0;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 0.4rem;
+        padding: 0.7rem 0.45rem;
+        font-size: 0.76rem;
+        line-height: 1.2;
+        white-space: normal;
+        text-align: center;
+        transform: none;
+      }
+
+      .admin-nav-item::before {
+        left: 0.45rem;
+        right: 0.45rem;
+        top: auto;
+        bottom: 0.3rem;
+        width: auto;
+        height: 3px;
+      }
+
+      .admin-nav-item.is-active {
+        transform: translateY(-2px);
+      }
+
+      .admin-nav-item__label {
+        min-width: 0;
+        overflow-wrap: anywhere;
+      }
+
+      .admin-showcase__content {
+        padding: 1.2rem 1rem 1.35rem;
+      }
+
+      .admin-panel__head {
+        align-items: center;
+      }
+    }
+
+    @media (max-width: 640px) {
+      /* Admin showcase — mobile */
+      .admin-showcase {
+        padding: 2px;
+        border-radius: calc(var(--radius) + 4px);
+        box-shadow:
+          0 20px 48px -28px rgba(37, 99, 235, 0.5),
+          0 10px 24px -16px rgba(124, 58, 237, 0.35);
+      }
+
+      .admin-showcase__meta {
+        gap: 0.4rem;
+        margin-bottom: 0.75rem;
+      }
+
+      .admin-showcase__pill {
+        font-size: 0.72rem;
+        padding: 0.3rem 0.6rem;
+      }
+
+      .admin-showcase__chrome {
+        gap: 0.5rem;
+        padding: 0.6rem 0.75rem;
+      }
+
+      .admin-showcase__chrome-dots {
+        display: none;
+      }
+
+      .admin-showcase__chrome-title {
+        font-size: 0.72rem;
+        text-align: left;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .admin-showcase__chrome-badge {
+        flex-shrink: 0;
+      }
+
+      .admin-showcase__nav {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.4rem;
+        padding: 0.65rem;
+      }
+
+      .admin-nav-item {
+        flex-direction: row;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 0.5rem;
+        padding: 0.62rem 0.55rem;
+        font-size: 0.72rem;
+        text-align: left;
+      }
+
+      .admin-nav-item::before {
+        left: 0.3rem;
+        top: 0.35rem;
+        bottom: 0.35rem;
+        right: auto;
+        width: 3px;
+        height: auto;
+      }
+
+      .admin-nav-item.is-active {
+        transform: none;
+        background: linear-gradient(135deg, rgba(37, 99, 235, 0.12), rgba(124, 58, 237, 0.1));
+      }
+
+      .admin-nav-item__icon {
+        width: 2.05rem;
+        height: 2.05rem;
+      }
+
+      .admin-nav-item__label {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        line-height: 1.15;
+      }
+
+      .admin-showcase__content {
+        padding: 1rem 0.85rem 1.15rem;
+      }
+
+      .admin-panel__head {
+        flex-direction: row;
+        align-items: center;
+        gap: 0.75rem;
+      }
+
+      .admin-panel__icon {
+        width: 2.75rem;
+        height: 2.75rem;
+      }
+
+      .admin-panel__icon svg {
+        width: 1.2rem;
+        height: 1.2rem;
+      }
+
+      .admin-panel__title {
+        font-size: 1.08rem;
+      }
+
+      .admin-panel__desc {
+        font-size: 0.9rem;
+      }
+
+      .admin-panel__highlights {
+        gap: 0.35rem;
+        margin-top: 1rem;
+      }
+
+      .admin-panel__highlights li {
+        font-size: 0.72rem;
+        padding: 0.32rem 0.58rem;
+      }
     }
 
     @media (max-width: 420px) {
@@ -797,6 +1236,15 @@
         grid-template-columns: 1fr;
         max-width: 220px;
         margin-inline: auto;
+      }
+
+      .admin-showcase__nav {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .admin-nav-item {
+        padding: 0.55rem 0.45rem;
+        font-size: 0.68rem;
       }
     }
   </style>
@@ -1073,39 +1521,171 @@
           <p data-i18n-html="admin.subtitle">Gestiona todo desde el menú <strong>MultiAI ChatBot</strong> en el escritorio de WordPress.</p>
         </div>
 
-        <div class="admin-tabs" data-i18n-aria="admin.tabsLabel" aria-label="Pestañas del administrador">
-          <span class="admin-tab" data-i18n="admin.tab.general">General</span>
-          <span class="admin-tab" data-i18n="admin.tab.model">Modelo de IA</span>
-          <span class="admin-tab" data-i18n="admin.tab.security">Seguridad</span>
-          <span class="admin-tab" data-i18n="admin.tab.style">Estilo del chat</span>
-          <span class="admin-tab" data-i18n="admin.tab.stats">Estadísticas</span>
-          <span class="admin-tab" data-i18n="admin.tab.history">Historial</span>
-        </div>
+        <div class="admin-showcase">
+          <div class="admin-showcase__meta">
+            <span class="admin-showcase__pill"><span class="admin-showcase__pill-dot"></span><span data-i18n="admin.pillTabs">6 pestañas integradas</span></span>
+            <span class="admin-showcase__pill"><span class="admin-showcase__pill-dot"></span><span data-i18n="admin.pillPreview">Vista previa en vivo</span></span>
+            <span class="admin-showcase__pill"><span class="admin-showcase__pill-dot"></span><span data-i18n="admin.pillSecure">Sin exponer claves API</span></span>
+          </div>
+          <div class="admin-showcase__frame">
+            <div class="admin-showcase__chrome">
+              <div class="admin-showcase__chrome-dots" aria-hidden="true">
+                <span></span><span></span><span></span>
+              </div>
+              <p class="admin-showcase__chrome-title" data-i18n="admin.chromeTitle">WordPress · MultiAI ChatBot</p>
+              <span class="admin-showcase__chrome-badge" data-i18n="admin.chromeBadge">Admin</span>
+            </div>
 
-        <div class="admin-desc">
-          <div class="admin-desc-item">
-            <strong data-i18n="admin.general.title">General</strong>
-            <span data-i18n="admin.general.desc">Widget global, mensaje de bienvenida, instrucciones del sistema, respuesta en streaming y guardar estadísticas e historial (desactivado por defecto).</span>
-          </div>
-          <div class="admin-desc-item">
-            <strong data-i18n="admin.model.title">Modelo de IA</strong>
-            <span data-i18n="admin.model.desc">Proveedor, modelos principal y de respaldo, clave Gemini (Google IA) y URL de Ollama.</span>
-          </div>
-          <div class="admin-desc-item">
-            <strong data-i18n="admin.security.title">Seguridad</strong>
-            <span data-i18n="admin.security.desc">Orígenes permitidos, caché, telemetría, límites por IP y suspensión por abuso.</span>
-          </div>
-          <div class="admin-desc-item">
-            <strong data-i18n="admin.style.title">Estilo del chat</strong>
-            <span data-i18n="admin.style.desc">Plantillas visuales, colores personalizados, posición del widget y vista previa interactiva.</span>
-          </div>
-          <div class="admin-desc-item">
-            <strong data-i18n="admin.stats.title">Estadísticas</strong>
-            <span data-i18n="admin.stats.desc">Totales, desglose por proveedor, latencia y exportación CSV.</span>
-          </div>
-          <div class="admin-desc-item">
-            <strong data-i18n="admin.history.title">Historial</strong>
-            <span data-i18n-html="admin.history.desc">Conversaciones con ID <code>CB-AAAA-MM-DD-HH-MM-SS</code>, filtros y detalle de mensajes.</span>
+            <div class="admin-showcase__layout">
+              <div class="admin-showcase__nav" role="tablist" data-i18n-aria="admin.tabsLabel" aria-label="Pestañas del administrador">
+                <button type="button" class="admin-nav-item is-active" role="tab" aria-selected="true" data-admin-tab="general">
+                  <span class="admin-nav-item__icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+                  </span>
+                  <span class="admin-nav-item__label" data-i18n="admin.tab.general">General</span>
+                </button>
+                <button type="button" class="admin-nav-item" role="tab" aria-selected="false" data-admin-tab="model">
+                  <span class="admin-nav-item__icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5a3 3 0 1 0-5.997.125 4 4 0 0 0-2.526 5.77 4 4 0 0 0 .556 6.588A4 4 0 1 0 12 18Z"/><path d="M12 5a3 3 0 1 1 5.997.125 4 4 0 0 1 2.526 5.77 4 4 0 0 1-.556 6.588A4 4 0 1 1 12 18Z"/><path d="M15 13a4.5 4.5 0 0 1-3-4 4.5 4.5 0 0 1-3 4"/><path d="M12 18v4"/></svg>
+                  </span>
+                  <span class="admin-nav-item__label" data-i18n="admin.tab.model">Modelo de IA</span>
+                </button>
+                <button type="button" class="admin-nav-item" role="tab" aria-selected="false" data-admin-tab="security">
+                  <span class="admin-nav-item__icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/></svg>
+                  </span>
+                  <span class="admin-nav-item__label" data-i18n="admin.tab.security">Seguridad</span>
+                </button>
+                <button type="button" class="admin-nav-item" role="tab" aria-selected="false" data-admin-tab="style">
+                  <span class="admin-nav-item__icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>
+                  </span>
+                  <span class="admin-nav-item__label" data-i18n="admin.tab.style">Estilo del chat</span>
+                </button>
+                <button type="button" class="admin-nav-item" role="tab" aria-selected="false" data-admin-tab="stats">
+                  <span class="admin-nav-item__icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+                  </span>
+                  <span class="admin-nav-item__label" data-i18n="admin.tab.stats">Estadísticas</span>
+                </button>
+                <button type="button" class="admin-nav-item" role="tab" aria-selected="false" data-admin-tab="history">
+                  <span class="admin-nav-item__icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>
+                  </span>
+                  <span class="admin-nav-item__label" data-i18n="admin.tab.history">Historial</span>
+                </button>
+              </div>
+
+              <div class="admin-showcase__content">
+                <article class="admin-panel" data-admin-panel="general" role="tabpanel">
+                  <div class="admin-panel__head">
+                    <div class="admin-panel__icon" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+                    </div>
+                    <div>
+                      <p class="admin-panel__kicker" data-i18n="admin.panelKicker">Configuración</p>
+                      <h3 class="admin-panel__title" data-i18n="admin.general.title">General</h3>
+                    </div>
+                  </div>
+                  <p class="admin-panel__desc" data-i18n="admin.general.desc">Widget global, mensaje de bienvenida, instrucciones del sistema, respuesta en streaming y guardar estadísticas e historial (desactivado por defecto).</p>
+                  <ul class="admin-panel__highlights">
+                    <li data-i18n="admin.general.h1">Widget global</li>
+                    <li data-i18n="admin.general.h2">Respuesta en streaming</li>
+                    <li data-i18n="admin.general.h3">Historial opcional</li>
+                  </ul>
+                </article>
+
+                <article class="admin-panel" data-admin-panel="model" role="tabpanel" hidden>
+                  <div class="admin-panel__head">
+                    <div class="admin-panel__icon" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5a3 3 0 1 0-5.997.125 4 4 0 0 0-2.526 5.77 4 4 0 0 0 .556 6.588A4 4 0 1 0 12 18Z"/><path d="M12 5a3 3 0 1 1 5.997.125 4 4 0 0 1 2.526 5.77 4 4 0 0 1-.556 6.588A4 4 0 1 1 12 18Z"/><path d="M15 13a4.5 4.5 0 0 1-3-4 4.5 4.5 0 0 1-3 4"/><path d="M12 18v4"/></svg>
+                    </div>
+                    <div>
+                      <p class="admin-panel__kicker" data-i18n="admin.panelKicker">Configuración</p>
+                      <h3 class="admin-panel__title" data-i18n="admin.model.title">Modelo de IA</h3>
+                    </div>
+                  </div>
+                  <p class="admin-panel__desc" data-i18n="admin.model.desc">Proveedor, modelos principal y de respaldo, clave Gemini (Google IA) y URL de Ollama.</p>
+                  <ul class="admin-panel__highlights">
+                    <li data-i18n="admin.model.h1">3 proveedores</li>
+                    <li data-i18n="admin.model.h2">Modelo de respaldo</li>
+                    <li data-i18n="admin.model.h3">Gemini · Ollama</li>
+                  </ul>
+                </article>
+
+                <article class="admin-panel" data-admin-panel="security" role="tabpanel" hidden>
+                  <div class="admin-panel__head">
+                    <div class="admin-panel__icon" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/></svg>
+                    </div>
+                    <div>
+                      <p class="admin-panel__kicker" data-i18n="admin.panelKicker">Configuración</p>
+                      <h3 class="admin-panel__title" data-i18n="admin.security.title">Seguridad</h3>
+                    </div>
+                  </div>
+                  <p class="admin-panel__desc" data-i18n="admin.security.desc">Orígenes permitidos, caché, telemetría, límites por IP y suspensión por abuso.</p>
+                  <ul class="admin-panel__highlights">
+                    <li data-i18n="admin.security.h1">Límite por IP</li>
+                    <li data-i18n="admin.security.h2">Orígenes permitidos</li>
+                    <li data-i18n="admin.security.h3">Suspensión por abuso</li>
+                  </ul>
+                </article>
+
+                <article class="admin-panel" data-admin-panel="style" role="tabpanel" hidden>
+                  <div class="admin-panel__head">
+                    <div class="admin-panel__icon" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>
+                    </div>
+                    <div>
+                      <p class="admin-panel__kicker" data-i18n="admin.panelKicker">Configuración</p>
+                      <h3 class="admin-panel__title" data-i18n="admin.style.title">Estilo del chat</h3>
+                    </div>
+                  </div>
+                  <p class="admin-panel__desc" data-i18n="admin.style.desc">Plantillas visuales, colores personalizados, posición del widget y vista previa interactiva.</p>
+                  <ul class="admin-panel__highlights">
+                    <li data-i18n="admin.style.h1">9 temas visuales</li>
+                    <li data-i18n="admin.style.h2">Colores personalizados</li>
+                    <li data-i18n="admin.style.h3">Vista previa en vivo</li>
+                  </ul>
+                </article>
+
+                <article class="admin-panel" data-admin-panel="stats" role="tabpanel" hidden>
+                  <div class="admin-panel__head">
+                    <div class="admin-panel__icon" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+                    </div>
+                    <div>
+                      <p class="admin-panel__kicker" data-i18n="admin.panelKicker">Configuración</p>
+                      <h3 class="admin-panel__title" data-i18n="admin.stats.title">Estadísticas</h3>
+                    </div>
+                  </div>
+                  <p class="admin-panel__desc" data-i18n="admin.stats.desc">Totales, desglose por proveedor, latencia y exportación CSV.</p>
+                  <ul class="admin-panel__highlights">
+                    <li data-i18n="admin.stats.h1">KPIs en tiempo real</li>
+                    <li data-i18n="admin.stats.h2">Desglose por proveedor</li>
+                    <li data-i18n="admin.stats.h3">Exportación CSV</li>
+                  </ul>
+                </article>
+
+                <article class="admin-panel" data-admin-panel="history" role="tabpanel" hidden>
+                  <div class="admin-panel__head">
+                    <div class="admin-panel__icon" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>
+                    </div>
+                    <div>
+                      <p class="admin-panel__kicker" data-i18n="admin.panelKicker">Configuración</p>
+                      <h3 class="admin-panel__title" data-i18n="admin.history.title">Historial</h3>
+                    </div>
+                  </div>
+                  <p class="admin-panel__desc" data-i18n-html="admin.history.desc">Conversaciones con ID <code>CB-AAAA-MM-DD-HH-MM-SS</code>, filtros y detalle de mensajes.</p>
+                  <ul class="admin-panel__highlights">
+                    <li data-i18n="admin.history.h1">ID de sesión</li>
+                    <li data-i18n="admin.history.h2">Filtros avanzados</li>
+                    <li data-i18n="admin.history.h3">Detalle de mensajes</li>
+                  </ul>
+                </article>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -1248,5 +1828,91 @@
 
   <script src="assets/js/i18n.js"></script>
   <script src="assets/js/hero-widget.js"></script>
+  <script>
+    (function () {
+      var section = document.getElementById("admin");
+      if (!section) return;
+
+      var tabs = section.querySelectorAll("[data-admin-tab]");
+      var panels = section.querySelectorAll("[data-admin-panel]");
+
+      function activateTab(tab) {
+        var id = tab.getAttribute("data-admin-tab");
+        tabs.forEach(function (item) {
+          var active = item === tab;
+          item.classList.toggle("is-active", active);
+          item.setAttribute("aria-selected", active ? "true" : "false");
+        });
+        panels.forEach(function (panel) {
+          panel.hidden = panel.getAttribute("data-admin-panel") !== id;
+        });
+      }
+
+      function getActiveIndex() {
+        for (var i = 0; i < tabs.length; i += 1) {
+          if (tabs[i].classList.contains("is-active")) return i;
+        }
+        return 0;
+      }
+
+      tabs.forEach(function (tab) {
+        tab.addEventListener("click", function () {
+          activateTab(tab);
+          pauseAutoRotate(12000);
+        });
+      });
+
+      var autoTimer = null;
+      var resumeTimer = null;
+      var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+      function advanceTab() {
+        var next = (getActiveIndex() + 1) % tabs.length;
+        activateTab(tabs[next]);
+      }
+
+      function startAutoRotate() {
+        if (reduceMotion || autoTimer) return;
+        autoTimer = window.setInterval(advanceTab, 5200);
+      }
+
+      function stopAutoRotate() {
+        if (autoTimer) {
+          window.clearInterval(autoTimer);
+          autoTimer = null;
+        }
+      }
+
+      function pauseAutoRotate(ms) {
+        stopAutoRotate();
+        if (resumeTimer) window.clearTimeout(resumeTimer);
+        resumeTimer = window.setTimeout(startAutoRotate, ms || 8000);
+      }
+
+      section.addEventListener("mouseenter", stopAutoRotate);
+      section.addEventListener("mouseleave", function () {
+        if (!reduceMotion) startAutoRotate();
+      });
+      section.addEventListener("focusin", stopAutoRotate);
+      section.addEventListener("focusout", function () {
+        pauseAutoRotate(6000);
+      });
+
+      if ("IntersectionObserver" in window && !reduceMotion) {
+        var observer = new IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (entry) {
+              if (entry.isIntersecting) startAutoRotate();
+              else stopAutoRotate();
+            });
+          },
+          { threshold: 0.35 }
+        );
+        observer.observe(section);
+      } else if (!reduceMotion) {
+        startAutoRotate();
+      }
+    })();
+  </script>
 </body>
 </html>
