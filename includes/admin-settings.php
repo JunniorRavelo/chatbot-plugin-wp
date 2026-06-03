@@ -34,7 +34,7 @@ class Multch_Admin_Settings {
 			'widget_enabled'                 => false,
 			'stats_history_enabled'          => false,
 			'welcome_message'                => "Hello. I'm an AI agent. I may make mistakes; please verify important information before making decisions.\n\nHow can I help you?",
-			'system_prompt'                  => 'You are a helpful website assistant. Respond clearly, briefly, and kindly. If you don\'t know something, say so honestly.',
+			'system_prompt'                  => self::default_system_prompt( false ),
 			'streaming_enabled'              => true,
 			'allowed_origins'                => '',
 			'cache_ttl_seconds'              => 1800,
@@ -171,6 +171,7 @@ class Multch_Admin_Settings {
 			Multch_Plugin::clear_settings_cache();
 		}
 
+		self::maybe_upgrade_legacy_system_prompt();
 		self::ensure_option_autoload_off();
 	}
 
@@ -217,6 +218,69 @@ class Multch_Admin_Settings {
 	 * @param array<string, mixed> $out
 	 */
 	/**
+	 * Public site URL used in the default system prompt (no trailing slash).
+	 */
+	public static function site_url_for_prompt(): string {
+		return untrailingslashit( home_url() );
+	}
+
+	/**
+	 * Default system instructions (English template or localized for admin UI).
+	 */
+	public static function default_system_prompt( bool $localized = false ): string {
+		$site = self::site_url_for_prompt();
+
+		if ( $localized ) {
+			$template = __(
+				"You are the on-site AI assistant for %1\$s.\n\nSITE: You serve ONLY visitors of this website. Your scope is pages, content, products, services, policies, and information published on %1\$s.\n\nRULES:\n- Answer ONLY questions related to this website. Do not help with other sites, unrelated general knowledge, external projects, news, or competitors unless directly relevant to using %1\$s.\n- Ground answers in what could reasonably appear on this site. Do not invent products, prices, policies, contact details, or promises.\n- If a question is outside this site's scope, decline politely and offer help with something on %1\$s (navigation, features, contact, FAQs).\n- If you lack enough information, say so honestly and suggest checking the relevant page or contacting the site team using channels listed on the site.\n- Be clear, concise, and friendly. Reply in the visitor's language when you can.\n- Do not claim live browsing, real-time access outside this chat, or access to private visitor data.\n- Do not give legal, medical, or financial advice beyond what the site itself states.\n\nSAFETY: Avoid harmful, illegal, or abusive content. Do not request or expose secrets, passwords, or personal data beyond what a public site assistant should handle.",
+				'multiai-chatbot'
+			);
+		} else {
+			$template = "You are the on-site AI assistant for %1\$s.\n\nSITE: You serve ONLY visitors of this website. Your scope is pages, content, products, services, policies, and information published on %1\$s.\n\nRULES:\n- Answer ONLY questions related to this website. Do not help with other sites, unrelated general knowledge, external projects, news, or competitors unless directly relevant to using %1\$s.\n- Ground answers in what could reasonably appear on this site. Do not invent products, prices, policies, contact details, or promises.\n- If a question is outside this site's scope, decline politely and offer help with something on %1\$s (navigation, features, contact, FAQs).\n- If you lack enough information, say so honestly and suggest checking the relevant page or contacting the site team using channels listed on the site.\n- Be clear, concise, and friendly. Reply in the visitor's language when you can.\n- Do not claim live browsing, real-time access outside this chat, or access to private visitor data.\n- Do not give legal, medical, or financial advice beyond what the site itself states.\n\nSAFETY: Avoid harmful, illegal, or abusive content. Do not request or expose secrets, passwords, or personal data beyond what a public site assistant should handle.";
+		}
+
+		return sprintf( $template, $site );
+	}
+
+	/**
+	 * Previous default system prompts (English canonical and common translations).
+	 *
+	 * @return list<string>
+	 */
+	private static function legacy_system_prompt_values(): array {
+		return array(
+			'You are a helpful website assistant. Respond clearly, briefly, and kindly. If you don\'t know something, say so honestly.',
+			'Eres un asistente web útil. Responde con claridad, brevedad y amabilidad. Si no sabes algo, dilo con honestidad.',
+			'You are a helpful website assistant. Respond clearly and briefly.',
+			'Eres un asistente web útil. Responde con claridad y brevedad.',
+		);
+	}
+
+	/**
+	 * One-time upgrade: replace legacy generic defaults with site-scoped instructions.
+	 */
+	public static function maybe_upgrade_legacy_system_prompt(): void {
+		if ( '1' === get_option( 'multch_system_prompt_site_scope_v1', '' ) ) {
+			return;
+		}
+
+		$stored = get_option( self::OPTION_KEY, false );
+		if ( ! is_array( $stored ) ) {
+			update_option( 'multch_system_prompt_site_scope_v1', '1', false );
+			return;
+		}
+
+		$current = isset( $stored['system_prompt'] ) ? (string) $stored['system_prompt'] : '';
+		if ( in_array( $current, self::legacy_system_prompt_values(), true ) ) {
+			$stored['system_prompt'] = self::default_system_prompt( false );
+			update_option( self::OPTION_KEY, $stored, false );
+			Multch_Plugin::clear_settings_cache();
+		}
+
+		update_option( 'multch_system_prompt_site_scope_v1', '1', false );
+	}
+
+	/**
 	 * @return array<string, int>
 	 */
 	public static function general_field_limits(): array {
@@ -242,10 +306,7 @@ class Multch_Admin_Settings {
 				"Hello. I'm an AI agent. I may make mistakes; please verify important information before making decisions.\n\nHow can I help you?",
 				'multiai-chatbot'
 			),
-			'system_prompt'   => __(
-				'You are a helpful website assistant. Respond clearly, briefly, and kindly. If you don\'t know something, say so honestly.',
-				'multiai-chatbot'
-			),
+			'system_prompt'   => self::default_system_prompt( true ),
 		);
 	}
 
@@ -1915,7 +1976,7 @@ class Multch_Admin_Settings {
 
 		self::card_open(
 			__( 'AI behavior', 'multiai-chatbot' ),
-			__( 'Instructions sent to the model with every request. Visitors do not see this text.', 'multiai-chatbot' )
+			__( 'System instructions for the AI, scoped to this website. Sent with every request; visitors do not see this text.', 'multiai-chatbot' )
 		);
 		?>
 		<table class="form-table" role="presentation">
@@ -1933,7 +1994,7 @@ class Multch_Admin_Settings {
 					><?php echo esc_textarea( $display_prompt ); ?></textarea>
 					<p class="multch-admin-char-count" data-char-for="multch-system-prompt" aria-live="polite"></p>
 					<p class="description">
-						<?php esc_html_e( 'Defines tone, scope, and safety. Not shown in the chat UI.', 'multiai-chatbot' ); ?>
+						<?php esc_html_e( 'Includes this site\'s URL and limits answers to this website only. Not shown in the chat UI.', 'multiai-chatbot' ); ?>
 						<a href="<?php echo esc_url( $model_url ); ?>"><?php esc_html_e( 'Model and timeout settings', 'multiai-chatbot' ); ?></a>
 					</p>
 					<p class="multch-admin-field-actions">

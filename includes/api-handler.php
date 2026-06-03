@@ -57,7 +57,7 @@ class Multch_Api_Handler {
 				'system_prompt',
 				(string) $settings['system_prompt']
 			)
-			: __( 'You are a helpful website assistant. Respond clearly and briefly.', 'multiai-chatbot' );
+			: Multch_Admin_Settings::default_system_prompt( true );
 
 		$messages     = self::build_messages( $parsed['message'], $parsed['history'] );
 		$conversation = self::resolve_history_conversation(
