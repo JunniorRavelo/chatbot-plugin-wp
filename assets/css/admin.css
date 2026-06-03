@@ -1498,22 +1498,9 @@ button.multch-donation-footer__chip {
 .multch-admin-stats-toolbar {
   display: flex;
   flex-wrap: wrap;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 1rem;
+  align-items: center;
+  gap: 0.75rem;
   margin-bottom: 1.25rem;
-}
-
-.multch-admin-stats-toolbar__intro {
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-}
-
-.multch-admin-stats-toolbar__intro p {
-  margin: 0;
-  font-size: 0.875rem;
-  color: var(--cb-admin-muted);
 }
 
 .multch-admin-stats-toolbar__link {

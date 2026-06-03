@@ -3466,12 +3466,6 @@ class Multch_Admin_Settings {
 		}
 		?>
 		<div class="multch-admin-stats-toolbar">
-			<div class="multch-admin-stats-toolbar__intro">
-				<p><?php esc_html_e( 'Chatbot usage telemetry on your site.', 'multiai-chatbot' ); ?></p>
-				<a class="multch-admin-stats-toolbar__link" href="<?php echo esc_url( self::build_history_url( array( 'days' => $days ) ) ); ?>">
-					<?php esc_html_e( 'View conversations for the period', 'multiai-chatbot' ); ?>
-				</a>
-			</div>
 			<div class="multch-admin-stats-toolbar__actions">
 				<div class="multch-admin-pills" role="group" aria-label="<?php esc_attr_e( 'Period', 'multiai-chatbot' ); ?>">
 					<?php foreach ( $periods as $p => $label ) : ?>
