@@ -12,3 +12,4 @@ languages/*.mo.bak
 *.csv
 .gitignore
 .env.example
+PENDIENTE-DOC-Y-VERSION.txt
